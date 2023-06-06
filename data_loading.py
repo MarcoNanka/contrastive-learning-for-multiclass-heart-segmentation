@@ -6,18 +6,20 @@ def load_data - loads images into one 4D pytorch tensor (512: width x 512: heigh
 n_of_slices_per_img: user input x total_number_of_slices/n_of_slices_per_img);
 """
 
-
+# standard library imports
 import os
 from typing import Union
+import glob
+import math
+# third party imports
 import numpy as np
 import torch
 import nibabel as nib
-import glob
-import math
-from config import parser, args
+# local application imports
+from config import args
 
 
-class MMWHSDataset():
+class MMWHSDataset:
     def __init__(
             self,
             raw_data_dir: str, subfolders: Union[tuple, list, str],
@@ -32,7 +34,7 @@ class MMWHSDataset():
         file_path_names = []
         for subfolder in self.subfolders:
             for idx, filename in enumerate(glob.glob(os.path.join(directory + subfolder, "*.nii*"))):
-                with open(filename, 'r') as f:
+                with open(filename, 'r'):
                     file_path_names.append(filename)
 
         img_data = np.array([])
