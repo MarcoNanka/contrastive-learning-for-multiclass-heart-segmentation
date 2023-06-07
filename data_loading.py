@@ -53,7 +53,7 @@ class MMWHSDataset:
             img_data: Normalized 3D MRI/CT scans
         """
 
-        def store_file_path_name(dire, subf):
+        def get_img_data(dire, subf):
             buf_file_path_names = []
             for idx, filename in enumerate(glob.glob(os.path.join(dire + subf, "*.nii*"))):
                 with open(filename, 'r'):
@@ -63,27 +63,25 @@ class MMWHSDataset:
             for index, path in enumerate(buf_file_path_names):
                 if nib.load(path).get_fdata().shape[-1] > max_num_of_slices:
                     max_num_of_slices = nib.load(path).get_fdata().shape[-1]
-            for i, path in enumerate(file_path_names):
+            # concatenate CT/MRI scans; do it maybe with np.stack OR PROB BETTER: np.concatenate
+            for i, path in enumerate(buf_file_path_names):
                 if i == 0:
-                    img_data = np.array(nib.load(path).get_fdata())
+                    ret_img_data = np.array(nib.load(path).get_fdata())
+                    ret_img_data.resize([ret_img_data.shape[0], ret_img_data.shape[1], max_num_of_slices])
                 else:
-                    img_data = np.append(img_data, np.array(nib.load(path).get_fdata()), 2)
-            return buf_file_path_names
+                    buf = np.array(nib.load(path).get_fdata())
+                    ret_img_data = np.append(ret_img_data, buf.resize([buf.shape[0],
+                                                                                buf.shape[1], max_num_of_slices]), 2)
+            return ret_img_data
 
         directory = self.raw_data_dir
         if isinstance(self.subfolders, tuple) or isinstance(self.subfolders, list):
             for subfolder in self.subfolders:
-                file_path_names = store_file_path_name(directory, subfolder)
+                img_data = get_img_data(directory, subfolder)
         elif isinstance(self.subfolders, str):
-            file_path_names = store_file_path_name(directory, self.subfolders)
+            img_data = get_img_data(directory, self.subfolders)
         else:
             raise ValueError("Subfolder variable must be of type list, tuple or string.")
-        img_data = np.array([])
-        # for i, path in enumerate(file_path_names):
-        #     if i == 0:
-        #         img_data = np.array(nib.load(path).get_fdata())
-        #     else:
-        #         img_data = np.append(img_data, np.array(nib.load(path).get_fdata()), 2)
         # print(f"img_data.shape: {img_data.shape}")
         # print(f"img_data[250:260, 0, 0]: {img_data[250:260, 0, 0]}")
         # print(f"index, value of max element in 1.D: {np.argmax(img_data[:, 0, 0])}, "
