@@ -2,7 +2,6 @@
 import os
 from typing import Union
 import glob
-import math
 # third party imports
 import numpy as np
 import torch
@@ -10,7 +9,9 @@ import nibabel as nib
 # local application imports
 
 
-# TODO: seperate data from labels by keeping relationship at the same time
+# TODO: separate data from labels by keeping relationship at the same time
+# TODO: change 3D tensor back to 4D tensor -> max_slices is standard, fill rest with nulls (same to be done for labels)
+# WARNING: MR scans in training set do not all have the same width/height (CT scans: all 512x512)
 
 class MMWHSDataset:
 
@@ -37,19 +38,19 @@ class MMWHSDataset:
         min_val_1p = np.percentile(image_data, min_val)
         max_val_99p = np.percentile(image_data, max_val)
         final_image_data = np.zeros((image_data.shape[0], image_data.shape[1],
-                                     image_data.shape[2]), dtype=np.float64)
+                                     image_data.shape[2], image_data.shape[3]), dtype=np.float64)
         # min-max norm on total 3D volume
         final_image_data = (image_data - min_val_1p) / (max_val_99p - min_val_1p)
         return final_image_data
 
     def load_data(self):
         """
-        # MRI and CT scans are loaded and stored into 4D torch tensor (width x height x
+        # MRI and CT scans are loaded and stored into 3D torch tensor (width x height x
         n_of_slices_per_image x math.ceil(n_of_slices / n_of_slices_per_img)).
         input params:
             n_of_slices_per_img: third dimension of tensor, determined by user
         returns:
-            img_data: Normalized 4D MRI/CT scans
+            img_data: Normalized 3D MRI/CT scans
         """
 
         def store_file_path_name(dire, subf):
@@ -57,25 +58,37 @@ class MMWHSDataset:
             for idx, filename in enumerate(glob.glob(os.path.join(dire + subf, "*.nii*"))):
                 with open(filename, 'r'):
                     buf_file_path_names.append(filename)
+            # find max number of slices
+            max_num_of_slices = nib.load(buf_file_path_names[0]).get_fdata().shape[-1]
+            for index, path in enumerate(buf_file_path_names):
+                if nib.load(path).get_fdata().shape[-1] > max_num_of_slices:
+                    max_num_of_slices = nib.load(path).get_fdata().shape[-1]
+            for i, path in enumerate(file_path_names):
+                if i == 0:
+                    img_data = np.array(nib.load(path).get_fdata())
+                else:
+                    img_data = np.append(img_data, np.array(nib.load(path).get_fdata()), 2)
             return buf_file_path_names
 
         directory = self.raw_data_dir
         if isinstance(self.subfolders, tuple) or isinstance(self.subfolders, list):
             for subfolder in self.subfolders:
                 file_path_names = store_file_path_name(directory, subfolder)
-        else:
+        elif isinstance(self.subfolders, str):
             file_path_names = store_file_path_name(directory, self.subfolders)
+        else:
+            raise ValueError("Subfolder variable must be of type list, tuple or string.")
         img_data = np.array([])
-        for i, path in enumerate(file_path_names):
-            if i == 0:
-                img_data = np.array(nib.load(path).get_fdata())
-            else:
-                img_data = np.append(img_data, np.array(nib.load(path).get_fdata()), 2)
-        print(f"img_data.shape: {img_data.shape}")
-        print(f"img_data[250:260, 0, 0]: {img_data[250:260, 0, 0]}")
-        print(f"index, value of max element in 1.D: {np.argmax(img_data[:, 0, 0])}, "
-              f"{np.max(img_data[:, 0, 0])}, "
-              f"min/max value of array: {np.min(img_data), np.max(img_data)}")
+        # for i, path in enumerate(file_path_names):
+        #     if i == 0:
+        #         img_data = np.array(nib.load(path).get_fdata())
+        #     else:
+        #         img_data = np.append(img_data, np.array(nib.load(path).get_fdata()), 2)
+        # print(f"img_data.shape: {img_data.shape}")
+        # print(f"img_data[250:260, 0, 0]: {img_data[250:260, 0, 0]}")
+        # print(f"index, value of max element in 1.D: {np.argmax(img_data[:, 0, 0])}, "
+        #       f"{np.max(img_data[:, 0, 0])}, "
+        #       f"min/max value of array: {np.min(img_data), np.max(img_data)}")
         img_data = self.normalize_minmax_data(torch.from_numpy(img_data), 0, 100)
         return img_data
 
@@ -83,6 +96,5 @@ class MMWHSDataset:
 if __name__ == "__main__":
     main_dir = "/Users/marconanka/BioMedia/data/even more reduced MM-WHS 2017 Dataset/"
     dataset = MMWHSDataset(main_dir, "ct_test")
-    print(f"dataset.data.shape: {dataset.data.shape}")
-    print(f"dataset.data[250:260, 0, 0]: {dataset.data[250:260, 0, 0]}")
-
+    # print(f"dataset.data.shape: {dataset.data.shape}")
+    # print(f"dataset.data[250:260, 0, 0]: {dataset.data[250:260, 0, 0]}")
