@@ -6,10 +6,13 @@ import glob
 import numpy as np
 import torch
 import nibabel as nib
+
+
 # local application imports
 
 
 # WARNING: MR scans in training set do not all have the same width/height (CT scans: all 512x512)
+# TODO: Normalize label tensor such that we have classes 0, 1, 2, ...
 
 class MMWHSDataset:
 
@@ -21,7 +24,7 @@ class MMWHSDataset:
         self.subfolders = subfolders
         self.data = self.load_data()
 
-    def normalize_minmax_data(self, image_data, min_val=1, max_val=99):
+    def normalize_minmax_data(self, image_data, min_val=1, max_val=99, is_label=False):
         """
         # 3D MRI scan is normalized to range between 0 and 1 using min-max normalization.
         Here, the minimum and maximum values are used as 1st and 99th percentiles respectively from the 3D MRI scan.
@@ -33,12 +36,12 @@ class MMWHSDataset:
         returns:
             final_image_data : Normalized 3D MRI scan obtained via min-max normalization.
         """
-        min_val_1p = np.percentile(image_data, min_val)
-        max_val_99p = np.percentile(image_data, max_val)
+        min_val_low_p = np.percentile(image_data, min_val)
+        max_val_high_p = np.percentile(image_data, max_val)
         final_image_data = np.zeros((image_data.shape[0], image_data.shape[1],
                                      image_data.shape[2], image_data.shape[3]), dtype=np.float64)
         # min-max norm on total 3D volume
-        final_image_data = (image_data - min_val_1p) / (max_val_99p - min_val_1p)
+        final_image_data = (image_data - min_val_low_p) / (max_val_high_p - min_val_low_p)
         return final_image_data
 
     def load_data(self):
@@ -80,7 +83,7 @@ class MMWHSDataset:
             # Create arrays which contain the training data (images tensor + corresponding labels tensor)
             ret_imgs = create_training_data_array(image_path_names, max_num_of_slices)
             ret_labels = create_training_data_array(label_path_names, max_num_of_slices)
-            return ret_imgs,  ret_labels
+            return ret_imgs, ret_labels
 
         directory = self.raw_data_dir
         if isinstance(self.subfolders, tuple) or isinstance(self.subfolders, list):
@@ -90,19 +93,14 @@ class MMWHSDataset:
             img_data, label_data = get_training_data(directory, self.subfolders)
         else:
             raise ValueError("Subfolder variable must be of type list, tuple or string.")
-        # print(f"img_data.shape: {img_data.shape}")
-        # print(f"img_data[250:260, 0, 0]: {img_data[250:260, 0, 0]}")
-        # print(f"index, value of max element in 1.D: {np.argmax(img_data[:, 0, 0])}, "
-        #       f"{np.max(img_data[:, 0, 0])}, "
-        #       f"min/max value of array: {np.min(img_data), np.max(img_data)}")
         img_data = self.normalize_minmax_data(torch.from_numpy(img_data), 0, 100)
-        label_data = self.normalize_minmax_data(torch.from_numpy(label_data), 0, 100)
+        label_data = self.normalize_minmax_data(torch.from_numpy(label_data), 0, 100, is_label=True)
         return img_data, label_data
 
 
 if __name__ == "__main__":
     main_dir = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/"
     dataset = MMWHSDataset(main_dir, "ct_train")
-    print(f"image data: {dataset.data[0].shape}")
-    print(f"labels: {dataset.data[1].shape}")
-    # print(f"dataset.data[250:260, 0, 0]: {dataset.data[250:260, 0, 0]}")
+    # print(f"image data: {dataset.data[0].shape}")
+    # print(f"labels: {dataset.data[1].shape}")
+    print(f"unique labels: {np.unique(dataset.data[1])}")
