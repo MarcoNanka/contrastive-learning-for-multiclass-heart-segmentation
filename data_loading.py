@@ -12,7 +12,6 @@ import nibabel as nib
 
 
 # WARNING: MR scans in training set do not all have the same width/height (CT scans: all 512x512)
-# TODO: Normalize label tensor such that we have classes 0, 1, 2, ...
 
 class MMWHSDataset:
 
@@ -24,7 +23,7 @@ class MMWHSDataset:
         self.subfolders = subfolders
         self.data = self.load_data()
 
-    def normalize_minmax_data(self, image_data, min_val=1, max_val=99, is_label=False):
+    def normalize_minmax_data(self, raw_data, min_val=1, max_val=99, is_label=False):
         """
         # 3D MRI scan is normalized to range between 0 and 1 using min-max normalization.
         Here, the minimum and maximum values are used as 1st and 99th percentiles respectively from the 3D MRI scan.
@@ -36,13 +35,19 @@ class MMWHSDataset:
         returns:
             final_image_data : Normalized 3D MRI scan obtained via min-max normalization.
         """
-        min_val_low_p = np.percentile(image_data, min_val)
-        max_val_high_p = np.percentile(image_data, max_val)
-        final_image_data = np.zeros((image_data.shape[0], image_data.shape[1],
-                                     image_data.shape[2], image_data.shape[3]), dtype=np.float64)
-        # min-max norm on total 3D volume
-        final_image_data = (image_data - min_val_low_p) / (max_val_high_p - min_val_low_p)
-        return final_image_data
+        if is_label:
+            label_values = np.sort(np.unique(raw_data))
+            for ind, val in enumerate(label_values):
+                raw_data[raw_data == val] = ind
+            normalized_data = raw_data
+        elif not is_label:
+            min_val_low_p = np.percentile(raw_data, min_val)
+            max_val_high_p = np.percentile(raw_data, max_val)
+            normalized_data = np.zeros((raw_data.shape[0], raw_data.shape[1],
+                                        raw_data.shape[2], raw_data.shape[3]), dtype=np.float64)
+            # min-max norm on total 3D volume
+            normalized_data = (raw_data - min_val_low_p) / (max_val_high_p - min_val_low_p)
+        return normalized_data
 
     def load_data(self):
         """
@@ -103,4 +108,6 @@ if __name__ == "__main__":
     dataset = MMWHSDataset(main_dir, "ct_train")
     # print(f"image data: {dataset.data[0].shape}")
     # print(f"labels: {dataset.data[1].shape}")
-    print(f"unique labels: {np.unique(dataset.data[1])}")
+    # print(f"example image data: {dataset.data[0][0:2, 0:2, 300, 0]}")
+    # print(f"corresponding labels: {dataset.data[1][0:2, 0:2, 300, 0]}")
+    # print(f"unique labels: {np.unique(dataset.data[1])}")
