@@ -106,8 +106,8 @@ class MMWHSDataset:
 if __name__ == "__main__":
     main_dir = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/"
     dataset = MMWHSDataset(main_dir, "ct_train")
-    # print(f"image data: {dataset.data[0].shape}")
-    # print(f"labels: {dataset.data[1].shape}")
-    # print(f"example image data: {dataset.data[0][0:2, 0:2, 300, 0]}")
-    # print(f"corresponding labels: {dataset.data[1][0:2, 0:2, 300, 0]}")
-    # print(f"unique labels: {np.unique(dataset.data[1])}")
+    print(f"image data: {dataset.data[0].shape}")
+    print(f"labels: {dataset.data[1].shape}")
+    print(f"example image data: {dataset.data[0][200:202, 200:202, 300, 0]}")
+    print(f"corresponding labels: {dataset.data[1][200:202, 200:202, 300, 0]}")
+    print(f"unique labels: {np.unique(dataset.data[1])}")
