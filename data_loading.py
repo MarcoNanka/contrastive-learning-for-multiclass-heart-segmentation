@@ -58,17 +58,17 @@ class MMWHSDataset:
             ret_img_tensor: Normalized 4D MRI/CT scans as pytorch tensor
         """
 
-        def create_training_data_array(path_list: list, third_dim: int):
+        def create_training_data_array(path_list: list, depth: int):
             for i, path in enumerate(path_list):
                 if i == 0:
                     ret_array = np.array(nib.load(path).get_fdata())
-                    ret_array.resize([ret_array.shape[0], ret_array.shape[1], third_dim])
-                    ret_array = ret_array[:, :, :, np.newaxis]
+                    ret_array.resize([ret_array.shape[0], ret_array.shape[1], depth])
+                    ret_array = np.expand_dims(ret_array, axis=0)
                 else:
                     buf = np.array(nib.load(path).get_fdata())
-                    buf.resize([buf.shape[0], buf.shape[1], third_dim])
-                    buf = buf[:, :, :, np.newaxis]
-                    ret_array = np.concatenate((ret_array, buf), 3)
+                    buf.resize([buf.shape[0], buf.shape[1], depth])
+                    buf = np.expand_dims(buf, axis=0)
+                    ret_array = np.concatenate((ret_array, buf), 0)
             return ret_array
 
         def get_training_data(dire, subf):
@@ -100,8 +100,9 @@ class MMWHSDataset:
             raise ValueError("Subfolder variable must be of type list, tuple or string.")
         img_data = self.normalize_minmax_data(img_data, 0, 100)
         label_data = self.normalize_minmax_data(label_data, 0, 100, is_label=True)
-        img_data = np.expand_dims(img_data, axis=0)
-        label_data = np.expand_dims(label_data, axis=0)
+        # Add dimension for number of channels: (samples, channels, width, height, depth)
+        img_data = np.expand_dims(img_data, axis=1)
+        label_data = np.expand_dims(label_data, axis=1)
         return torch.from_numpy(img_data), torch.from_numpy(label_data)
 
 
