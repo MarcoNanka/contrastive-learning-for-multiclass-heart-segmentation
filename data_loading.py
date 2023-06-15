@@ -19,6 +19,7 @@ class MMWHSDataset:
             self,
             raw_data_dir: str, subfolders: Union[tuple, list, str]
     ) -> None:
+        print("updated!!")
         self.raw_data_dir = raw_data_dir
         self.subfolders = subfolders
         self.data = self.load_data()
@@ -63,11 +64,13 @@ class MMWHSDataset:
                 if i == 0:
                     ret_array = np.array(nib.load(path).get_fdata())
                     ret_array.resize([ret_array.shape[0], ret_array.shape[1], depth])
+                    # ret array with shape (samples, width, height, depth)
                     ret_array = np.expand_dims(ret_array, axis=0)
                 else:
                     buf = np.array(nib.load(path).get_fdata())
                     buf.resize([buf.shape[0], buf.shape[1], depth])
                     buf = np.expand_dims(buf, axis=0)
+                    # ret_array with shape (i+1 samples, width, height, depth)
                     ret_array = np.concatenate((ret_array, buf), 0)
             return ret_array
 
@@ -111,6 +114,6 @@ if __name__ == "__main__":
     dataset = MMWHSDataset(main_dir, "ct_train")
     print(f"image data: {dataset.data[0].shape}")
     print(f"labels: {dataset.data[1].shape}")
-    print(f"example image data: {dataset.data[0][200:202, 200:202, 300, 0]}")
-    print(f"corresponding labels: {dataset.data[1][200:202, 200:202, 300, 0]}")
+    print(f"example image data: {dataset.data[0][0, 0, 200:202, 200:202, 300]}")
+    print(f"corresponding labels: {dataset.data[1][0, 0, 200:202, 200:202, 300]}")
     print(f"unique labels: {np.unique(dataset.data[1])}")
