@@ -19,7 +19,6 @@ class MMWHSDataset:
             self,
             raw_data_dir: str, subfolders: Union[tuple, list, str]
     ) -> None:
-        print("updated!!")
         self.raw_data_dir = raw_data_dir
         self.subfolders = subfolders
         self.data = self.load_data()
