@@ -98,9 +98,11 @@ class MMWHSDataset:
             img_data, label_data = get_training_data(directory, self.subfolders)
         else:
             raise ValueError("Subfolder variable must be of type list, tuple or string.")
-        img_data = self.normalize_minmax_data(torch.from_numpy(img_data), 0, 100)
-        label_data = self.normalize_minmax_data(torch.from_numpy(label_data), 0, 100, is_label=True)
-        return img_data, label_data
+        img_data = self.normalize_minmax_data(img_data, 0, 100)
+        label_data = self.normalize_minmax_data(label_data, 0, 100, is_label=True)
+        img_data = np.expand_dims(img_data, axis=0)
+        label_data = np.expand_dims(label_data, axis=0)
+        return torch.from_numpy(img_data), torch.from_numpy(label_data)
 
 
 if __name__ == "__main__":
