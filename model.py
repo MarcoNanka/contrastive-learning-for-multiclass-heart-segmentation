@@ -15,7 +15,7 @@ class BasicCNN(nn.Module):
             nn.ReLU(inplace=True),
             nn.MaxPool3d(kernel_size=2, stride=2)
         )
-        # TODO: understand why 32*8*8*8 for first parameter
+        self.features = self.features.to(torch.float32)
         self.classifier = nn.Linear(in_features=32 * 128 * 128 * 80, out_features=num_classes)
 
     def forward(self, x):

@@ -12,7 +12,7 @@ def train(model, num_epochs):
 
     # Train the model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model.to(device, dtype=torch.cuda.FloatTensor)
+    model.to(device)
 
     for epoch in range(num_epochs):
         for batch_x, batch_y in dataloader:
