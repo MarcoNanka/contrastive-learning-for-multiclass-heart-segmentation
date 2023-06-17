@@ -19,6 +19,7 @@ class BasicCNN(nn.Module):
         self.classifier = nn.Linear(in_features=32 * 128 * 128 * 80, out_features=num_classes)
 
     def forward(self, x):
+        torch.set_default_tensor_type(torch.cuda.FloatTensor)
         x = self.features(x)
         # changing shape of x to (batch_size, rest)
         x = torch.flatten(x, start_dim=1, end_dim=-1)
