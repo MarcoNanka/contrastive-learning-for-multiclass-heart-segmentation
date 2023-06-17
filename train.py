@@ -39,6 +39,6 @@ def train(model, num_epochs):
 main_dir = "/gdrive/MyDrive/bachelor's thesis code/data/reduced MM-WHS 2017 Dataset/"
 subfolder = "ct_train"
 dataset = MMWHSDataset(main_dir, subfolder)
-dataloader = DataLoader(dataset, batch_size=16, shuffle=True)
+dataloader = DataLoader(dataset, batch_size=2, shuffle=True)
 model = BasicCNN(num_classes=8)
 train(model=model, num_epochs=2)
