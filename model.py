@@ -8,14 +8,13 @@ class BasicCNN(nn.Module):
         self.features = nn.Sequential(
             # in_channels: number of channels, for CT/MRI = 1, RGB = 3; out_channels: how many filters to apply
             # both independent of image dimensions (width, height, depth)
-            nn.Conv3d(1, 16, kernel_size=3, stride=1, padding=1),
+            nn.Conv3d(1, 16, kernel_size=3, stride=1, padding=1).to(torch.float32),
             nn.ReLU(inplace=True),
             nn.MaxPool3d(kernel_size=2, stride=2),
-            nn.Conv3d(16, 32, kernel_size=3, stride=1, padding=1),
+            nn.Conv3d(16, 32, kernel_size=3, stride=1, padding=1).to(torch.float32),
             nn.ReLU(inplace=True),
             nn.MaxPool3d(kernel_size=2, stride=2)
         )
-        self.features = self.features.to(torch.float32)
         self.classifier = nn.Linear(in_features=32 * 128 * 128 * 80, out_features=num_classes)
 
     def forward(self, x):
