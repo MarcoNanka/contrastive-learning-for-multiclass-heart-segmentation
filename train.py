@@ -5,6 +5,11 @@ from model import BasicCNN
 from data_loading import MMWHSDataset
 
 
+def force_cudnn_initialization():
+    s = 32
+    dev = torch.device('cuda')
+    torch.nn.functional.conv2d(torch.zeros(s, s, s, s, device=dev), torch.zeros(s, s, s, s, device=dev))
+
 def train(model, num_epochs):
     # Define the loss function and optimizer
     criterion = nn.CrossEntropyLoss()
@@ -13,7 +18,7 @@ def train(model, num_epochs):
     # Train the model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device=device, dtype=torch.float32)
-
+    force_cudnn_initialization()
     for epoch in range(num_epochs):
         for batch_x, batch_y in dataloader:
             batch_x = batch_x.to(device=device, dtype=torch.float32)
