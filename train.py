@@ -2,15 +2,11 @@ import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
 from model import BasicCNN
+from data_loading import MMWHSDataset
 
-
-
-
-# Prepare the data
-x = ...  # Training data with shape (number_of_samples, number_of_channels=1, width=512, height=512, depth=323)
-y = ...  # Label data with shape (number_of_samples, number_of_channels=1, width=512, height=512, depth=323)
-
-dataset = CTScanDataset(x, y)
+main_dir = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/"
+subfolder = "ct_train"
+dataset = MMWHSDataset(main_dir, subfolder)
 dataloader = DataLoader(dataset, batch_size=16, shuffle=True)
 
 # Initialize the model
@@ -18,10 +14,10 @@ model = BasicCNN(num_classes=8)
 
 # Define the loss function and optimizer
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
 # Train the model
-num_epochs = 10
+num_epochs = 2
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
 

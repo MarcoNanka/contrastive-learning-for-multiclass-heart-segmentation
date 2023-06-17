@@ -6,6 +6,7 @@ import glob
 import numpy as np
 import torch
 import nibabel as nib
+from torch.utils.data import Dataset
 
 
 # local application imports
@@ -13,7 +14,7 @@ import nibabel as nib
 
 # WARNING: MR scans in training set do not all have the same width/height (CT scans: all 512x512)
 
-class MMWHSDataset:
+class MMWHSDataset(Dataset):
 
     def __init__(
             self,
@@ -116,7 +117,8 @@ class MMWHSDataset:
 
 if __name__ == "__main__":
     main_dir = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/"
-    dataset = MMWHSDataset(main_dir, "ct_train")
+    subfolder = "ct_train"
+    dataset = MMWHSDataset(main_dir, subfolder)
     print(f"image data: {dataset.x.shape}")
     print(f"labels: {dataset.y.shape}")
     print(f"example image data: {dataset.x[0, 0, 200:202, 200:202, 300]}")
