@@ -21,7 +21,13 @@ class MMWHSDataset:
     ) -> None:
         self.raw_data_dir = raw_data_dir
         self.subfolders = subfolders
-        self.data = self.load_data()
+        self.x, self.y = self.load_data()
+
+    def __len__(self):
+        return len(self.x)
+
+    def __getitem__(self, idx):
+        return self.x[idx], self.y[idx]
 
     def normalize_minmax_data(self, raw_data, min_val=1, max_val=99, is_label=False):
         """
@@ -111,8 +117,8 @@ class MMWHSDataset:
 if __name__ == "__main__":
     main_dir = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/"
     dataset = MMWHSDataset(main_dir, "ct_train")
-    print(f"image data: {dataset.data[0].shape}")
-    print(f"labels: {dataset.data[1].shape}")
-    print(f"example image data: {dataset.data[0][0, 0, 200:202, 200:202, 300]}")
-    print(f"corresponding labels: {dataset.data[1][0, 0, 200:202, 200:202, 300]}")
-    print(f"unique labels: {np.unique(dataset.data[1])}")
+    print(f"image data: {dataset.x.shape}")
+    print(f"labels: {dataset.y.shape}")
+    print(f"example image data: {dataset.x[0, 0, 200:202, 200:202, 300]}")
+    print(f"corresponding labels: {dataset.y[0, 0, 200:202, 200:202, 300]}")
+    print(f"unique labels: {np.unique(dataset.y)}")
