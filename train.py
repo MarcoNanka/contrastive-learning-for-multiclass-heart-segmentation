@@ -12,12 +12,12 @@ def train(model, num_epochs):
 
     # Train the model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model.to(device)
+    model.to(device=device, dtype=torch.float32)
 
     for epoch in range(num_epochs):
         for batch_x, batch_y in dataloader:
-            batch_x = batch_x.to(device)
-            batch_y = batch_y.to(device)
+            batch_x = batch_x.to(device=device, dtype=torch.float32)
+            batch_y = batch_y.to(device=device, dtype=torch.float32)
 
             optimizer.zero_grad()
             outputs = model(batch_x)
