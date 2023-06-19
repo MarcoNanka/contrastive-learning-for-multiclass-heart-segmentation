@@ -3,6 +3,7 @@ from torch import nn
 from torch.utils.data import Dataset, DataLoader
 from model import BasicCNN
 from data_loading import MMWHSDataset
+from sys import stdout
 
 
 def force_cudnn_initialization():
@@ -31,6 +32,7 @@ def train(model, num_epochs):
             optimizer.step()
 
         print(f'Epoch {epoch + 1}/{num_epochs}, Loss: {loss.item()}')
+        stdout.write(f'Epoch {epoch + 1}/{num_epochs}, Loss: {loss.item()}')
 
     # Save the trained model
     torch.save(model.state_dict(), 'trained_model.pth')
