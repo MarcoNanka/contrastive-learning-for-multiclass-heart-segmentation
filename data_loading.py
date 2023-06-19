@@ -31,6 +31,7 @@ class MMWHSDataset(Dataset):
         return self.x[idx], self.y[idx]
 
     def normalize_minmax_data(self, raw_data, min_val=1, max_val=99, is_label=False):
+        print("data will be normalized in a few seconds")
         """
         # 3D MRI scan is normalized to range between 0 and 1 using min-max normalization.
         Here, the minimum and maximum values are used as 1st and 99th percentiles respectively from the 3D MRI scan.
