@@ -3,14 +3,14 @@ from torch import nn
 from torch.utils.data import DataLoader
 from model import BasicCNN
 from data_loading import MMWHSDataset
-from sys import stdout
 
 
 class Trainer:
-    def __init__(self, model, dataset, num_epochs):
+    def __init__(self, model, dataset, num_epochs, batch_size=4):
         self.model = model
         self.dataset = dataset
         self.num_epochs = num_epochs
+        self.batch_size = batch_size
 
     def force_cudnn_initialization(self):
         s = 32
@@ -27,7 +27,7 @@ class Trainer:
         self.model.to(device=device, dtype=torch.float32)
         self.force_cudnn_initialization()
 
-        dataloader = DataLoader(self.dataset, batch_size=2, shuffle=True)
+        dataloader = DataLoader(self.dataset, self.batch_size, shuffle=True)
 
         for epoch in range(self.num_epochs):
             for batch_x, batch_y in dataloader:
@@ -41,7 +41,6 @@ class Trainer:
                 optimizer.step()
 
             print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item()}')
-            stdout.write(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item()}')
 
         # Save the trained model
         torch.save(self.model.state_dict(), 'trained_model.pth')
@@ -52,5 +51,5 @@ if __name__ == "__main__":
     subfolder = "ct_train"
     dataset = MMWHSDataset(main_dir, subfolder)
     model = BasicCNN(num_classes=8)
-    trainer = Trainer(model=model, dataset=dataset, num_epochs=2)
+    trainer = Trainer(model=model, dataset=dataset, num_epochs=2, batch_size=4)
     trainer.train()
