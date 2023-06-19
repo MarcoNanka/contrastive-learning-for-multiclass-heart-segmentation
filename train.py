@@ -35,10 +35,12 @@ class Trainer:
                 # batch_x = batch_x.to(device=device, dtype=torch.float32)
                 # batch_y = batch_y.to(device=device, dtype=torch.float32)
                 batch_x = batch_x.float()
-
+                print(f"batch_x.shape = {batch_x.shape}")
+                print(f"batch_y.shape = {batch_y.shape}")
                 optimizer.zero_grad()
                 outputs = self.model(batch_x)
-                loss = criterion(outputs['out'], batch_y)
+                print(f"outputs.shape = {outputs.shape}")
+                loss = criterion(outputs, batch_y)
                 loss.backward()
                 optimizer.step()
 

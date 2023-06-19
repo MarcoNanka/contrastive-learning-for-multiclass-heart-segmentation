@@ -16,7 +16,7 @@ class BasicCNN(nn.Module):
             nn.MaxPool3d(kernel_size=3, stride=2)
         )
         self.classifier = nn.Sequential(
-            nn.Linear(in_features=10571, out_features=32),
+            nn.Linear(in_features=169136, out_features=32),
             nn.ReLU(inplace=True),
             nn.Linear(in_features=32, out_features=num_classes)
         )
@@ -25,5 +25,4 @@ class BasicCNN(nn.Module):
         x = self.features(x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
-        out = {'out': x}
-        return out
+        return x
