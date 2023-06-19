@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from model import BasicCNN
+from model import UNet
 from data_loading import MMWHSDataset
 import time
 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     dataset = MMWHSDataset(main_dir, subfolder)
     print(f"time for dataset: {time.process_time() - start_dataset}")
     start_model = time.process_time()
-    model = BasicCNN(num_classes=8)
+    model = UNet(in_channels=1, num_classes=8)
     print(f"time for model: {time.process_time() - start_model}")
     start_train = time.process_time()
     trainer = Trainer(model=model, dataset=dataset, num_epochs=2, batch_size=4)
