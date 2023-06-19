@@ -18,7 +18,6 @@ class BasicCNN(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(in_features=256, out_features=num_classes)
         )
-        self.input_size = 0
 
     def calculate_num_features(self):
         with torch.no_grad():
