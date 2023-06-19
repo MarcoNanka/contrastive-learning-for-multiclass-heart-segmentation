@@ -10,7 +10,7 @@ from torch.utils.data import Dataset
 
 
 # local application imports
-
+# TODO: Save CT converted to pytorch tensor to local system and Google colab
 
 # WARNING: MR scans in training set do not all have the same width/height (CT scans: all 512x512)
 
