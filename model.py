@@ -1,3 +1,5 @@
+import math
+
 import torch
 from torch import nn
 
@@ -14,9 +16,9 @@ class BasicCNN(nn.Module):
             nn.MaxPool3d(kernel_size=3, stride=2)
         )
         self.classifier = nn.Sequential(
-            nn.Linear(in_features=2*169136, out_features=64),
+            nn.Linear(in_features=10571, out_features=32),
             nn.ReLU(inplace=True),
-            nn.Linear(in_features=64, out_features=num_classes)
+            nn.Linear(in_features=32, out_features=num_classes)
         )
 
     def forward(self, x):

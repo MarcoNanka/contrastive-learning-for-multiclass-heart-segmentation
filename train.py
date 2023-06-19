@@ -3,6 +3,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from model import BasicCNN
 from data_loading import MMWHSDataset
+import time
 
 
 class Trainer:
@@ -33,6 +34,7 @@ class Trainer:
             for batch_x, batch_y in dataloader:
                 # batch_x = batch_x.to(device=device, dtype=torch.float32)
                 # batch_y = batch_y.to(device=device, dtype=torch.float32)
+                batch_x = batch_x.float()
 
                 optimizer.zero_grad()
                 outputs = self.model(batch_x)
@@ -49,7 +51,13 @@ class Trainer:
 if __name__ == "__main__":
     main_dir = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/"
     subfolder = "ct_train"
+    start_dataset = time.process_time()
     dataset = MMWHSDataset(main_dir, subfolder)
+    print(f"time for dataset: {time.process_time() - start_dataset}")
+    start_model = time.process_time()
     model = BasicCNN(num_classes=8)
+    print(f"time for model: {time.process_time() - start_model}")
+    start_train = time.process_time()
     trainer = Trainer(model=model, dataset=dataset, num_epochs=2, batch_size=4)
     trainer.train()
+    print(f"time for training: {time.process_time() - start_train}")
