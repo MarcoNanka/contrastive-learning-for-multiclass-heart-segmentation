@@ -90,7 +90,8 @@ class MMWHSDataset(Dataset):
                 raise ValueError("Empty list! Check if folder path & subfolder is correct.")
             label_path_names = [i.replace('image', 'label') for i in image_path_names]
             # Determine third dimension of array for resizing by finding max. third dimension
-            max_num_of_slices = nib.load(image_path_names[0]).get_fdata().shape[-1]
+            # max_num_of_slices = nib.load(image_path_names[0]).get_fdata().shape[-1]
+            max_num_of_slices = 4
             for index, path in enumerate(image_path_names):
                 if nib.load(path).get_fdata().shape[-1] > max_num_of_slices:
                     max_num_of_slices = nib.load(path).get_fdata().shape[-1]

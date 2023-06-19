@@ -23,7 +23,7 @@ class Trainer:
         optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
 
         # Train the model
-        device = torch.device('cpu' if torch.cuda.is_available() else 'cpu')
+        device = torch.device('cpu' if torch.cuda.is_available() else 'cpu') # change first cpu back to cuda
         self.model.to(device=device, dtype=torch.float32)
         self.force_cudnn_initialization()
 

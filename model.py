@@ -6,17 +6,17 @@ class BasicCNN(nn.Module):
     def __init__(self, num_classes):
         super(BasicCNN, self).__init__()
         self.features = nn.Sequential(
-            nn.Conv3d(1, 8, kernel_size=3, stride=1, padding=1),
+            nn.Conv3d(1, 4, kernel_size=3, stride=2, padding=1),
             nn.ReLU(inplace=True),
             nn.MaxPool3d(kernel_size=3, stride=2),
-            nn.Conv3d(8, 16, kernel_size=3, stride=1, padding=1),
+            nn.Conv3d(4, 8, kernel_size=3, stride=2, padding=1),
             nn.ReLU(inplace=True),
             nn.MaxPool3d(kernel_size=3, stride=2)
         )
         self.classifier = nn.Sequential(
-            nn.Linear(in_features=2*23225760, out_features=256),
+            nn.Linear(in_features=2*23225760, out_features=64),
             nn.ReLU(inplace=True),
-            nn.Linear(in_features=256, out_features=num_classes)
+            nn.Linear(in_features=64, out_features=num_classes)
         )
 
     def forward(self, x):
