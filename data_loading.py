@@ -118,7 +118,11 @@ class MMWHSDataset(Dataset):
         img_data = self.normalize_minmax_data(img_data, 0, 100)
         label_data = self.normalize_minmax_data(label_data, 0, 100, is_label=True)
 
-        return torch.from_numpy(img_data), torch.from_numpy(label_data)
+        num_classes = 8
+        label_data_one_hot_encoding = np.eye(num_classes)[label_data.astype(int)]
+        label_data_one_hot_encoding_reshaped = np.transpose(np.squeeze(label_data_one_hot_encoding), (0, 4, 1, 2, 3))
+
+        return torch.from_numpy(img_data), torch.from_numpy(label_data_one_hot_encoding_reshaped)
 
 
 if __name__ == "__main__":
