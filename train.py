@@ -35,11 +35,8 @@ class Trainer:
                 # batch_x = batch_x.to(device=device, dtype=torch.float32)
                 # batch_y = batch_y.to(device=device, dtype=torch.float32)
                 batch_x = batch_x.float()
-                print(f"batch_x.shape = {batch_x.shape}")
-                print(f"batch_y.shape = {batch_y.shape}")
                 optimizer.zero_grad()
                 outputs = self.model(batch_x)
-                print(f"outputs.shape = {outputs.shape}")
                 loss = criterion(outputs, batch_y)
                 loss.backward()
                 optimizer.step()
@@ -54,6 +51,8 @@ if __name__ == "__main__":
     main_dir = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/"
     subfolder = "ct_train"
     patch_size = (24, 24, 24)
+    num_epochs = 10
+    batch_size = 8
     start_dataset = time.process_time()
     dataset = MMWHSDataset(raw_data_dir=main_dir, subfolders=subfolder, patch_size=patch_size)
     print(f"time for dataset: {time.process_time() - start_dataset}")
@@ -61,6 +60,6 @@ if __name__ == "__main__":
     model = UNet(in_channels=1, num_classes=8)
     print(f"time for model: {time.process_time() - start_model}")
     start_train = time.process_time()
-    trainer = Trainer(model=model, dataset=dataset, num_epochs=2, batch_size=4)
+    trainer = Trainer(model=model, dataset=dataset, num_epochs=num_epochs, batch_size=batch_size)
     trainer.train()
     print(f"time for training: {time.process_time() - start_train}")

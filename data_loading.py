@@ -127,11 +127,11 @@ class MMWHSDataset(Dataset):
 
 if __name__ == "__main__":
     main_dir = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/"
-    subfolder = "ct_train"
+    subfolder = "mr_train"
     patch_size = (24, 24, 24)
     dataset = MMWHSDataset(main_dir, subfolder, patch_size)
     print(f"image data: {dataset.x.shape}")
     print(f"labels: {dataset.y.shape}")
-    print(f"example image data: {dataset.x[0, 0, 2:4, 2:4, 2:4]}")
-    print(f"corresponding labels: {dataset.y[0, 0, 2:4, 2:4, 2:4]}")
+    print(f"example image data: {dataset.x[1, 0, 2:4, 2:4, 2:4]}")
+    print(f"corresponding labels: {dataset.y[1, :, 2:4, 2:4, 2:4]}")
     print(f"unique labels: {np.unique(dataset.y)}")
