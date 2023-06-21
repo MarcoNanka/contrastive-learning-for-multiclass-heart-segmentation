@@ -1,36 +1,60 @@
-# standard library imports
 import os
-from typing import Union
 import glob
-# third party imports
 import numpy as np
 import torch
 import nibabel as nib
 from torch.utils.data import Dataset
-
-
-# local application imports
-# TODO: Save CT converted to pytorch tensor to local system and Google colab
+from typing import Tuple
 
 
 class MMWHSDataset(Dataset):
+    """
+    Custom PyTorch Dataset for loading MM-WHS dataset.
+    """
 
-    def __init__(
-            self,
-            raw_data_dir: str, subfolders: Union[tuple, list, str], patch_size: tuple
-    ) -> None:
-        self.raw_data_dir = raw_data_dir
-        self.subfolders = subfolders
+    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int]) -> None:
+        """
+        Initialize the MMWHSDataset.
+
+        Args:
+            folder_path (str): The path to the folder containing the dataset.
+            patch_size (tuple): The size of the patches to extract from the data.
+        """
+        self.folder_path = folder_path
         self.patch_size = patch_size
         self.x, self.y = self.load_data()
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """
+        Get the number of samples in the dataset.
+
+        Returns:
+            int: The number of samples.
+        """
         return len(self.x)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> Tuple[np.ndarray, np.ndarray]:
+        """
+       Get a specific sample from the dataset.
+
+       Args:
+           idx (int): The index of the sample.
+
+       Returns:
+           tuple: The input and target data for the sample.
+       """
         return self.x[idx], self.y[idx]
 
-    def extract_patches(self, image_data):
+    def extract_patches(self, image_data: np.ndarray) -> np.ndarray:
+        """
+        Extract patches from the given image data.
+
+        Args:
+            image_data (np.ndarray): The input image data.
+
+        Returns:
+            np.ndarray: An array of extracted patches.
+        """
         patches = []
         dim_x, dim_y, dim_z = image_data.shape
         mod_x = dim_x % self.patch_size[0]
@@ -50,89 +74,97 @@ class MMWHSDataset(Dataset):
 
         return np.array(patches)
 
-    def normalize_minmax_data(self, raw_data, min_val=1, max_val=99, is_label=False):
+    def normalize_minmax_data(self, raw_data: np.ndarray, min_val: float = 1, max_val: float = 99) -> np.ndarray:
         """
-        # 3D MRI scan is normalized to range between 0 and 1 using min-max normalization.
-        Here, the minimum and maximum values are used as 1st and 99th percentiles respectively from the 3D MRI scan.
-        We expect the outliers to be away from the range of [0,1].
-        input params :
-            image_data : 3D MRI scan to be normalized using min-max normalization
-            min_val : minimum value percentile
-            max_val : maximum value percentile
-        returns:
-            final_image_data : Normalized 3D MRI scan obtained via min-max normalization.
+        Normalize the given raw data using min-max scaling.
+
+        Args:
+            raw_data (np.ndarray): The raw input data.
+            min_val (float): The minimum percentile for normalization (default: 1).
+            max_val (float): The maximum percentile for normalization (default: 99).
+
+        Returns:
+            np.ndarray: The normalized data.
         """
-        if is_label:
-            label_values = np.sort(np.unique(raw_data))
-            for ind, val in enumerate(label_values):
-                raw_data[raw_data == val] = ind
-            normalized_data = raw_data
-        elif not is_label:
-            min_val_low_p = np.percentile(raw_data, min_val)
-            max_val_high_p = np.percentile(raw_data, max_val)
-            normalized_data = (raw_data - min_val_low_p) / (max_val_high_p - min_val_low_p)
+        min_val_low_p = np.percentile(raw_data, min_val)
+        max_val_high_p = np.percentile(raw_data, max_val)
+        normalized_data = (raw_data - min_val_low_p) / (max_val_high_p - min_val_low_p)
         return normalized_data
 
-    def load_data(self):
+    def preprocess_label_data(self, raw_data: np.ndarray) -> np.ndarray:
         """
-        # MRI and CT scans are loaded and stored into 4D torch tensor (width x height x
-        slices x number of scans).
-        input params:
-        returns:
-            ret_img_tensor: Normalized 4D MRI/CT scans as pytorch tensor
+        Prepare the label data for training.
+
+        Args:
+            raw_data (np.ndarray): The raw label data.
+
+        Returns:
+            np.ndarray: The prepared label data.
         """
+        label_values = np.sort(np.unique(raw_data))
+        num_classes = 0
+        for ind, val in enumerate(label_values):
+            raw_data[raw_data == val] = ind
+            num_classes = num_classes + 1
 
-        def create_training_data_array(path_list: list):
-            ret_array = []
-            for path in path_list:
-                array = np.array(nib.load(path).get_fdata())
-                array = self.extract_patches(array)
-                ret_array.append(array)
+        raw_data = np.eye(num_classes)[raw_data.astype(int)]
+        raw_data = np.transpose(np.squeeze(raw_data), (0, 4, 1, 2, 3))
+        return raw_data
 
-            ret_array = np.concatenate(ret_array, axis=0)
-            return ret_array
+    def create_training_data_array(self, path_list: list) -> np.ndarray:
+        """
+        Create the training data array from the given list of paths.
 
-        def get_training_data(dire, subf):
-            # Create lists with image/label paths
-            image_path_names = []
-            for idx, filename in enumerate(glob.glob(os.path.join(dire + subf, "*image.nii*"))):
-                with open(filename, 'r'):
-                    image_path_names.append(filename)
-            if not image_path_names:
-                raise ValueError("Empty list! Check if folder path & subfolder is correct.")
-            label_path_names = [i.replace('image', 'label') for i in image_path_names]
+        Args:
+            path_list (list): The list of file paths.
 
-            # Create arrays which contain the training data (images tensor + corresponding labels tensor)
-            ret_imgs = create_training_data_array(image_path_names)
-            ret_labels = create_training_data_array(label_path_names)
-            return ret_imgs, ret_labels
+        Returns:
+            np.ndarray: The training data array.
+        """
+        ret_array = []
+        for path in path_list:
+            array = np.array(nib.load(path).get_fdata()).astype(np.float16)
+            array = self.extract_patches(array)
+            ret_array.append(array)
 
-        if isinstance(self.subfolders, tuple) or isinstance(self.subfolders, list):
-            for subfolder in self.subfolders:
-                img_data, label_data = get_training_data(self.raw_data_dir, subfolder)
-        elif isinstance(self.subfolders, str):
-            img_data, label_data = get_training_data(self.raw_data_dir, self.subfolders)
-        else:
-            raise ValueError("Subfolder variable must be of type list, tuple or string.")
+        ret_array = np.concatenate(ret_array, axis=0, dtype=np.float16)
+        return ret_array
 
-        img_data = self.normalize_minmax_data(img_data, 0, 100)
-        label_data = self.normalize_minmax_data(label_data, 0, 100, is_label=True)
+    def get_training_data_from_system(self) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Load the training data from the file system.
 
-        num_classes = 8
-        label_data_one_hot_encoding = np.eye(num_classes)[label_data.astype(int)]
-        label_data = []
-        label_data_one_hot_encoding = np.transpose(np.squeeze(label_data_one_hot_encoding), (0, 4, 1, 2, 3))
+        Returns:
+            tuple: The input and target training data.
+        """
+        image_path_names = glob.glob(os.path.join(self.folder_path, "*image.nii*"))
+        if not image_path_names:
+            raise ValueError("Empty list! Check if folder path contains images.")
+        label_path_names = [path.replace('image', 'label') for path in image_path_names]
 
-        return torch.from_numpy(img_data), torch.from_numpy(label_data_one_hot_encoding)
+        # Create arrays which contain the training data (images tensor + corresponding labels tensor)
+        ret_imgs = self.create_training_data_array(image_path_names)
+        ret_labels = self.create_training_data_array(label_path_names)
+        return ret_imgs, ret_labels
+
+    def load_data(self) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Load and preprocess the dataset.
+
+        Returns:
+            tuple: The preprocessed input and target data tensors.
+        """
+        img_data, label_data = self.get_training_data_from_system()
+        img_data = self.normalize_minmax_data(img_data, 0, 100).astype(np.float16)
+        label_data = self.preprocess_label_data(label_data).astype(np.intc)
+        return torch.from_numpy(img_data), torch.from_numpy(label_data)
 
 
 if __name__ == "__main__":
-    main_dir = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/"
-    subfolder = "mr_train"
+    folder_path = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/ct_train"
     patch_size = (24, 24, 24)
-    dataset = MMWHSDataset(main_dir, subfolder, patch_size)
+    dataset = MMWHSDataset(folder_path=folder_path, patch_size=patch_size)
     print(f"image data: {dataset.x.shape}")
     print(f"labels: {dataset.y.shape}")
-    print(f"example image data: {dataset.x[1, 0, 2:4, 2:4, 2:4]}")
-    print(f"corresponding labels: {dataset.y[1, :, 2:4, 2:4, 2:4]}")
-    print(f"unique labels: {np.unique(dataset.y)}")
+    print(f"example image data: {dataset.x[3, 0, 2:4, 2:4, 2:4]}")
+    print(f"corresponding labels: {dataset.y[3, :, 2:4, 2:4, 2:4]}")

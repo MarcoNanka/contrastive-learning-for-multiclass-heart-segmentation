@@ -48,13 +48,12 @@ class Trainer:
 
 
 if __name__ == "__main__":
-    main_dir = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/"
-    subfolder = "ct_train"
+    folder_path = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/ct_train"
     patch_size = (24, 24, 24)
+    dataset = MMWHSDataset(folder_path=folder_path, patch_size=patch_size)
     num_epochs = 10
     batch_size = 8
     start_dataset = time.process_time()
-    dataset = MMWHSDataset(raw_data_dir=main_dir, subfolders=subfolder, patch_size=patch_size)
     print(f"time for dataset: {time.process_time() - start_dataset}")
     start_model = time.process_time()
     model = UNet(in_channels=1, num_classes=8)
