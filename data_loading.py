@@ -101,15 +101,12 @@ class MMWHSDataset(Dataset):
         Returns:
             np.ndarray: The prepared label data.
         """
-        label_values = np.sort(np.unique(raw_data))
-        num_classes = 0
-        for ind, val in enumerate(label_values):
-            raw_data[raw_data == val] = ind
-            num_classes = num_classes + 1
-
-        raw_data = np.eye(num_classes)[raw_data.astype(int)]
-        raw_data = np.transpose(np.squeeze(raw_data), (0, 4, 1, 2, 3))
-        return raw_data
+        label_values = np.unique(raw_data)
+        label_mapping = {val: ind for ind, val in enumerate(label_values)}
+        mapped_data = np.vectorize(label_mapping.get)(raw_data)
+        processed_data = np.eye(label_values.size, dtype=int)[mapped_data]
+        processed_data = np.transpose(processed_data, (0, 4, 1, 2, 3))
+        return processed_data
 
     def create_training_data_array(self, path_list: list) -> np.ndarray:
         """
