@@ -21,7 +21,7 @@ class Trainer:
     def train(self):
         # Define the loss function and optimizer
         criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
 
         # Train the model
         # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

@@ -120,9 +120,10 @@ class MMWHSDataset(Dataset):
 
         num_classes = 8
         label_data_one_hot_encoding = np.eye(num_classes)[label_data.astype(int)]
-        label_data_one_hot_encoding_reshaped = np.transpose(np.squeeze(label_data_one_hot_encoding), (0, 4, 1, 2, 3))
+        label_data = []
+        label_data_one_hot_encoding = np.transpose(np.squeeze(label_data_one_hot_encoding), (0, 4, 1, 2, 3))
 
-        return torch.from_numpy(img_data), torch.from_numpy(label_data_one_hot_encoding_reshaped)
+        return torch.from_numpy(img_data), torch.from_numpy(label_data_one_hot_encoding)
 
 
 if __name__ == "__main__":
