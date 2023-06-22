@@ -113,7 +113,8 @@ class MMWHSDataset(Dataset):
             for c in range(raw_data.shape[2]):
                 for d in range(raw_data.shape[3]):
                     for e in range(raw_data.shape[4]):
-                        ret[a, raw_data[a, 0, c, d, e], c, d, e] = 1
+                        label = raw_data[a, 0, c, d, e].astype(int)
+                        ret[a, label, c, d, e] = 1
         return raw_data
 
     def create_training_data_array(self, path_list: list) -> np.ndarray:
