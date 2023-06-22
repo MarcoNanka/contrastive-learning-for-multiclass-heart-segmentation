@@ -106,7 +106,7 @@ class MMWHSDataset(Dataset):
         for ind, val in enumerate(label_values):
             raw_data[raw_data == val] = ind
 
-        # raw_data = np.eye(num_classes)[raw_data.astype(int)]
+        raw_data = np.eye(num_classes)[raw_data.astype(int)]
         raw_data = np.transpose(np.squeeze(raw_data), (0, 3, 1, 2))
         return raw_data
 
