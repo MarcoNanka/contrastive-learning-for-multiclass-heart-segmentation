@@ -108,9 +108,12 @@ class MMWHSDataset(Dataset):
 
         # raw_data = np.eye(num_classes)[raw_data.astype(int)]
         # raw_data = np.transpose(np.squeeze(raw_data), (0, 4, 1, 2, 3))
-        raw_data = np.zeros((raw_data.size, num_classes))
-        unique_values, indices = np.unique(raw_data, return_inverse=True)
-        raw_data[np.arange(raw_data.size), indices] = 1
+        ret = np.zeros([raw_data.shape[0], num_classes, raw_data.shape[2], raw_data.shape[3], raw_data.shape[4]])
+        for a in range(raw_data.shape[0]):
+            for c in range(raw_data.shape[2]):
+                for d in range(raw_data.shape[3]):
+                    for e in range(raw_data.shape[4]):
+                        ret[a, raw_data[a, 0, c, d, e], c, d, e] = 1
         return raw_data
 
     def create_training_data_array(self, path_list: list) -> np.ndarray:
