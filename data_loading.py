@@ -91,24 +91,24 @@ class MMWHSDataset(Dataset):
         normalized_data = (raw_data - min_val_low_p) / (max_val_high_p - min_val_low_p)
         return normalized_data
 
-    def preprocess_label_data(self, raw_data: np.ndarray) -> np.ndarray:
-        """
-        Prepare the label data for training.
-
-        Args:
-            raw_data (np.ndarray): The raw label data.
-
-        Returns:
-            np.ndarray: The prepared label data.
-        """
-        label_values = np.sort(np.unique(raw_data))
-        num_classes = len(label_values)
-        for ind, val in enumerate(label_values):
-            raw_data[raw_data == val] = ind
-
-        raw_data = np.eye(num_classes)[raw_data.astype(int)]
-        raw_data = np.transpose(np.squeeze(raw_data), (0, 4, 1, 2, 3))
-        return raw_data
+    # def preprocess_label_data(self, raw_data: np.ndarray) -> np.ndarray:
+    #     """
+    #     Prepare the label data for training.
+    #
+    #     Args:
+    #         raw_data (np.ndarray): The raw label data.
+    #
+    #     Returns:
+    #         np.ndarray: The prepared label data.
+    #     """
+    #     label_values = np.sort(np.unique(raw_data))
+    #     num_classes = len(label_values)
+    #     for ind, val in enumerate(label_values):
+    #         raw_data[raw_data == val] = ind
+    #
+    #     raw_data = np.eye(num_classes)[raw_data.astype(int)]
+    #     raw_data = np.transpose(np.squeeze(raw_data), (0, 4, 1, 2, 3))
+    #     return raw_data
 
     def create_training_data_array(self, path_list: list) -> np.ndarray:
         """
@@ -155,7 +155,7 @@ class MMWHSDataset(Dataset):
         """
         img_data, label_data = self.get_training_data_from_system()
         img_data = self.normalize_minmax_data(img_data, 0, 100).astype(np.float16)
-        label_data = self.preprocess_label_data(label_data).astype(np.intc)
+        # label_data = self.preprocess_label_data(label_data).astype(np.intc)
         return torch.from_numpy(img_data), torch.from_numpy(label_data)
 
 
