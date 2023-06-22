@@ -114,6 +114,7 @@ class MMWHSDataset(Dataset):
                 for d in range(raw_data.shape[3]):
                     for e in range(raw_data.shape[4]):
                         label = raw_data[a, 0, c, d, e].astype(int)
+                        print(label, type(label))
                         ret[a, label, c, d, e] = 1
         return raw_data
 
