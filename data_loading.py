@@ -107,7 +107,7 @@ class MMWHSDataset(Dataset):
             raw_data[raw_data == val] = ind
 
         raw_data = np.eye(num_classes)[raw_data.astype(int)]
-        raw_data = np.transpose(np.squeeze(raw_data), (0, 3, 1, 2))
+        raw_data = np.transpose(np.squeeze(raw_data), (0, 4, 1, 2, 3))
         return raw_data
 
     def create_training_data_array(self, path_list: list) -> np.ndarray:
