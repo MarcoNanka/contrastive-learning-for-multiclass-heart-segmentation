@@ -102,20 +102,14 @@ class MMWHSDataset(Dataset):
             np.ndarray: The prepared label data.
         """
         label_values = np.sort(np.unique(raw_data))
-        num_classes = len(label_values)
+        # num_classes = len(label_values)
         for ind, val in enumerate(label_values):
             raw_data[raw_data == val] = ind
 
+        raw_data = np.squeeze(raw_data)
+        #
         # raw_data = np.eye(num_classes)[raw_data.astype(int)]
         # raw_data = np.transpose(np.squeeze(raw_data), (0, 4, 1, 2, 3))
-        ret = np.zeros([raw_data.shape[0], num_classes, raw_data.shape[2], raw_data.shape[3], raw_data.shape[4]])
-        for a in range(raw_data.shape[0]):
-            for c in range(raw_data.shape[2]):
-                for d in range(raw_data.shape[3]):
-                    for e in range(raw_data.shape[4]):
-                        label = raw_data[a, 0, c, d, e].astype(int)
-                        print(label, type(label))
-                        ret[a, label, c, d, e] = 1
         return raw_data
 
     def create_training_data_array(self, path_list: list) -> np.ndarray:
@@ -130,11 +124,11 @@ class MMWHSDataset(Dataset):
         """
         ret_array = []
         for path in path_list:
-            array = np.array(nib.load(path).get_fdata()).astype(np.float16)
+            array = np.array(nib.load(path).get_fdata())
             array = self.extract_patches(array)
             ret_array.append(array)
 
-        ret_array = np.concatenate(ret_array, axis=0, dtype=np.float16)
+        ret_array = np.concatenate(ret_array, axis=0)
         return ret_array
 
     def get_training_data_from_system(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -160,8 +154,8 @@ class MMWHSDataset(Dataset):
             tuple: The preprocessed input and target data tensors.
         """
         img_data, label_data = self.get_training_data_from_system()
-        img_data = self.normalize_minmax_data(img_data, 0, 100).astype(np.float16)
-        label_data = self.preprocess_label_data(label_data).astype(np.intc)
+        img_data = self.normalize_minmax_data(img_data, 0, 100)
+        label_data = self.preprocess_label_data(label_data)
         return torch.from_numpy(img_data), torch.from_numpy(label_data)
 
 
