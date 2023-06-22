@@ -102,14 +102,10 @@ class MMWHSDataset(Dataset):
             np.ndarray: The prepared label data.
         """
         label_values = np.sort(np.unique(raw_data))
-        # num_classes = len(label_values)
         for ind, val in enumerate(label_values):
             raw_data[raw_data == val] = ind
 
         raw_data = np.squeeze(raw_data)
-        #
-        # raw_data = np.eye(num_classes)[raw_data.astype(int)]
-        # raw_data = np.transpose(np.squeeze(raw_data), (0, 4, 1, 2, 3))
         return raw_data
 
     def create_training_data_array(self, path_list: list) -> np.ndarray:
@@ -165,5 +161,5 @@ if __name__ == "__main__":
     dataset = MMWHSDataset(folder_path=folder_path, patch_size=patch_size)
     print(f"image data: {dataset.x.shape}")
     print(f"labels: {dataset.y.shape}")
-    print(f"example image data: {dataset.x[3, 0, 2:4, 2:4, 2:4]}")
-    print(f"corresponding labels: {dataset.y[3, :, 2:4, 2:4, 2:4]}")
+    print(f"Image data: {dataset.x[6180:6200, 0, 12, 12, 12]}")
+    print(f"corresponding labels: {dataset.y[6190:6200, 12, 12, 12]}")

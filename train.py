@@ -44,7 +44,6 @@ class Trainer:
 
             print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item()}')
 
-        # Save the trained model
         torch.save(self.model.state_dict(), 'trained_model.pth')
 
 
