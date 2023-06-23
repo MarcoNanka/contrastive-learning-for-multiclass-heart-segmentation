@@ -72,6 +72,7 @@ class Trainer:
         self.model.eval()
 
         val_dataloader = DataLoader(dataset=self.validation_dataset, batch_size=self.batch_size, shuffle=False)
+        print(f"len(val_dataloader) = {len(val_dataloader)}")
 
         val_criterion = nn.CrossEntropyLoss()
         total_loss = 0.0
@@ -87,12 +88,9 @@ class Trainer:
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
                 total_correct += ((predicted == val_batch_y)*1).sum().item()
-                print(f"((predicted == val_batch_y)*1).sum().item(): {((predicted == val_batch_y)*1).sum().item()}")
                 total_samples += val_batch_x.size(0)
-                print(f"val_batch_x.size: {val_batch_x.size}")
 
             average_loss = total_loss / len(val_dataloader)
-            print(f"len(val_dataloader) = {len(val_dataloader)}")
             accuracy = total_correct / total_samples
             print(f"total_correct, total_samples: {total_correct, total_samples}")
 
