@@ -84,7 +84,7 @@ class Trainer:
                 val_outputs = self.model(val_batch_x)
                 val_loss = criterion(input=val_outputs, target=val_batch_y)
                 total_loss += val_loss.item()
-                _, predicted = torch.max(val_outputs, dim=1
+                _, predicted = torch.max(val_outputs, dim=1)
 
 
 if __name__ == "__main__":
