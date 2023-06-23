@@ -14,28 +14,30 @@ class Trainer:
         self.batch_size = batch_size
         self.learning_rate = learning_rate
 
-    # def force_cudnn_initialization(self):
-    #     s = 32
-    #     dev = torch.device('cuda')
-    #     torch.nn.functional.conv2d(torch.zeros(s, s, s, s, device=dev), torch.zeros(s, s, s, s, device=dev))
+    def force_cudnn_initialization(self):
+        s = 32
+        dev = torch.device('cuda')
+        torch.nn.functional.conv2d(torch.zeros(s, s, s, s, device=dev), torch.zeros(s, s, s, s, device=dev))
 
     def train(self):
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.learning_rate)
 
-        # Train the model
-        # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        # self.model.to(device=device, dtype=torch.float32)
-        # self.force_cudnn_initialization()
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        print(device)
+        if device == 'cuda':
+            self.force_cudnn_initialization()
+            print("hi")
+        self.model.to(device=device, dtype=torch.float)
 
         dataloader = DataLoader(dataset=self.dataset, batch_size=self.batch_size, shuffle=True)
 
         for epoch in range(self.num_epochs):
             for batch_x, batch_y in dataloader:
-                # batch_x = batch_x.to(device=device, dtype=torch.float32)
-                # batch_y = batch_y.to(device=device, dtype=torch.float32)
-                batch_y = batch_y.long()
-                batch_x = batch_x.float()
+                batch_x = batch_x.to(device=device, dtype=torch.float)
+                batch_y = batch_y.to(device=device, dtype=torch.long)
+                # batch_y = batch_y.long()
+                # batch_x = batch_x.float()
                 optimizer.zero_grad()
                 outputs = self.model(batch_x)
                 loss = criterion(input=outputs, target=batch_y)
