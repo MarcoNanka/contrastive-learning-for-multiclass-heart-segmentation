@@ -95,7 +95,7 @@ class Trainer:
                 i = i+1
 
             average_loss = total_loss / len(val_dataloader)
-            accuracy = total_correct / torch.numel(dataset.y)
+            accuracy = total_correct / torch.numel(self.dataset.y)
             print(f"total_correct: {total_correct}")
 
             return average_loss, accuracy
