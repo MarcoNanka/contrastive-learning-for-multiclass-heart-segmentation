@@ -25,9 +25,6 @@ class Trainer:
 
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print(device)
-        if device == 'cuda':
-            self.force_cudnn_initialization()
-            print("hi")
         self.model.to(device=device, dtype=torch.float)
 
         dataloader = DataLoader(dataset=self.dataset, batch_size=self.batch_size, shuffle=True)
