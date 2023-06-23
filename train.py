@@ -88,7 +88,8 @@ class Trainer:
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
                 total_correct += torch.eq(predicted, val_batch_y).sum().item()
-                if i == 0:
+                if i >= 166:
+                    print("ATTENTION")
                     print(f"torch.eq(predicted, val_batch_y).sum().item(): "
                           f"{torch.eq(predicted, val_batch_y).sum().item()}")
                     print(f"predicted.shape: {predicted.shape}, val_batch_y.shape: {val_batch_y.shape}")
