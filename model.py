@@ -14,14 +14,14 @@ class UNet(nn.Module):
         super(UNet, self).__init__()
 
         # Contracting path: Increasing features, reducing spatial dimensions
-        self.conv1 = nn.Conv3d(in_channels=in_channels, out_channels=8, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv3d(in_channels=8, out_channels=16, kernel_size=3, padding=1)
+        self.conv1 = nn.Conv3d(in_channels=in_channels, out_channels=16, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv3d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
         self.pool1 = nn.MaxPool3d(kernel_size=2, stride=2)
 
         # Expanding path: Decreasing features, increasing spatial dimensions
-        self.upconv1 = nn.ConvTranspose3d(in_channels=16, out_channels=8, kernel_size=2, stride=2)
-        self.conv3 = nn.Conv3d(in_channels=16, out_channels=8, kernel_size=3, padding=1)
-        self.conv4 = nn.Conv3d(in_channels=8, out_channels=num_classes, kernel_size=1)
+        self.upconv1 = nn.ConvTranspose3d(in_channels=32, out_channels=16, kernel_size=2, stride=2)
+        self.conv3 = nn.Conv3d(in_channels=32, out_channels=16, kernel_size=3, padding=1)
+        self.conv4 = nn.Conv3d(in_channels=16, out_channels=num_classes, kernel_size=1)
 
         self.relu = nn.ReLU()
 

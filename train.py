@@ -7,7 +7,7 @@ import time
 
 
 class Trainer:
-    def __init__(self, model, dataset, num_epochs, batch_size=4, learning_rate=0.001):
+    def __init__(self, model, dataset, num_epochs, batch_size=4, learning_rate=0.001, validation_dataset=None, validation_interval=5):
         """
         Trainer class for training a model.
 
@@ -17,18 +17,22 @@ class Trainer:
             num_epochs (int): The number of training epochs.
             batch_size (int, optional): The batch size for training. Default is 4.
             learning_rate (float, optional): The learning rate for the optimizer. Default is 0.001.
+            validation_dataset (torch.utils.data.Dataset, optional): The validation dataset. Default is None.
+            validation_interval (int, optional): The number of epochs between each validation evaluation. Default is 5.
         """
         self.model = model
         self.dataset = dataset
         self.num_epochs = num_epochs
         self.batch_size = batch_size
         self.learning_rate = learning_rate
+        self.validation_dataset = validation_dataset
+        self.validation_interval = validation_interval
 
     def train(self):
         """
         Trains the model using the provided dataset.
 
-        Prints the loss at the end of each epoch.
+        Prints the loss and validation performance at the end of each epoch.
         """
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.learning_rate)
@@ -48,9 +52,39 @@ class Trainer:
                 loss.backward()
                 optimizer.step()
 
-            print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item()}')
+            if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
+                validation_loss, validation_accuracy = self.evaluate_validation()
+                print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item()}, Validation Loss: {validation_loss}, Validation Accuracy: {validation_accuracy}')
+
+            else:
+                print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item()}')
 
         torch.save(self.model.state_dict(), 'trained_model.pth')
+
+    def evaluate_validation(self):
+        """
+        Evaluate the model on the validation dataset.
+
+        Returns:
+            tuple: Validation loss and validation accuracy.
+        """
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model.eval()
+
+        val_dataloader = DataLoader(dataset=self.validation_dataset, batch_size=self.batch_size, shuffle=False)
+
+        criterion = nn.CrossEntropyLoss()
+        total_loss = 0.0
+        total_correct = 0
+
+        with torch.no_grad():
+            for val_batch_x, val_batch_y in val_dataloader:
+                val_batch_x = val_batch_x.to(device=device, dtype=torch.float)
+                val_batch_y = val_batch_y.to(device=device, dtype=torch.long)
+                val_outputs = self.model(val_batch_x)
+                val_loss = criterion(input=val_outputs, target=val_batch_y)
+                total_loss += val_loss.item()
+                _, predicted = torch.max(val_outputs, dim=1
 
 
 if __name__ == "__main__":
