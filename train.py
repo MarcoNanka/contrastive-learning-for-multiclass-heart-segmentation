@@ -94,11 +94,12 @@ class Trainer:
                     print(f"{total_correct}, {total_correct / torch.numel(predicted)}")
                     print(f"val_outputs: {val_outputs[6, :,4:6, 4:6, 4], val_outputs.shape}")
                     print(f"predicted: {predicted[6, 4:6, 4:6, 4], predicted.shape}")
+                    print(f"val_batch_y: {val_batch_y[6, 4:6, 4:6, 4], val_batch_y.shape}")
                 i = i + 1
 
             average_loss = total_loss / len(val_dataloader)
             accuracy = total_correct / torch.numel(self.validation_dataset.y)
-            print(f"total_correct: {total_correct}")
+            print(f"total_correct: {total_correct}, gap: {total_correct-torch.numel(self.validation_dataset.y)}")
 
             return average_loss, accuracy
 
