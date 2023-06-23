@@ -55,11 +55,11 @@ class Trainer:
                 validation_loss, validation_accuracy = self.evaluate_validation()
                 print(
                     f'Epoch {epoch + 1}/{self.num_epochs}, '
-                    f'Loss: {loss.item()}, Validation Loss: {validation_loss:.3f}, '
-                    f'Validation Accuracy: {validation_accuracy:.2f}')
+                    f'Loss: {loss.item():.5f}, Validation Loss: {validation_loss:.5f}, '
+                    f'Validation Accuracy: {validation_accuracy:.5f}')
 
             else:
-                print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item()}')
+                print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
 
         torch.save(self.model.state_dict(), 'trained_model.pth')
 
