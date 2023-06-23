@@ -76,7 +76,6 @@ class Trainer:
         val_criterion = nn.CrossEntropyLoss()
         total_loss = 0.0
         total_correct = 0
-        total_samples = 0
 
         with torch.no_grad():
             for val_batch_x, val_batch_y in val_dataloader:
@@ -87,12 +86,10 @@ class Trainer:
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
                 total_correct += torch.eq(predicted, val_batch_y).sum().item()
-                print(f"torch.eq(predicted, val_batch_y).sum().item():{torch.eq(predicted, val_batch_y).sum().item()}")
-                total_samples += val_batch_x.size(0)
 
             average_loss = total_loss / len(val_dataloader)
-            accuracy = total_correct / total_samples
-            print(f"total_correct, total_samples: {total_correct, total_samples}")
+            accuracy = total_correct / torch.numel(val_batch_y)
+            print(f"total_correct, torch.numel(val_batch_y): {total_correct, torch.numel(val_batch_y)}")
 
             return average_loss, accuracy
 
