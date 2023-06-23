@@ -24,7 +24,6 @@ class Trainer:
         optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.learning_rate)
 
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        print(device)
         self.model.to(device=device, dtype=torch.float)
 
         dataloader = DataLoader(dataset=self.dataset, batch_size=self.batch_size, shuffle=True)
@@ -33,8 +32,6 @@ class Trainer:
             for batch_x, batch_y in dataloader:
                 batch_x = batch_x.to(device=device, dtype=torch.float)
                 batch_y = batch_y.to(device=device, dtype=torch.long)
-                # batch_y = batch_y.long()
-                # batch_x = batch_x.float()
                 optimizer.zero_grad()
                 outputs = self.model(batch_x)
                 loss = criterion(input=outputs, target=batch_y)
