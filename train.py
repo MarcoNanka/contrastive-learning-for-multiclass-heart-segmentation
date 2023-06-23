@@ -22,7 +22,7 @@ class Trainer:
             validation_interval (int, optional): The number of epochs between each validation evaluation. Default is 5.
         """
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = model()
+        self.model = model
         self.dataset = dataset
         self.num_epochs = num_epochs
         self.batch_size = batch_size
