@@ -83,18 +83,18 @@ class Trainer:
             for val_batch_x, val_batch_y in val_dataloader:
                 val_batch_x = val_batch_x.to(device=self.device, dtype=torch.float)
                 val_batch_y = val_batch_y.to(device=self.device, dtype=torch.long)
-                val_outputs = self.model(val_batch_x)
+                val_outputs = self.model(val_batch_x)  # (batch_size, number_classes, width, height, depth)
                 val_loss = val_criterion(input=val_outputs, target=val_batch_y)
                 total_loss += val_loss.item()
-                _, predicted = torch.max(val_outputs, dim=1)
+                _, predicted = torch.max(val_outputs, dim=1)  # predicted: (batch_size, width, height, depth)
                 total_correct += torch.eq(predicted, val_batch_y).sum().item()
                 if i == 0:
                     print(f"torch.eq(predicted, val_batch_y).sum().item(): "
                           f"{torch.eq(predicted, val_batch_y).sum().item()}")
                     print(f"{total_correct}, {total_correct / torch.numel(predicted)}")
-                    print(f"val_outputs: {val_outputs[6, 4:7, 4:7, 4:7], val_outputs.shape}")
-                    print(f"predicted: {predicted[6, 4:7, 4:7, 4:7], predicted.shape}")
-                i = i+1
+                    print(f"val_outputs: {val_outputs[6, :,4:6, 4:6, 4], val_outputs.shape}")
+                    print(f"predicted: {predicted[6, 4:6, 4:6, 4], predicted.shape}")
+                i = i + 1
 
             average_loss = total_loss / len(val_dataloader)
             accuracy = total_correct / torch.numel(self.validation_dataset.y)
