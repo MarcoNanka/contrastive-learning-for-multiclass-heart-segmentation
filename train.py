@@ -90,6 +90,7 @@ class Trainer:
 
             average_loss = total_loss / len(val_dataloader)
             accuracy = total_correct / total_samples
+            print(f"total_correct, total_samples: {total_correct, total_samples}")
 
             return average_loss, accuracy
 
