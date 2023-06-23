@@ -86,12 +86,13 @@ class Trainer:
                 val_loss = val_criterion(input=val_outputs, target=val_batch_y)
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
-                total_correct += (predicted == val_batch_y).sum().item()
-                print(f"(predicted == val_batch_y).sum().item(): {(predicted == val_batch_y).sum().item()}")
+                total_correct += ((predicted == val_batch_y)*1).sum().item()
+                print(f"((predicted == val_batch_y)*1).sum().item(): {((predicted == val_batch_y)*1).sum().item()}")
                 total_samples += val_batch_x.size(0)
-                print(f"val_batch_x.size(0): {val_batch_x.size(0)}")
+                print(f"val_batch_x.size: {val_batch_x.size}")
 
             average_loss = total_loss / len(val_dataloader)
+            print(f"len(val_dataloader) = {len(val_dataloader)}")
             accuracy = total_correct / total_samples
             print(f"total_correct, total_samples: {total_correct, total_samples}")
 
