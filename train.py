@@ -91,8 +91,7 @@ class Trainer:
                 if i == 0:
                     print(f"torch.eq(predicted, val_batch_y).sum().item(): "
                           f"{torch.eq(predicted, val_batch_y).sum().item()}")
-                    print(f"predicted: {predicted}")
-                    print(f"val_batch_y: {val_batch_y}")
+                    print(f"predicted.shape: {predicted.shape}, val_batch_y.shape: {val_batch_y.shape}")
                 i = i+1
 
             average_loss = total_loss / len(val_dataloader)
