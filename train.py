@@ -52,12 +52,14 @@ class Trainer:
                 optimizer.step()
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
-                validation_loss, validation_accuracy = self.evaluate_validation()
+                validation_loss, precision, recall, accuracy = self.evaluate_validation()
                 print(
                     f'Epoch {epoch + 1}/{self.num_epochs}, '
-                    f'Loss: {loss.item():.5f}, Validation Loss: {validation_loss:.5f}, '
-                    f'Validation Accuracy: {validation_accuracy:.5f}')
-
+                    f'Loss: {loss.item():.5f}, '
+                    f'Validation Loss: {validation_loss:.5f}, '
+                    f'Precision: {precision:.5f}, '
+                    f'Recall: {recall:.5f}, '
+                    f'Accuracy: {accuracy:.5f}')
             else:
                 print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
 
@@ -68,7 +70,7 @@ class Trainer:
         Evaluate the model on the validation dataset.
 
         Returns:
-            tuple: Validation loss and validation accuracy.
+            tuple: Validation loss, precision, recall, and accuracy.
         """
         self.model.eval()
 
@@ -77,31 +79,31 @@ class Trainer:
         val_criterion = nn.CrossEntropyLoss()
         total_loss = 0.0
         total_correct = 0
+        true_positives = 0
+        false_positives = 0
+        false_negatives = 0
 
         with torch.no_grad():
-            i = 0
             for val_batch_x, val_batch_y in val_dataloader:
                 val_batch_x = val_batch_x.to(device=self.device, dtype=torch.float)
                 val_batch_y = val_batch_y.to(device=self.device, dtype=torch.long)
-                val_outputs = self.model(val_batch_x)  # (batch_size, number_classes, width, height, depth)
+                val_outputs = self.model(val_batch_x)
                 val_loss = val_criterion(input=val_outputs, target=val_batch_y)
                 total_loss += val_loss.item()
-                _, predicted = torch.max(val_outputs, dim=1)  # predicted: (batch_size, width, height, depth)
+
+                _, predicted = torch.max(val_outputs, dim=1)
                 total_correct += torch.eq(predicted, val_batch_y).sum().item()
-                if i == 0:
-                    print(f"torch.eq(predicted, val_batch_y).sum().item(): "
-                          f"{torch.eq(predicted, val_batch_y).sum().item()}")
-                    print(f"{total_correct}, {total_correct / torch.numel(predicted)}")
-                    print(f"val_outputs: {val_outputs[6, :,4:6, 4:6, 4], val_outputs.shape}")
-                    print(f"predicted: {predicted[6, 4:6, 4:6, 4], predicted.shape}")
-                    print(f"val_batch_y: {val_batch_y[6, 4:6, 4:6, 4], val_batch_y.shape}")
-                i = i + 1
+
+                true_positives += torch.logical_and(torch.eq(predicted, 1), torch.eq(val_batch_y, 1)).sum().item()
+                false_positives += torch.logical_and(torch.eq(predicted, 1), torch.eq(val_batch_y, 0)).sum().item()
+                false_negatives += torch.logical_and(torch.eq(predicted, 0), torch.eq(val_batch_y, 1)).sum().item()
 
             average_loss = total_loss / len(val_dataloader)
             accuracy = total_correct / torch.numel(self.validation_dataset.y)
-            print(f"total_correct: {total_correct}, gap: {total_correct-torch.numel(self.validation_dataset.y)}")
+            precision = true_positives / (true_positives + false_positives)
+            recall = true_positives / (true_positives + false_negatives)
 
-            return average_loss, accuracy
+            return average_loss, precision, recall, accuracy
 
 
 if __name__ == "__main__":
