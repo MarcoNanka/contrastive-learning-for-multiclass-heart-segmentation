@@ -54,8 +54,9 @@ class Trainer:
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
                 validation_loss, validation_accuracy = self.evaluate_validation()
                 print(
-                    f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item()}, Validation Loss: {validation_loss}, '
-                    f'Validation Accuracy: {validation_accuracy}')
+                    f'Epoch {epoch + 1}/{self.num_epochs}, '
+                    f'Loss: {loss.item()}, Validation Loss: {validation_loss:.3f}, '
+                    f'Validation Accuracy: {validation_accuracy:.2f}')
 
             else:
                 print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item()}')
@@ -89,8 +90,6 @@ class Trainer:
 
             average_loss = total_loss / len(val_dataloader)
             accuracy = total_correct / (torch.numel(val_batch_y)*len(val_dataloader))
-            print(f"total_correct, torch.numel(val_batch_y)*len(val_dataloader): "
-                  f"{total_correct, torch.numel(val_batch_y)*len(val_dataloader)}")
 
             return average_loss, accuracy
 
