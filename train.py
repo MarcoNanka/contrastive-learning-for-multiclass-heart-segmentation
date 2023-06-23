@@ -91,11 +91,10 @@ class Trainer:
                 if i == 0:
                     print(f"torch.eq(predicted, val_batch_y).sum().item(): "
                           f"{torch.eq(predicted, val_batch_y).sum().item()}")
-                    print(f"predicted.shape: {predicted.shape}, val_batch_y.shape: {val_batch_y.shape}")
                 i = i+1
 
             average_loss = total_loss / len(val_dataloader)
-            accuracy = total_correct / torch.numel(self.dataset.y)
+            accuracy = total_correct / torch.numel(self.validation_dataset.y)
             print(f"total_correct: {total_correct}")
 
             return average_loss, accuracy
