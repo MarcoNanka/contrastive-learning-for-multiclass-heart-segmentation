@@ -88,8 +88,9 @@ class Trainer:
                 total_correct += torch.eq(predicted, val_batch_y).sum().item()
 
             average_loss = total_loss / len(val_dataloader)
-            accuracy = total_correct / torch.numel(val_batch_y)
-            print(f"total_correct, torch.numel(val_batch_y): {total_correct, torch.numel(val_batch_y)}")
+            accuracy = total_correct / (torch.numel(val_batch_y)*len(val_dataloader))
+            print(f"total_correct, torch.numel(val_batch_y)*len(val_dataloader): "
+                  f"{total_correct, torch.numel(val_batch_y)*len(val_dataloader)}")
 
             return average_loss, accuracy
 
