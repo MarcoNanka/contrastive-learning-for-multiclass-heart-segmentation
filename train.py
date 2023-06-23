@@ -80,11 +80,12 @@ class Trainer:
         val_criterion = nn.CrossEntropyLoss()
         total_loss = 0.0
         total_correct = 0
-        num_classes = self.model.num_classes
+        num_classes = self.dataset.num_classes
 
         true_positives = np.zeros(num_classes)
         false_positives = np.zeros(num_classes)
         false_negatives = np.zeros(num_classes)
+        true_negatives = np.zeros(num_classes)
 
         with torch.no_grad():
             for val_batch_x, val_batch_y in val_dataloader:
@@ -93,9 +94,7 @@ class Trainer:
                 val_outputs = self.model(val_batch_x)
                 val_loss = val_criterion(input=val_outputs, target=val_batch_y)
                 total_loss += val_loss.item()
-
                 _, predicted = torch.max(val_outputs, dim=1)
-                total_correct += torch.eq(predicted, val_batch_y).sum().item()
 
                 for class_idx in range(num_classes):
                     true_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
@@ -104,17 +103,21 @@ class Trainer:
                                                                     torch.ne(val_batch_y, class_idx)).sum().item()
                     false_negatives[class_idx] += torch.logical_and(torch.ne(predicted, class_idx),
                                                                     torch.eq(val_batch_y, class_idx)).sum().item()
+                    true_negatives[class_idx] += torch.logical_and(torch.ne(predicted, class_idx),
+                                                                   torch.ne(val_batch_y, class_idx)).sum().item()
 
             average_loss = total_loss / len(val_dataloader)
-            accuracy = total_correct / torch.numel(self.validation_dataset.y)
+            accuracy = (true_positives + true_negatives) / \
+                       (true_positives+true_negatives+false_negatives+false_positives)
 
             precision = true_positives / (true_positives + false_positives)
             recall = true_positives / (true_positives + false_negatives)
 
             precision_macro = np.mean(precision)
             recall_macro = np.mean(recall)
+            accuracy_macro = np.mean(accuracy)
 
-        return average_loss, accuracy, precision_macro, recall_macro
+        return average_loss, accuracy_macro, precision_macro, recall_macro
 
 
 if __name__ == "__main__":
