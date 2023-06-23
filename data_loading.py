@@ -123,6 +123,7 @@ class MMWHSDataset(Dataset):
             array = np.array(nib.load(path).get_fdata())
             array = self.extract_patches(array)
             ret_array.append(array)
+            print(f"path: {path}")
 
         ret_array = np.concatenate(ret_array, axis=0)
         print("create_training_data_array finished succesfully")
