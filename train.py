@@ -88,18 +88,15 @@ class Trainer:
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
                 total_correct += torch.eq(predicted, val_batch_y).sum().item()
-                if i >= 166:
-                    print("ATTENTION")
+                if i == 0:
                     print(f"torch.eq(predicted, val_batch_y).sum().item(): "
                           f"{torch.eq(predicted, val_batch_y).sum().item()}")
                     print(f"predicted.shape: {predicted.shape}, val_batch_y.shape: {val_batch_y.shape}")
                 i = i+1
 
             average_loss = total_loss / len(val_dataloader)
-            accuracy = total_correct / (torch.numel(val_batch_y)*len(val_dataloader))
-            print(f"total_correct: {total_correct}, torch.numel(val_batch_y): {torch.numel(val_batch_y)}, "
-                  f"len(val_dataloader): {len(val_dataloader)}, 2*3: {(torch.numel(val_batch_y)*len(val_dataloader))}, "
-                  f"val_batch_y.shape: {val_batch_y.shape}")
+            accuracy = total_correct / torch.numel(dataset.y)
+            print(f"total_correct: {total_correct}")
 
             return average_loss, accuracy
 
