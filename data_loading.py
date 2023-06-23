@@ -125,6 +125,7 @@ class MMWHSDataset(Dataset):
             ret_array.append(array)
 
         ret_array = np.concatenate(ret_array, axis=0)
+        print("create_training_data_array finished succesfully")
         return ret_array
 
     def get_training_data_from_system(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -140,6 +141,7 @@ class MMWHSDataset(Dataset):
         label_path_names = [path.replace('image', 'label') for path in image_path_names]
         ret_imgs = self.create_training_data_array(image_path_names)
         ret_labels = self.create_training_data_array(label_path_names)
+        print("get_training_data_from_system finished succesfully")
         return ret_imgs, ret_labels
 
     def load_data(self) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -151,7 +153,9 @@ class MMWHSDataset(Dataset):
         """
         img_data, label_data = self.get_training_data_from_system()
         img_data = self.normalize_minmax_data(img_data, 0, 100)
+        print("normalize_minmax_data finished succesfully")
         label_data = self.preprocess_label_data(label_data)
+        print("preprocess_label_data finished succesfully")
         return torch.from_numpy(img_data), torch.from_numpy(label_data)
 
 
