@@ -8,18 +8,28 @@ import time
 
 class Trainer:
     def __init__(self, model, dataset, num_epochs, batch_size=4, learning_rate=0.001):
+        """
+        Trainer class for training a model.
+
+        Args:
+            model (torch.nn.Module): The model to train.
+            dataset (torch.utils.data.Dataset): The training dataset.
+            num_epochs (int): The number of training epochs.
+            batch_size (int, optional): The batch size for training. Default is 4.
+            learning_rate (float, optional): The learning rate for the optimizer. Default is 0.001.
+        """
         self.model = model
         self.dataset = dataset
         self.num_epochs = num_epochs
         self.batch_size = batch_size
         self.learning_rate = learning_rate
 
-    def force_cudnn_initialization(self):
-        s = 32
-        dev = torch.device('cuda')
-        torch.nn.functional.conv2d(torch.zeros(s, s, s, s, device=dev), torch.zeros(s, s, s, s, device=dev))
-
     def train(self):
+        """
+        Trains the model using the provided dataset.
+
+        Prints the loss at the end of each epoch.
+        """
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.learning_rate)
 

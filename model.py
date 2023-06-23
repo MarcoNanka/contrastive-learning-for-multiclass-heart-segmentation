@@ -4,6 +4,13 @@ from torch import nn
 
 class UNet(nn.Module):
     def __init__(self, in_channels=1, num_classes=8):
+        """
+        U-Net model for semantic segmentation.
+
+        Args:
+            in_channels (int): Number of input channels.
+            num_classes (int): Number of output classes.
+        """
         super(UNet, self).__init__()
 
         # Contracting path: Increasing features, reducing spatial dimensions
@@ -19,6 +26,15 @@ class UNet(nn.Module):
         self.relu = nn.ReLU()
 
     def forward(self, x):
+        """
+        Forward pass of the U-Net model.
+
+        Args:
+            x (torch.Tensor): Input tensor of shape (batch_size, in_channels, depth, height, width).
+
+        Returns:
+            torch.Tensor: Output tensor of shape (batch_size, num_classes, depth, height, width).
+        """
         # Contracting path
         x1 = self.relu(self.conv1(x))
         x2 = self.relu(self.conv2(self.pool1(x1)))
