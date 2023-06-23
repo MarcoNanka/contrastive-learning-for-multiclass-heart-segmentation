@@ -79,6 +79,7 @@ class Trainer:
         total_correct = 0
 
         with torch.no_grad():
+            i = 0
             for val_batch_x, val_batch_y in val_dataloader:
                 val_batch_x = val_batch_x.to(device=self.device, dtype=torch.float)
                 val_batch_y = val_batch_y.to(device=self.device, dtype=torch.long)
@@ -87,6 +88,12 @@ class Trainer:
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
                 total_correct += torch.eq(predicted, val_batch_y).sum().item()
+                if i == 0:
+                    print(f"torch.eq(predicted, val_batch_y).sum().item(): "
+                          f"{torch.eq(predicted, val_batch_y).sum().item()}")
+                    print(f"predicted: {predicted}")
+                    print(f"val_batch_y: {val_batch_y}")
+                i = i+1
 
             average_loss = total_loss / len(val_dataloader)
             accuracy = total_correct / (torch.numel(val_batch_y)*len(val_dataloader))
@@ -96,21 +103,16 @@ class Trainer:
 
 if __name__ == "__main__":
     folder_path = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/ct_train"
-    patch_size = (24, 24, 24)
     val_folder_path = "/Users/marconanka/BioMedia/data/quarter reduced MM-WHS 2017 Dataset/val_ct_train"
-    start_dataset = time.process_time()
+    patch_size = (24, 24, 24)
     dataset = MMWHSDataset(folder_path=folder_path, patch_size=patch_size)
     validation_dataset = MMWHSDataset(folder_path=val_folder_path, patch_size=patch_size)
-    print(f"time for dataset: {time.process_time() - start_dataset}")
     num_epochs = 10
     batch_size = 3
     learning_rate = 0.001
     validation_interval = 5
-    print(f"image data: {dataset.x.shape}")
-    print(f"labels: {dataset.y.shape}")
-    start_model = time.process_time()
-    model = UNet(in_channels=1, num_classes=8)
-    print(f"time for model: {time.process_time() - start_model}")
+    number_of_channels = dataset.x.shape[1]
+    model = UNet(in_channels=number_of_channels, num_classes=dataset.num_classes)
     start_train = time.process_time()
     trainer = Trainer(model=model, dataset=dataset, num_epochs=num_epochs, batch_size=batch_size,
                       learning_rate=learning_rate, validation_dataset=validation_dataset,

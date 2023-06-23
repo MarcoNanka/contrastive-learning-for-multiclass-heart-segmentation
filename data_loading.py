@@ -22,7 +22,7 @@ class MMWHSDataset(Dataset):
         """
         self.folder_path = folder_path
         self.patch_size = patch_size
-        self.x, self.y = self.load_data()
+        self.x, self.y, self.num_classes = self.load_data()
 
     def __len__(self) -> int:
         """
@@ -91,7 +91,7 @@ class MMWHSDataset(Dataset):
         normalized_data = (raw_data - min_val_low_p) / (max_val_high_p - min_val_low_p)
         return normalized_data
 
-    def preprocess_label_data(self, raw_data: np.ndarray) -> np.ndarray:
+    def preprocess_label_data(self, raw_data: np.ndarray) -> Tuple[np.ndarray, int]:
         """
         Prepare the label data for training.
 
@@ -106,7 +106,7 @@ class MMWHSDataset(Dataset):
             raw_data[raw_data == val] = ind
 
         raw_data = np.squeeze(raw_data)
-        return raw_data
+        return raw_data, len(label_values)
 
     def create_training_data_array(self, path_list: list) -> np.ndarray:
         """
@@ -142,7 +142,7 @@ class MMWHSDataset(Dataset):
         ret_labels = self.create_training_data_array(label_path_names)
         return ret_imgs, ret_labels
 
-    def load_data(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def load_data(self) -> Tuple[torch.Tensor, torch.Tensor, int]:
         """
         Load and preprocess the dataset.
 
@@ -151,8 +151,8 @@ class MMWHSDataset(Dataset):
         """
         img_data, label_data = self.get_training_data_from_system()
         img_data = self.normalize_minmax_data(img_data, 0, 100)
-        label_data = self.preprocess_label_data(label_data)
-        return torch.from_numpy(img_data), torch.from_numpy(label_data)
+        label_data, num_classes = self.preprocess_label_data(label_data)
+        return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes
 
 
 if __name__ == "__main__":
@@ -161,5 +161,7 @@ if __name__ == "__main__":
     dataset = MMWHSDataset(folder_path=folder_path, patch_size=patch_size)
     print(f"image data: {dataset.x.shape}")
     print(f"labels: {dataset.y.shape}")
+    print(f"number of classes: {dataset.num_classes}")
+    print(f"number of channels: { dataset.x.shape[1]}")
     print(f"Image data: {dataset.x[6180:6200, 0, 12, 12, 12]}")
     print(f"corresponding labels: {dataset.y[6190:6200, 12, 12, 12]}")
