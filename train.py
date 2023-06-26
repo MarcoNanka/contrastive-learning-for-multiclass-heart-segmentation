@@ -87,7 +87,7 @@ class Trainer:
         false_positives = np.zeros(num_classes)
         false_negatives = np.zeros(num_classes)
         true_negatives = np.zeros(num_classes)
-
+        i = 0
         with torch.no_grad():
             for val_batch_x, val_batch_y in val_dataloader:
                 val_batch_x = val_batch_x.to(device=self.device, dtype=torch.float)
@@ -108,8 +108,14 @@ class Trainer:
                                                                     torch.eq(val_batch_y, class_idx)).sum().item()
                     true_negatives[class_idx] += torch.logical_and(torch.ne(predicted, class_idx),
                                                                    torch.ne(val_batch_y, class_idx)).sum().item()
-                    print(class_idx, true_positives, false_positives, false_negatives, true_negatives)
+                    if i % 50 == 0:
+                        print(class_idx, true_positives, false_positives, false_negatives, true_negatives)
+                    i = i + 1
 
+            print(f"OVERALL TP: {true_positives}")
+            print(f"OVERALL TN: {true_negatives}")
+            print(f"OVERALL FP: {false_positives}")
+            print(f"OVERALL FN: {false_negatives}")
             average_loss = total_loss / len(val_dataloader)
             accuracy = (true_positives + true_negatives) / \
                        (true_positives + true_negatives + false_negatives + false_positives)
