@@ -96,8 +96,8 @@ class Trainer:
                 val_loss = val_criterion(input=val_outputs, target=val_batch_y)
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
-                if len(np.unique(val_batch_y)) > 1:
-                    print(np.unique(val_batch_y), np.unique(predicted))
+                # if len(np.unique(val_batch_y)) > 1:
+                #     print(np.unique(val_batch_y), np.unique(predicted))
 
                 for class_idx in range(num_classes):
                     true_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
