@@ -79,8 +79,6 @@ class MMWHSDataset(Dataset):
                                   z: z + self.patch_size[2]]
                     label_patch = np.expand_dims(label_patch, axis=0)
                     if len(np.unique(label_patch)) > 1 or np.unique(label_patch)[0] != 0:
-                        print(len(np.unique(label_patch) > 1) or np.unique(label_patch)[0] != 0, (np.unique(label_patch) > 1), np.unique(label_patch)[0] != 0)
-                        print(np.unique(label_patch), len(np.unique(label_patch) > 1), np.unique(label_patch)[0])
                         image_patches.append(img_patch)
                         label_patches.append(label_patch)
 
