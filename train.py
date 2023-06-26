@@ -130,7 +130,7 @@ if __name__ == "__main__":
     val_folder_path = "/Users/marconanka/BioMedia/data/quarter reduced MM-WHS 2017 Dataset/val_ct_train"
     patch_size = (24, 24, 24)
     dataset = MMWHSDataset(folder_path=folder_path, patch_size=patch_size)
-    validation_dataset = MMWHSDataset(folder_path=val_folder_path, patch_size=patch_size, validation_dataset = True)
+    validation_dataset = MMWHSDataset(folder_path=val_folder_path, patch_size=patch_size, is_validation_dataset=True)
     num_epochs = 10
     batch_size = 4
     learning_rate = 0.001
