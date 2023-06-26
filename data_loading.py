@@ -79,8 +79,7 @@ class MMWHSDataset(Dataset):
                     label_patch = label_data[x: x + self.patch_size[0], y: y + self.patch_size[1],
                                   z: z + self.patch_size[2]]
                     label_patch = np.expand_dims(label_patch, axis=0)
-                    if not self.is_validation_dataset and (
-                            len(np.unique(label_patch)) > 1 or np.unique(label_patch)[0] != 0):
+                    if self.is_validation_dataset or len(np.unique(label_patch)) > 1 or np.unique(label_patch)[0] != 0:
                         image_patches.append(img_patch)
                         label_patches.append(label_patch)
 
@@ -98,7 +97,6 @@ class MMWHSDataset(Dataset):
         Returns:
             np.ndarray: The normalized data.
         """
-        print(f"hi {raw_data.shape}")
         min_val_low_p = np.percentile(raw_data, min_val)
         max_val_high_p = np.percentile(raw_data, max_val)
         normalized_data = (raw_data - min_val_low_p) / (max_val_high_p - min_val_low_p)
