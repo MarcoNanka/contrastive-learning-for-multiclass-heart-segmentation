@@ -5,6 +5,7 @@ from model import UNet
 from data_loading import MMWHSDataset
 import time
 import numpy as np
+import nibabel as nib
 
 
 class Trainer:
@@ -95,6 +96,8 @@ class Trainer:
                 val_loss = val_criterion(input=val_outputs, target=val_batch_y)
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
+                if len(np.unique(val_batch_y)) > 1:
+                    print(np.unique(val_batch_y), np.unique(predicted))
 
                 for class_idx in range(num_classes):
                     true_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
@@ -105,10 +108,11 @@ class Trainer:
                                                                     torch.eq(val_batch_y, class_idx)).sum().item()
                     true_negatives[class_idx] += torch.logical_and(torch.ne(predicted, class_idx),
                                                                    torch.ne(val_batch_y, class_idx)).sum().item()
+                    print(class_idx, true_positives, false_positives, false_negatives, true_negatives)
 
             average_loss = total_loss / len(val_dataloader)
             accuracy = (true_positives + true_negatives) / \
-                       (true_positives+true_negatives+false_negatives+false_positives)
+                       (true_positives + true_negatives + false_negatives + false_positives)
 
             precision = true_positives / (true_positives + false_positives)
             recall = true_positives / (true_positives + false_negatives)
@@ -127,9 +131,9 @@ if __name__ == "__main__":
     dataset = MMWHSDataset(folder_path=folder_path, patch_size=patch_size)
     validation_dataset = MMWHSDataset(folder_path=val_folder_path, patch_size=patch_size)
     num_epochs = 10
-    batch_size = 3
+    batch_size = 4
     learning_rate = 0.001
-    validation_interval = 5
+    validation_interval = 1
     number_of_channels = dataset.x.shape[1]
     model = UNet(in_channels=number_of_channels, num_classes=dataset.num_classes)
     start_train = time.process_time()
