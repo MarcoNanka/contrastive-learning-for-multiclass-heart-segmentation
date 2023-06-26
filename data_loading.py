@@ -12,7 +12,7 @@ class MMWHSDataset(Dataset):
     Custom PyTorch Dataset for loading MM-WHS dataset.
     """
 
-    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int]) -> None:
+    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], is_validation_dataset=False) -> None:
         """
         Initialize the MMWHSDataset.
 
@@ -23,6 +23,7 @@ class MMWHSDataset(Dataset):
         self.folder_path = folder_path
         self.patch_size = patch_size
         self.x, self.y, self.num_classes = self.load_data()
+        self.is_validation_dataset = is_validation_dataset
 
     def __len__(self) -> int:
         """
@@ -78,7 +79,8 @@ class MMWHSDataset(Dataset):
                     label_patch = label_data[x: x + self.patch_size[0], y: y + self.patch_size[1],
                                   z: z + self.patch_size[2]]
                     label_patch = np.expand_dims(label_patch, axis=0)
-                    if len(np.unique(label_patch)) > 1 or np.unique(label_patch)[0] != 0:
+                    if not self.is_validation_dataset and (
+                            len(np.unique(label_patch)) > 1 or np.unique(label_patch)[0] != 0):
                         image_patches.append(img_patch)
                         label_patches.append(label_patch)
 
