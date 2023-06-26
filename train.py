@@ -32,6 +32,66 @@ class Trainer:
         self.validation_dataset = validation_dataset
         self.validation_interval = validation_interval
 
+    def evaluate_validation(self):
+        """
+        Evaluate the model on the validation dataset.
+
+        Returns:
+            tuple: Validation loss, validation accuracy, validation precision, and validation recall.
+        """
+        self.model.eval()
+
+        val_dataloader = DataLoader(dataset=self.validation_dataset, batch_size=self.batch_size, shuffle=False)
+
+        val_criterion = nn.CrossEntropyLoss()
+        total_loss = 0.0
+        total_correct = 0
+        num_classes = self.dataset.num_classes
+
+        true_positives = np.zeros(num_classes)
+        false_positives = np.zeros(num_classes)
+        false_negatives = np.zeros(num_classes)
+        true_negatives = np.zeros(num_classes)
+
+        with torch.no_grad():
+            for val_batch_x, val_batch_y in val_dataloader:
+                val_batch_x = val_batch_x.to(device=self.device, dtype=torch.float)
+                val_batch_y = val_batch_y.to(device=self.device, dtype=torch.long)
+                val_outputs = self.model(val_batch_x)
+                val_loss = val_criterion(input=val_outputs, target=val_batch_y)
+                total_loss += val_loss.item()
+                _, predicted = torch.max(val_outputs, dim=1)
+
+                for class_idx in range(num_classes):
+                    true_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
+                                                                   torch.eq(val_batch_y, class_idx)).sum().item()
+                    false_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
+                                                                    torch.ne(val_batch_y, class_idx)).sum().item()
+                    false_negatives[class_idx] += torch.logical_and(torch.ne(predicted, class_idx),
+                                                                    torch.eq(val_batch_y, class_idx)).sum().item()
+                    true_negatives[class_idx] += torch.logical_and(torch.ne(predicted, class_idx),
+                                                                   torch.ne(val_batch_y, class_idx)).sum().item()
+
+            print(f"OVERALL TP: {true_positives}")
+            print(f"OVERALL TN: {true_negatives}")
+            print(f"OVERALL FP: {false_positives}")
+            print(f"OVERALL FN: {false_negatives}")
+            average_loss = total_loss / len(val_dataloader)
+            accuracy = (true_positives + true_negatives) / \
+                       (true_positives + true_negatives + false_negatives + false_positives)
+
+            precision = true_positives / (true_positives + false_positives)
+            recall = true_positives / (true_positives + false_negatives)
+            print(f"true_positives + false_negatives: {true_positives + false_negatives}")
+            print(f"true_positives / (true_positives + false_negatives): "
+                  f"{true_positives / (true_positives + false_negatives)}")
+
+            precision_macro = np.mean(precision)
+            recall_macro = np.mean(recall)
+            accuracy_macro = np.mean(accuracy)
+
+        return average_loss, accuracy_macro, precision_macro, recall_macro
+
     def train(self):
         """
         Trains the model using the provided dataset.
@@ -54,7 +114,7 @@ class Trainer:
                 optimizer.step()
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
-                validation_loss, precision, recall, accuracy = self.evaluate_validation()
+                validation_loss, accuracy, precision, recall = self.evaluate_validation()
                 print(
                     f'Epoch {epoch + 1}/{self.num_epochs}, '
                     f'Loss: {loss.item():.5f}, '
@@ -66,68 +126,6 @@ class Trainer:
                 print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
 
         torch.save(self.model.state_dict(), 'trained_model.pth')
-
-    def evaluate_validation(self):
-        """
-        Evaluate the model on the validation dataset.
-
-        Returns:
-            tuple: Validation loss, validation accuracy, validation precision, and validation recall.
-        """
-        self.model.eval()
-
-        val_dataloader = DataLoader(dataset=self.validation_dataset, batch_size=self.batch_size, shuffle=False)
-
-        val_criterion = nn.CrossEntropyLoss()
-        total_loss = 0.0
-        total_correct = 0
-        num_classes = self.dataset.num_classes
-
-        true_positives = np.zeros(num_classes)
-        false_positives = np.zeros(num_classes)
-        false_negatives = np.zeros(num_classes)
-        true_negatives = np.zeros(num_classes)
-        i = 0
-        with torch.no_grad():
-            for val_batch_x, val_batch_y in val_dataloader:
-                val_batch_x = val_batch_x.to(device=self.device, dtype=torch.float)
-                val_batch_y = val_batch_y.to(device=self.device, dtype=torch.long)
-                val_outputs = self.model(val_batch_x)
-                val_loss = val_criterion(input=val_outputs, target=val_batch_y)
-                total_loss += val_loss.item()
-                _, predicted = torch.max(val_outputs, dim=1)
-                # if len(np.unique(val_batch_y)) > 1:
-                #     print(np.unique(val_batch_y), np.unique(predicted))
-
-                for class_idx in range(num_classes):
-                    true_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
-                                                                   torch.eq(val_batch_y, class_idx)).sum().item()
-                    false_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
-                                                                    torch.ne(val_batch_y, class_idx)).sum().item()
-                    false_negatives[class_idx] += torch.logical_and(torch.ne(predicted, class_idx),
-                                                                    torch.eq(val_batch_y, class_idx)).sum().item()
-                    true_negatives[class_idx] += torch.logical_and(torch.ne(predicted, class_idx),
-                                                                   torch.ne(val_batch_y, class_idx)).sum().item()
-                    if i % 50 == 0:
-                        print(class_idx, true_positives, false_positives, false_negatives, true_negatives)
-                    i = i + 1
-
-            print(f"OVERALL TP: {true_positives}")
-            print(f"OVERALL TN: {true_negatives}")
-            print(f"OVERALL FP: {false_positives}")
-            print(f"OVERALL FN: {false_negatives}")
-            average_loss = total_loss / len(val_dataloader)
-            accuracy = (true_positives + true_negatives) / \
-                       (true_positives + true_negatives + false_negatives + false_positives)
-
-            precision = true_positives / (true_positives + false_positives)
-            recall = true_positives / (true_positives + false_negatives)
-
-            precision_macro = np.mean(precision)
-            recall_macro = np.mean(recall)
-            accuracy_macro = np.mean(accuracy)
-
-        return average_loss, accuracy_macro, precision_macro, recall_macro
 
 
 if __name__ == "__main__":
