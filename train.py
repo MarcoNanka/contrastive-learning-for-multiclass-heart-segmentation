@@ -32,7 +32,7 @@ class Trainer:
         self.validation_dataset = validation_dataset
         self.validation_interval = validation_interval
 
-    def evaluate_validation(self) -> Tuple[float,float,float,float]:
+    def evaluate_validation(self) -> Tuple[float, np.ndarray, np.ndarray, np.ndarray]:
         """
         Evaluate the model on the validation dataset.
 
@@ -82,9 +82,6 @@ class Trainer:
 
             precision = true_positives / (true_positives + false_positives)
             recall = true_positives / (true_positives + false_negatives)
-            print(f"true_positives + false_negatives: {true_positives + false_negatives}")
-            print(f"true_positives / (true_positives + false_negatives): "
-                  f"{true_positives / (true_positives + false_negatives)}")
 
             precision_macro = np.mean(precision)
             recall_macro = np.mean(recall)
