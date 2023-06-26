@@ -98,6 +98,7 @@ class MMWHSDataset(Dataset):
         Returns:
             np.ndarray: The normalized data.
         """
+        print(raw_data.shape)
         min_val_low_p = np.percentile(raw_data, min_val)
         max_val_high_p = np.percentile(raw_data, max_val)
         normalized_data = (raw_data - min_val_low_p) / (max_val_high_p - min_val_low_p)
