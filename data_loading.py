@@ -12,7 +12,7 @@ class MMWHSDataset(Dataset):
     Custom PyTorch Dataset for loading MM-WHS dataset.
     """
 
-    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], is_validation_dataset=False) -> None:
+    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], is_validation_dataset: bool) -> None:
         """
         Initialize the MMWHSDataset.
 
@@ -22,8 +22,8 @@ class MMWHSDataset(Dataset):
         """
         self.folder_path = folder_path
         self.patch_size = patch_size
-        self.x, self.y, self.num_classes = self.load_data()
         self.is_validation_dataset = is_validation_dataset
+        self.x, self.y, self.num_classes = self.load_data()
 
     def __len__(self) -> int:
         """
@@ -173,7 +173,7 @@ class MMWHSDataset(Dataset):
 if __name__ == "__main__":
     folder_path = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/ct_train"
     patch_size = (24, 24, 24)
-    dataset = MMWHSDataset(folder_path=folder_path, patch_size=patch_size)
+    dataset = MMWHSDataset(folder_path=folder_path, patch_size=patch_size, is_validation_dataset=False)
     print(f"image data: {dataset.x.shape}")
     print(f"labels: {dataset.y.shape}")
     print(f"number of classes: {dataset.num_classes}")
