@@ -5,7 +5,7 @@ from model import UNet
 from data_loading import MMWHSDataset
 import time
 import numpy as np
-import nibabel as nib
+from typing import Tuple
 
 
 class Trainer:
@@ -32,7 +32,7 @@ class Trainer:
         self.validation_dataset = validation_dataset
         self.validation_interval = validation_interval
 
-    def evaluate_validation(self):
+    def evaluate_validation(self) -> Tuple[float,float,float,float]:
         """
         Evaluate the model on the validation dataset.
 
