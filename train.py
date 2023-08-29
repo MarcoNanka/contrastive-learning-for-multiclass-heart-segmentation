@@ -8,18 +8,6 @@ import numpy as np
 from typing import Tuple
 import wandb
 
-wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
-
-wandb.init(
-    project="local-contrastive-learning",
-    config={
-        "num_epochs": 4,
-        "batch_size": 4,
-        "learning_rate": 0.01,
-        "validation_interval": 2,
-    }
-)
-config = wandb.config
 
 class Trainer:
     def __init__(self, model, dataset, num_epochs, batch_size=4, learning_rate=0.001, validation_dataset=None,
@@ -153,6 +141,18 @@ if __name__ == "__main__":
     validation_dataset = MMWHSDataset(folder_path=val_folder_path, patch_size=patch_size, is_validation_dataset=True)
     number_of_channels = dataset.x.shape[1]
     model = UNet(in_channels=number_of_channels, num_classes=dataset.num_classes)
+    wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
+
+    wandb.init(
+        project="local-contrastive-learning",
+        config={
+            "num_epochs": 4,
+            "batch_size": 4,
+            "learning_rate": 0.01,
+            "validation_interval": 2,
+        }
+    )
+    config = wandb.config
     start_train = time.process_time()
     trainer = Trainer(model=model, dataset=dataset, num_epochs=config.num_epochs, batch_size=config.batch_size,
                       learning_rate=config.learning_rate, validation_dataset=validation_dataset,
