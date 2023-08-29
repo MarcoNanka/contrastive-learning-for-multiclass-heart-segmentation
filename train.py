@@ -117,7 +117,8 @@ class Trainer:
                     "Validation Loss": validation_loss,
                     "Validation Accuracy": accuracy_macro,
                     "Validation Precision": precision_macro,
-                    "Validation Recall": recall_macro
+                    "Validation Recall": recall_macro,
+                    "True Positives": tp
                 })
                 print(
                     f'Epoch {epoch + 1}/{self.num_epochs}, '
