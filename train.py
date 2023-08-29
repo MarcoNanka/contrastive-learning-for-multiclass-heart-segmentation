@@ -33,7 +33,8 @@ class Trainer:
         self.validation_dataset = validation_dataset
         self.validation_interval = validation_interval
 
-    def evaluate_validation(self) -> Tuple[float, np.ndarray, np.ndarray, np.ndarray]:
+    def evaluate_validation(self) -> Tuple[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+                                           np.ndarray]:
         """
         Evaluate the model on the validation dataset.
 
@@ -88,7 +89,7 @@ class Trainer:
             recall_macro = np.mean(recall)
             accuracy_macro = np.mean(accuracy)
 
-        return average_loss, accuracy_macro, precision_macro, recall_macro
+        return average_loss, accuracy_macro, precision_macro, recall_macro, accuracy, precision, recall
 
     def train(self):
         """
@@ -113,20 +114,25 @@ class Trainer:
                 wandb.log({"Training Loss": loss.item()})
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
-                validation_loss, accuracy, precision, recall = self.evaluate_validation()
+                validation_loss, accuracy_macro, precision_macro, recall_macro, accuracy, precision, recall = \
+                    self.evaluate_validation()
                 wandb.log({
                     "Validation Loss": validation_loss,
-                    "Validation Accuracy": accuracy,
-                    "Validation Precision": precision,
-                    "Validation Recall": recall
+                    "Validation Accuracy": accuracy_macro,
+                    "Validation Precision": precision_macro,
+                    "Validation Recall": recall_macro
                 })
                 print(
                     f'Epoch {epoch + 1}/{self.num_epochs}, '
                     f'Loss: {loss.item():.5f}, '
                     f'Validation Loss: {validation_loss:.5f}, '
-                    f'Precision: {precision:.5f}, '
-                    f'Recall: {recall:.5f}, '
-                    f'Accuracy: {accuracy:.5f}')
+                    f'Precision macro: {precision_macro:.5f}, '
+                    f'Recall macro: {recall_macro:.5f}, '
+                    f'Accuracy macro: {accuracy_macro:.5f}'
+                    f'Precision by class: {precision}'
+                    f'Recall by class: {recall}'
+                    f'Accuracy by class: {accuracy}')
+                print()
             else:
                 print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
 
