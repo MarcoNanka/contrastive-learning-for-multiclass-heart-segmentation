@@ -6,7 +6,20 @@ from data_loading import MMWHSDataset
 import time
 import numpy as np
 from typing import Tuple
+import wandb
 
+wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
+
+wandb.init(
+    project="local-contrastive-learning",
+    config={
+        "num_epochs": 4,
+        "batch_size": 4,
+        "learning_rate": 0.01,
+        "validation_interval": 2,
+    }
+)
+config = wandb.config
 
 class Trainer:
     def __init__(self, model, dataset, num_epochs, batch_size=4, learning_rate=0.001, validation_dataset=None,
@@ -109,9 +122,16 @@ class Trainer:
                 loss = criterion(input=outputs, target=batch_y)
                 loss.backward()
                 optimizer.step()
+                wandb.log({"Training Loss": loss.item()})
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
                 validation_loss, accuracy, precision, recall = self.evaluate_validation()
+                wandb.log({
+                    "Validation Loss": validation_loss,
+                    "Validation Accuracy": accuracy,
+                    "Validation Precision": precision,
+                    "Validation Recall": recall
+                })
                 print(
                     f'Epoch {epoch + 1}/{self.num_epochs}, '
                     f'Loss: {loss.item():.5f}, '
@@ -129,17 +149,13 @@ if __name__ == "__main__":
     folder_path = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/ct_train"
     val_folder_path = "/Users/marconanka/BioMedia/data/quarter reduced MM-WHS 2017 Dataset/val_ct_train"
     patch_size = (24, 24, 24)
-    dataset = MMWHSDataset(folder_path=folder_path, patch_size=patch_size)
+    dataset = MMWHSDataset(folder_path=folder_path, patch_size=patch_size, is_validation_dataset=False)
     validation_dataset = MMWHSDataset(folder_path=val_folder_path, patch_size=patch_size, is_validation_dataset=True)
-    num_epochs = 10
-    batch_size = 4
-    learning_rate = 0.001
-    validation_interval = 1
     number_of_channels = dataset.x.shape[1]
     model = UNet(in_channels=number_of_channels, num_classes=dataset.num_classes)
     start_train = time.process_time()
-    trainer = Trainer(model=model, dataset=dataset, num_epochs=num_epochs, batch_size=batch_size,
-                      learning_rate=learning_rate, validation_dataset=validation_dataset,
-                      validation_interval=validation_interval)
+    trainer = Trainer(model=model, dataset=dataset, num_epochs=config.num_epochs, batch_size=config.batch_size,
+                      learning_rate=config.learning_rate, validation_dataset=validation_dataset,
+                      validation_interval=config.validation_interval)
     trainer.train()
     print(f"time for training: {time.process_time() - start_train}")

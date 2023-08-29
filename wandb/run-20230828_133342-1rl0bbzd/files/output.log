@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/train.py", line 145, in <module>
+    dataset = MMWHSDataset(folder_path=folder_path, patch_size=patch_size)
+TypeError: __init__() missing 1 required positional argument: 'is_validation_dataset'

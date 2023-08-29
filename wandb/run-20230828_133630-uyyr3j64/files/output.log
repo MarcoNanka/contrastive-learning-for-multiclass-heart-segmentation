@@ -1,0 +1,27 @@
+Traceback (most recent call last):
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/train.py", line 145, in <module>
+    dataset = MMWHSDataset(folder_path=folder_path, patch_size=patch_size, is_validation_dataset=False)
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/data_loading.py", line 26, in __init__
+    self.x, self.y, self.num_classes = self.load_data()
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/data_loading.py", line 166, in load_data
+    img_data, label_data = self.get_training_data_from_system()
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/data_loading.py", line 156, in get_training_data_from_system
+    ret_imgs, ret_labels = self.create_training_data_array(image_path_names)
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/data_loading.py", line 136, in create_training_data_array
+    image_data = np.array(nib.load(path).get_fdata())
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/nibabel/dataobj_images.py", line 373, in get_fdata
+    data = np.asanyarray(self._dataobj, dtype=dtype)
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/nibabel/arrayproxy.py", line 439, in __array__
+    arr = self._get_scaled(dtype=dtype, slicer=())
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/nibabel/arrayproxy.py", line 406, in _get_scaled
+    scaled = apply_read_scaling(self._get_unscaled(slicer=slicer), scl_slope, scl_inter)
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/nibabel/arrayproxy.py", line 376, in _get_unscaled
+    return array_from_file(
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/nibabel/volumeutils.py", line 465, in array_from_file
+    n_read = infile.readinto(data_bytes)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/gzip.py", line 300, in read
+    return self._buffer.read(size)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/_compression.py", line 68, in readinto
+    data = self.read(len(byte_view))
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/gzip.py", line 495, in read
+    uncompress = self._decompressor.decompress(buf, size)
