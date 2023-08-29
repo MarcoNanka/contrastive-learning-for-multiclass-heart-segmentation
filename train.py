@@ -33,8 +33,8 @@ class Trainer:
         self.validation_dataset = validation_dataset
         self.validation_interval = validation_interval
 
-    def evaluate_validation(self) -> Tuple[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-                                           np.ndarray]:
+    def evaluate_validation(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, float, np.ndarray,
+                                           np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Evaluate the model on the validation dataset.
 
@@ -74,10 +74,6 @@ class Trainer:
                     true_negatives[class_idx] += torch.logical_and(torch.ne(predicted, class_idx),
                                                                    torch.ne(val_batch_y, class_idx)).sum().item()
 
-            print(f"OVERALL TP: {true_positives}")
-            print(f"OVERALL TN: {true_negatives}")
-            print(f"OVERALL FP: {false_positives}")
-            print(f"OVERALL FN: {false_negatives}")
             average_loss = total_loss / len(val_dataloader)
             accuracy = (true_positives + true_negatives) / \
                        (true_positives + true_negatives + false_negatives + false_positives)
@@ -89,7 +85,8 @@ class Trainer:
             recall_macro = np.mean(recall)
             accuracy_macro = np.mean(accuracy)
 
-        return average_loss, accuracy_macro, precision_macro, recall_macro, accuracy, precision, recall
+        return true_positives, false_positives, true_negatives, false_negatives, average_loss, accuracy_macro, \
+                precision_macro, recall_macro, accuracy, precision, recall
 
     def train(self):
         """
@@ -114,8 +111,8 @@ class Trainer:
                 wandb.log({"Training Loss": loss.item()})
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
-                validation_loss, accuracy_macro, precision_macro, recall_macro, accuracy, precision, recall = \
-                    self.evaluate_validation()
+                tp, fp, tn, fn, validation_loss, accuracy_macro, precision_macro, recall_macro, accuracy, precision, \
+                    recall = self.evaluate_validation()
                 wandb.log({
                     "Validation Loss": validation_loss,
                     "Validation Accuracy": accuracy_macro,
@@ -131,7 +128,11 @@ class Trainer:
                     f'Accuracy macro: {accuracy_macro:.5f}'
                     f'Precision by class: {precision}'
                     f'Recall by class: {recall}'
-                    f'Accuracy by class: {accuracy}')
+                    f'Accuracy by class: {accuracy}'
+                    f'TP: {tp}'
+                    f'FP: {fp}'
+                    f'TN: {tn}'
+                    f'FN: {fn}')
                 print()
             else:
                 print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
