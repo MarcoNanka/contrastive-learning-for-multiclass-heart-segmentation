@@ -7,6 +7,7 @@ import time
 import numpy as np
 from typing import Tuple
 from config import parse_args
+import wandb
 
 
 class Trainer:
@@ -34,7 +35,8 @@ class Trainer:
         self.validation_interval = validation_interval
 
     def evaluate_validation(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, float, np.ndarray,
-                                           np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+                                           np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+                                           np.ndarray]:
         """
         Evaluate the model on the validation dataset.
 
@@ -47,7 +49,6 @@ class Trainer:
 
         val_criterion = nn.CrossEntropyLoss()
         total_loss = 0.0
-        total_correct = 0
         num_classes = self.dataset.num_classes
 
         true_positives = np.zeros(num_classes)
@@ -77,16 +78,17 @@ class Trainer:
             average_loss = total_loss / len(val_dataloader)
             accuracy = (true_positives + true_negatives) / \
                        (true_positives + true_negatives + false_negatives + false_positives)
-
+            dice_score = (2 * true_positives) / (2 * true_positives + false_negatives + false_positives)
             precision = true_positives / (true_positives + false_positives)
             recall = true_positives / (true_positives + false_negatives)
 
             precision_macro = np.mean(precision)
             recall_macro = np.mean(recall)
             accuracy_macro = np.mean(accuracy)
+            dice_score_macro = np.mean(dice_score)
 
         return true_positives, false_positives, true_negatives, false_negatives, average_loss, accuracy_macro, \
-               precision_macro, recall_macro, accuracy, precision, recall
+            precision_macro, recall_macro, dice_score_macro, accuracy, precision, recall, dice_score
 
     def train(self):
         """
@@ -108,24 +110,39 @@ class Trainer:
                 loss = criterion(input=outputs, target=batch_y)
                 loss.backward()
                 optimizer.step()
+                wandb.log({"Training Loss": loss.item()})
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
-                tp, fp, tn, fn, validation_loss, accuracy_macro, precision_macro, recall_macro, accuracy, precision, \
-                recall = self.evaluate_validation()
-                print(
-                    f'Epoch {epoch + 1}/{self.num_epochs}, '
-                    f'Loss: {loss.item():.5f}, '
-                    f'Validation Loss: {validation_loss:.5f}, '
-                    f'Precision macro: {precision_macro:.5f}, '
-                    f'Recall macro: {recall_macro:.5f}, '
-                    f'Accuracy macro: {accuracy_macro:.5f}'
-                    f'Precision by class: {precision}'
-                    f'Recall by class: {recall}'
-                    f'Accuracy by class: {accuracy}'
-                    f'TP: {tp}'
-                    f'FP: {fp}'
-                    f'TN: {tn}'
-                    f'FN: {fn}')
+                tp, fp, tn, fn, validation_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
+                    accuracy, precision, recall, dice_score = self.evaluate_validation()
+                wandb.log({
+                    "Validation Loss": validation_loss,
+                    "Validation Accuracy": accuracy_macro,
+                    "Validation Precision": precision_macro,
+                    "Validation Recall": recall_macro,
+                    # "True Positives label 1": tp[1],
+                    # "True Positives label 2": tp[2],
+                    # "True Positives label 3": tp[3],
+                    # "True Positives label 4": tp[4],
+                    # "True Positives label 5": tp[5],
+                    # "True Positives label 6": tp[6],
+                    # "True Positives label 7": tp[7],
+                })
+                print(f'Epoch {epoch + 1}/{self.num_epochs},')
+                print(f'Loss: {loss.item():.5f},')
+                print(f'Validation Loss: {validation_loss:.5f},')
+                print(f'Precision macro: {precision_macro:.5f},')
+                print(f'Recall macro: {recall_macro:.5f},')
+                print(f'Accuracy macro: {accuracy_macro:.5f}')
+                print(f'Dice score macro: {dice_score_macro}')
+                print(f'Precision by class: {precision}')
+                print(f'Recall by class: {recall}')
+                print(f'Accuracy by class: {accuracy}')
+                print(f'Dice score by class: {dice_score}')
+                print(f'TP: {tp}')
+                print(f'FP: {fp}')
+                print(f'TN: {tn}')
+                print(f'FN: {fn}')
                 print()
             else:
                 print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
@@ -140,9 +157,21 @@ def main(args):
     number_of_channels = dataset.x.shape[1]
     model = UNet(in_channels=number_of_channels, num_classes=dataset.num_classes)
     start_train = time.process_time()
-    trainer = Trainer(model=model, dataset=dataset, num_epochs=args.num_epochs, batch_size=args.batch_size,
-                      learning_rate=args.learning_rate, validation_dataset=validation_dataset,
-                      validation_interval=args.validation_interval)
+    wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
+    wandb.init(
+        project="local-contrastive-learning",
+        config={
+            "num_epochs": args.num_epochs,
+            "batch_size": args.batch_size,
+            "learning_rate": args.learning_rate,
+            "validation_interval": args.validation_interval,
+        }
+    )
+    config = wandb.config
+
+    trainer = Trainer(model=model, dataset=dataset, num_epochs=config.num_epochs, batch_size=config.batch_size,
+                      learning_rate=config.learning_rate, validation_dataset=validation_dataset,
+                      validation_interval=config.validation_interval)
     trainer.train()
     print(f"time for training: {time.process_time() - start_train}")
 
