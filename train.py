@@ -120,6 +120,7 @@ class Trainer:
                     "Validation Accuracy": accuracy_macro,
                     "Validation Precision": precision_macro,
                     "Validation Recall": recall_macro,
+                    "Validation Dice": dice_score_macro,
                     # "True Positives label 1": tp[1],
                     # "True Positives label 2": tp[2],
                     # "True Positives label 3": tp[3],
