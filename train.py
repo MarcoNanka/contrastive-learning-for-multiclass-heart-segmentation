@@ -6,7 +6,6 @@ from data_loading import MMWHSDataset
 import time
 import numpy as np
 from typing import Tuple
-import wandb
 from config import parse_args
 
 
@@ -87,7 +86,7 @@ class Trainer:
             accuracy_macro = np.mean(accuracy)
 
         return true_positives, false_positives, true_negatives, false_negatives, average_loss, accuracy_macro, \
-                precision_macro, recall_macro, accuracy, precision, recall
+               precision_macro, recall_macro, accuracy, precision, recall
 
     def train(self):
         """
@@ -109,24 +108,10 @@ class Trainer:
                 loss = criterion(input=outputs, target=batch_y)
                 loss.backward()
                 optimizer.step()
-                wandb.log({"Training Loss": loss.item()})
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
                 tp, fp, tn, fn, validation_loss, accuracy_macro, precision_macro, recall_macro, accuracy, precision, \
-                    recall = self.evaluate_validation()
-                wandb.log({
-                    "Validation Loss": validation_loss,
-                    "Validation Accuracy": accuracy_macro,
-                    "Validation Precision": precision_macro,
-                    "Validation Recall": recall_macro,
-                    # "True Positives label 1": tp[1],
-                    # "True Positives label 2": tp[2],
-                    # "True Positives label 3": tp[3],
-                    # "True Positives label 4": tp[4],
-                    # "True Positives label 5": tp[5],
-                    # "True Positives label 6": tp[6],
-                    # "True Positives label 7": tp[7],
-                })
+                recall = self.evaluate_validation()
                 print(
                     f'Epoch {epoch + 1}/{self.num_epochs}, '
                     f'Loss: {loss.item():.5f}, '
@@ -154,21 +139,10 @@ def main(args):
                                       is_validation_dataset=True)
     number_of_channels = dataset.x.shape[1]
     model = UNet(in_channels=number_of_channels, num_classes=dataset.num_classes)
-    wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
-    wandb.init(
-        project="local-contrastive-learning",
-        config={
-            "num_epochs": args.num_epochs,
-            "batch_size": args.batch_size,
-            "learning_rate": args.learning_rate,
-            "validation_interval": args.validation_interval,
-        }
-    )
-    config = wandb.config
     start_train = time.process_time()
-    trainer = Trainer(model=model, dataset=dataset, num_epochs=config.num_epochs, batch_size=config.batch_size,
-                      learning_rate=config.learning_rate, validation_dataset=validation_dataset,
-                      validation_interval=config.validation_interval)
+    trainer = Trainer(model=model, dataset=dataset, num_epochs=args.num_epochs, batch_size=args.batch_size,
+                      learning_rate=args.learning_rate, validation_dataset=validation_dataset,
+                      validation_interval=args.validation_interval)
     trainer.train()
     print(f"time for training: {time.process_time() - start_train}")
 
@@ -176,8 +150,3 @@ def main(args):
 if __name__ == "__main__":
     args = parse_args()
     main(args)
-
-
-
-
-
