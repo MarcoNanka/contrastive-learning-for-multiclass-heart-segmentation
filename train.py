@@ -10,6 +10,8 @@ from config import parse_args
 import wandb
 
 
+wandb.wandb_dir = "/home/marco_johannes/wandb_temp"
+
 class Trainer:
     def __init__(self, model, dataset, num_epochs, batch_size=4, learning_rate=0.001, validation_dataset=None,
                  validation_interval=5):
