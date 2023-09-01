@@ -159,6 +159,7 @@ def main(args):
     start_train = time.process_time()
     wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
     wandb.init(
+        dir="/home/marco_johannes/wandb_tmp",
         entity="marco-n",
         project="local-contrastive-learning",
         config={
