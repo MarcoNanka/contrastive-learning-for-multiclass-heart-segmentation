@@ -163,6 +163,7 @@ class MMWHSDataset(Dataset):
         Returns:
             tuple: The preprocessed input and target data tensors.
         """
+        print("Data loading begins")
         img_data, label_data = self.get_training_data_from_system()
         img_data = self.normalize_minmax_data(img_data, 0, 100)
         label_data, num_classes = self.preprocess_label_data(label_data)
