@@ -8,11 +8,12 @@ import numpy as np
 from typing import Tuple
 from config import parse_args
 import wandb
+import os
 
-WANDB_CACHE_DIR = "$HOME/wandb_tmp"
-WANDB_CONFIG_DIR = "$HOME/wandb_tmp"
-WANDB_DIR = "$HOME/wandb_tmp"
-WANDB_TEMP = "$HOME/wandb_tmp"
+os.environ['WANDB_CACHE_DIR'] = "$HOME/wandb_tmp"
+os.environ['WANDB_CONFIG_DIR'] = "$HOME/wandb_tmp"
+os.environ['WANDB_DIR'] = "$HOME/wandb_tmp"
+os.environ['WANDB_TEMP'] = "$HOME/wandb_tmp"
 
 
 class Trainer:
