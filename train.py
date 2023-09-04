@@ -9,10 +9,6 @@ from typing import Tuple
 from config import parse_args
 import wandb
 
-WANDB_CACHE_DIR = "$HOME/wandb_tmp"
-WANDB_CONFIG_DIR = "$HOME/wandb_tmp"
-WANDB_DIR = "$HOME/wandb_tmp"
-
 
 class Trainer:
     def __init__(self, model, dataset, num_epochs, batch_size=4, learning_rate=0.001, validation_dataset=None,
