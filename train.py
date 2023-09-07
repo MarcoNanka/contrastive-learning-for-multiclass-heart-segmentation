@@ -116,13 +116,15 @@ class Trainer:
                 loss = criterion(input=outputs, target=batch_y)
                 loss.backward()
                 optimizer.step()
-                wandb.log({"Training Loss": loss.item()})
+                wandb.log({
+                    "Epoch": epoch,
+                    "Training Loss": loss.item()
+                })
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
                 tp, fp, tn, fn, validation_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
                     accuracy, precision, recall, dice_score = self.evaluate_validation()
                 wandb.log({
-                    "Epoch": epoch,
                     "Validation Loss": validation_loss,
                     # "Validation Accuracy": accuracy_macro,
                     # "Validation Precision": precision_macro,
