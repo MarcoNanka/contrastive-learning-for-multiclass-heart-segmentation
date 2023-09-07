@@ -122,6 +122,7 @@ class Trainer:
                 tp, fp, tn, fn, validation_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
                     accuracy, precision, recall, dice_score = self.evaluate_validation()
                 wandb.log({
+                    "Epoch": epoch,
                     "Validation Loss": validation_loss,
                     # "Validation Accuracy": accuracy_macro,
                     # "Validation Precision": precision_macro,
