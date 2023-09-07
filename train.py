@@ -127,32 +127,12 @@ class Trainer:
                 wandb.log({
                     "Epoch": epoch,
                     "Validation Loss": validation_loss,
-                    # "Validation Accuracy": accuracy_macro,
-                    # "Validation Precision": precision_macro,
-                    # "Validation Recall": recall_macro,
                     "Validation Dice": dice_score_macro,
-                    # "True Positives label 1": tp[1],
-                    # "True Positives label 2": tp[2],
-                    # "True Positives label 3": tp[3],
-                    # "True Positives label 4": tp[4],
-                    # "True Positives label 5": tp[5],
-                    # "True Positives label 6": tp[6],
-                    # "True Positives label 7": tp[7],
                 })
                 print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f},')
-                # print(f'Validation Loss: {validation_loss:.5f},')
-                # print(f'Precision macro: {precision_macro:.5f},')
-                # print(f'Recall macro: {recall_macro:.5f},')
-                # print(f'Accuracy macro: {accuracy_macro:.5f}')
                 print(f'Dice score macro: {dice_score_macro}')
-                # print(f'Precision by class: {precision}')
-                # print(f'Recall by class: {recall}')
-                # print(f'Accuracy by class: {accuracy}')
                 print(f'Dice score by class: {dice_score}')
-                # print(f'TP: {tp}')
-                # print(f'FP: {fp}')
-                # print(f'TN: {tn}')
-                # print(f'FN: {fn}')
+                print(f'True positives: {tp}')
                 print()
             else:
                 print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
