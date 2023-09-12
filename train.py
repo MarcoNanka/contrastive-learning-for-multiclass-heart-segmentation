@@ -121,6 +121,8 @@ class Trainer:
                     "Training Loss": loss.item()
                 })
 
+            print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
+
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
                 tp, fp, tn, fn, validation_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
                     accuracy, precision, recall, dice_score = self.evaluate_validation()
@@ -129,13 +131,10 @@ class Trainer:
                     "Validation Loss": validation_loss,
                     "Validation Dice": dice_score_macro,
                 })
-                print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f},')
                 print(f'Dice score macro: {dice_score_macro}')
                 print(f'Dice score by class: {dice_score}')
                 print(f'True positives: {tp}')
                 print()
-            else:
-                print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
 
         torch.save(self.model.state_dict(), 'trained_model.pth')
 

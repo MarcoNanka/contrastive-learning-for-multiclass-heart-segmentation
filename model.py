@@ -16,12 +16,14 @@ class UNet(nn.Module):
         # Contracting path: Increasing features, reducing spatial dimensions
         self.conv1 = nn.Conv3d(in_channels=in_channels, out_channels=16, kernel_size=3, padding=1)
         self.conv2 = nn.Conv3d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
+        self.conv3 = nn.Conv3d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
         self.pool1 = nn.MaxPool3d(kernel_size=2, stride=2)
 
         # Expanding path: Decreasing features, increasing spatial dimensions
-        self.upconv1 = nn.ConvTranspose3d(in_channels=32, out_channels=16, kernel_size=2, stride=2)
-        self.conv3 = nn.Conv3d(in_channels=32, out_channels=16, kernel_size=3, padding=1)
-        self.conv4 = nn.Conv3d(in_channels=16, out_channels=num_classes, kernel_size=1)
+        self.upconv1 = nn.ConvTranspose3d(in_channels=64, out_channels=32, kernel_size=2, stride=2)
+        self.conv4 = nn.Conv3d(in_channels=64, out_channels=32, kernel_size=3, padding=1)
+        self.conv5 = nn.Conv3d(in_channels=32, out_channels=16, kernel_size=3, padding=1)
+        self.conv6 = nn.Conv3d(in_channels=16, out_channels=num_classes, kernel_size=1)
 
         self.relu = nn.ReLU()
 
@@ -35,14 +37,17 @@ class UNet(nn.Module):
         Returns:
             torch.Tensor: Output tensor of shape (batch_size, num_classes, depth, height, width).
         """
-        # Contracting path
+        # Contracting path: Finding High-level patterns
         x1 = self.relu(self.conv1(x))
-        x2 = self.relu(self.conv2(self.pool1(x1)))
+        x2 = self.relu(self.conv2(x1))
+        x3 = self.relu(self.conv3(x2))
+        x4 = self.relu(self.pool1(x3))
 
-        # Expanding path
-        x3 = self.upconv1(x2)
-        x3 = torch.cat((x1, x3), dim=1)
-        x3 = self.relu(self.conv3(x3))
-        output = self.conv4(x3)
+        # Expanding path: Refining features
+        x5 = self.upconv1(x4)
+        x5 = torch.cat((x3, x5), dim=1)
+        x6 = self.relu(self.conv4(x5))
+        x7 = self.relu(self.conv5(x6))
+        output = self.conv6(x7)
 
         return output
