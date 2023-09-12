@@ -77,11 +77,16 @@ class MMWHSDataset(Dataset):
                                 z: z + self.patch_size[2]]
                     img_patch = np.expand_dims(img_patch, axis=0)
                     label_patch = label_data[x: x + self.patch_size[0], y: y + self.patch_size[1],
-                                  z: z + self.patch_size[2]]
+                                z: z + self.patch_size[2]]
                     label_patch = np.expand_dims(label_patch, axis=0)
-                    if self.is_validation_dataset or len(np.unique(label_patch)) > 1 or np.unique(label_patch)[0] != 0:
+                    unique, counts = np.unique(label_patch, return_counts=True)
+                    counts_descending = -np.sort(-counts)
+                    if self.is_validation_dataset or (len(unique) > 1 and counts_descending[1] >= 100) or unique[
+                        0] != 0:
                         image_patches.append(img_patch)
                         label_patches.append(label_patch)
+
+        print(f"number patches: {len(image_patches)}")
 
         return np.array(image_patches), np.array(label_patches)
 
