@@ -5,6 +5,7 @@ from model import UNet
 from data_loading import MMWHSDataset
 import time
 import numpy as np
+from typing import Tuple
 from config import parse_args
 import wandb
 import os
@@ -39,7 +40,9 @@ class Trainer:
         self.validation_dataset = validation_dataset
         self.validation_interval = validation_interval
 
-    def evaluate_validation(self):
+    def evaluate_validation(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, float, np.ndarray,
+                                           np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+                                           np.ndarray]:
         """
         Evaluate the model on the validation dataset.
 
