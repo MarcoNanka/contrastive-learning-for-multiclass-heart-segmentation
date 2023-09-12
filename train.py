@@ -140,9 +140,10 @@ class Trainer:
 
 
 def main(args):
-    dataset = MMWHSDataset(folder_path=args.folder_path, patch_size=args.patch_size, is_validation_dataset=False)
+    dataset = MMWHSDataset(folder_path=args.folder_path, patch_size=args.patch_size, is_validation_dataset=False,
+                           patches_filter=args.patches_filter)
     validation_dataset = MMWHSDataset(folder_path=args.val_folder_path, patch_size=args.patch_size,
-                                      is_validation_dataset=True)
+                                      is_validation_dataset=True, patches_filter=args.patches_filter)
     number_of_channels = dataset.x.shape[1]
     model = UNet(in_channels=number_of_channels, num_classes=dataset.num_classes)
     start_train = time.process_time()
