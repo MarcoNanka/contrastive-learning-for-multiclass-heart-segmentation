@@ -88,8 +88,7 @@ class MMWHSDataset(Dataset):
                         image_patches.append(img_patch)
                         label_patches.append(label_patch)
 
-        print(f"number patches: {len(image_patches)}")
-        print(f"is validation dataset: {self.is_validation_dataset}")
+        print(f"validation dataset? {self.is_validation_dataset}, number patches: {len(image_patches)}")
 
         return np.array(image_patches), np.array(label_patches)
 
@@ -176,15 +175,3 @@ class MMWHSDataset(Dataset):
         img_data = self.normalize_minmax_data(img_data, 0, 100)
         label_data, num_classes = self.preprocess_label_data(label_data)
         return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes
-
-
-if __name__ == "__main__":
-    folder_path = "/Users/marconanka/BioMedia/data/reduced MM-WHS 2017 Dataset/ct_train"
-    patch_size = (24, 24, 24)
-    dataset = MMWHSDataset(folder_path=folder_path, patch_size=patch_size, is_validation_dataset=False)
-    print(f"image data: {dataset.x.shape}")
-    print(f"labels: {dataset.y.shape}")
-    print(f"number of classes: {dataset.num_classes}")
-    print(f"number of channels: {dataset.x.shape[1]}")
-    print(f"Image data: {dataset.x[6180:6200, 0, 12, 12, 12]}")
-    print(f"corresponding labels: {dataset.y[6190:6200, 12, 12, 12]}")

@@ -11,6 +11,6 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=4, help="Batch size")
     parser.add_argument("--learning_rate", type=float, default=0.01, help="Learning rate")
     parser.add_argument("--validation_interval", type=int, default=2, help="Validation interval in epochs")
-    parser.add_argument("--patches_filter", type=int, default=100, help="Number of relevant voxels")
+    parser.add_argument("--patches_filter", type=int, default=1, help="Number of relevant voxels")
     args = parser.parse_args()
     return args
