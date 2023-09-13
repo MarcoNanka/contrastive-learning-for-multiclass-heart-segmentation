@@ -89,6 +89,7 @@ class MMWHSDataset(Dataset):
                         label_patches.append(label_patch)
 
         print(f"number patches: {len(image_patches)}")
+        print(f"is validation dataset: {self.is_validation_dataset}")
 
         return np.array(image_patches), np.array(label_patches)
 
