@@ -37,13 +37,20 @@ class UNet(nn.Module):
        """
         # Contracting path: Finding High-level patterns
         x1 = self.relu(self.encoder_conv1(x))
+        print(x1.shape)
         x2 = self.pool1(x1)
+        print(x2.shape)
         x2 = self.relu(self.encoder_conv2(x2))
+        print(x2.shape)
 
         # Expanding path: Refining features
         x3 = self.upconv1(x2)
+        print(x3.shape)
         x3 = torch.cat((x1, x3), dim=1)
+        print(x3.shape)
         x3 = self.relu(self.decoder_conv1(x3))
+        print(x3.shape)
         output = self.decoder_conv2(x3)
+        print(output.shape)
 
         return output
