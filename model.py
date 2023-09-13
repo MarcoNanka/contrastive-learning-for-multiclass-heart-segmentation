@@ -36,6 +36,8 @@ class UNet(nn.Module):
            torch.Tensor: Output tensor of shape (batch_size, num_classes, depth, height, width).
        """
         # Contracting path: Finding High-level patterns
+        print("START")
+        print(x.shape)
         x1 = self.relu(self.encoder_conv1(x))
         print(x1.shape)
         x2 = self.pool1(x1)
@@ -52,5 +54,6 @@ class UNet(nn.Module):
         print(x3.shape)
         output = self.decoder_conv2(x3)
         print(output.shape)
+        print("END")
 
         return output
