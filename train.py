@@ -9,6 +9,7 @@ from typing import Tuple
 from config import parse_args
 import wandb
 import os
+import random
 
 os.environ['WANDB_CACHE_DIR'] = "$HOME/wandb_tmp"
 os.environ['WANDB_CONFIG_DIR'] = "$HOME/wandb_tmp"
@@ -104,10 +105,19 @@ class Trainer:
         """
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.learning_rate)
-        dataloader = DataLoader(dataset=self.dataset, batch_size=self.batch_size, shuffle=True)
         self.model.to(device=self.device, dtype=torch.float)
+        # Calculate the number of training patches to use for this epoch (80% of the total)
+        num_patches = len(self.dataset)
+        num_patches_to_use = int(0.8 * num_patches)
 
         for epoch in range(self.num_epochs):
+            # Shuffle the dataset to ensure random patch selection
+            indices = list(range(num_patches))
+            random.shuffle(indices)
+            # Create a dataloader for this epoch with the selected patches
+            selected_indices = indices[:num_patches_to_use]
+            dataloader = DataLoader(dataset=self.dataset, batch_size=self.batch_size, shuffle=False,
+                                    sampler=torch.utils.data.SubsetRandomSampler(selected_indices))
             for batch_x, batch_y in dataloader:
                 batch_x = batch_x.to(device=self.device, dtype=torch.float)
                 batch_y = batch_y.to(device=self.device, dtype=torch.long)

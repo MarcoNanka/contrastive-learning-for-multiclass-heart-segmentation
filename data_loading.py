@@ -120,6 +120,7 @@ class MMWHSDataset(Dataset):
             np.ndarray: The prepared label data.
         """
         label_values = np.sort(np.unique(raw_data))
+        print(f"label_values: {label_values}")
         for ind, val in enumerate(label_values):
             raw_data[raw_data == val] = ind
 
@@ -148,6 +149,7 @@ class MMWHSDataset(Dataset):
 
         patches_images = np.concatenate(patches_images, axis=0)
         patches_labels = np.concatenate(patches_labels, axis=0)
+        print(f"patches_images.shape: {patches_images.shape}")
         return patches_images, patches_labels
 
     def get_training_data_from_system(self) -> Tuple[np.ndarray, np.ndarray]:
