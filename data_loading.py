@@ -106,6 +106,7 @@ class MMWHSDataset(Dataset):
         """
         min_val_low_p = np.percentile(raw_data, min_val)
         max_val_high_p = np.percentile(raw_data, max_val)
+        print(f"NORMALIZATION --- min value: {min_val_low_p}, max_value: {max_val_high_p}")
         normalized_data = (raw_data - min_val_low_p) / (max_val_high_p - min_val_low_p)
         return normalized_data
 
@@ -160,6 +161,7 @@ class MMWHSDataset(Dataset):
             tuple: The input and target training data.
         """
         image_path_names = glob.glob(os.path.join(self.folder_path, "*image.nii*"))
+        print(f"image path names: {image_path_names}")
         if not image_path_names:
             raise ValueError("Empty list! Check if folder path contains images.")
         ret_imgs, ret_labels = self.create_training_data_array(image_path_names)
