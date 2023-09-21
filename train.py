@@ -108,6 +108,7 @@ class Trainer:
         self.model.to(device=self.device, dtype=torch.float)
         # Calculate the number of training patches to use for this epoch (80% of the total)
         num_patches = len(self.dataset)
+        print(f"Number of patches: {num_patches}")
         num_patches_to_use = int(0.8 * num_patches)
 
         for epoch in range(self.num_epochs):
@@ -118,6 +119,7 @@ class Trainer:
             selected_indices = indices[:num_patches_to_use]
             dataloader = DataLoader(dataset=self.dataset, batch_size=self.batch_size, shuffle=False,
                                     sampler=torch.utils.data.SubsetRandomSampler(selected_indices))
+            print(f"Epoch {epoch}, Selected indices: {selected_indices[:3]}, Num of indices: {len(selected_indices)}")
             for batch_x, batch_y in dataloader:
                 batch_x = batch_x.to(device=self.device, dtype=torch.float)
                 batch_y = batch_y.to(device=self.device, dtype=torch.long)
