@@ -120,7 +120,6 @@ class Trainer:
             selected_indices = indices[:num_patches_to_use]
             dataloader = DataLoader(dataset=self.dataset, batch_size=self.batch_size, shuffle=False,
                                     sampler=torch.utils.data.SubsetRandomSampler(selected_indices))
-            print(f"Epoch {epoch}, Selected indices: {selected_indices[:3]}, Num of indices: {len(selected_indices)}")
             for batch_x, batch_y in dataloader:
                 batch_x = batch_x.to(device=self.device, dtype=torch.float)
                 batch_y = batch_y.to(device=self.device, dtype=torch.long)
