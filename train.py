@@ -169,6 +169,7 @@ def main(args):
             "batch_size": args.batch_size,
             "learning_rate": args.learning_rate,
             "validation_interval": args.validation_interval,
+            "training_shuffle": args.training_shuffle
         }
     )
     config = wandb.config
