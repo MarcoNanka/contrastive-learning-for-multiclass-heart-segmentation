@@ -18,8 +18,8 @@ os.environ['WANDB_TEMP'] = "$HOME/wandb_tmp"
 
 
 class Trainer:
-    def __init__(self, model, dataset, num_epochs, batch_size=4, learning_rate=0.001, validation_dataset=None,
-                 validation_interval=5):
+    def __init__(self, model, dataset, num_epochs, batch_size, learning_rate, validation_dataset,
+                 validation_interval, training_shuffle):
         """
         Trainer class for training a model.
 
@@ -40,6 +40,7 @@ class Trainer:
         self.learning_rate = learning_rate
         self.validation_dataset = validation_dataset
         self.validation_interval = validation_interval
+        self.training_shuffle = training_shuffle
 
     def evaluate_validation(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, float, np.ndarray,
                                            np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
@@ -109,7 +110,7 @@ class Trainer:
         # Calculate the number of training patches to use for this epoch (80% of the total)
         num_patches = len(self.dataset)
         print(f"Number of patches: {num_patches}")
-        num_patches_to_use = int(0.8 * num_patches)
+        num_patches_to_use = int(self.training_shuffle * num_patches)
 
         for epoch in range(self.num_epochs):
             # Shuffle the dataset to ensure random patch selection
@@ -174,7 +175,7 @@ def main(args):
 
     trainer = Trainer(model=model, dataset=dataset, num_epochs=config.num_epochs, batch_size=config.batch_size,
                       learning_rate=config.learning_rate, validation_dataset=validation_dataset,
-                      validation_interval=config.validation_interval)
+                      validation_interval=config.validation_interval, training_shuffle=config.training_shuffle)
     trainer.train()
     print(f"time for training: {time.process_time() - start_train}")
 
