@@ -143,16 +143,17 @@ class Trainer:
                     "Epoch": epoch,
                     "Validation Loss": validation_loss,
                     "Validation Dice": dice_score_macro,
-                    "my_image_key": wandb.Image(self.validation_dataset.x, masks={
-                        # "predictions": {
-                        #     "mask_data": prediction_mask,
-                        #     "class_labels": class_labels
-                        # },
-                        "ground_truth": {
-                            "mask_data": self.validation_dataset.y,
-                            "class_labels": self.validation_dataset.label_values
-                        }
-                    })})
+                    # "my_image_key": wandb.Image(self.validation_dataset.x, masks={
+                    #     # "predictions": {
+                    #     #     "mask_data": prediction_mask,
+                    #     #     "class_labels": class_labels
+                    #     # },
+                    #     "ground_truth": {
+                    #         "mask_data": self.validation_dataset.y,
+                    #         "class_labels": self.validation_dataset.label_values
+                    #     }
+                    # })
+                    })
                 print(f'Dice score macro: {dice_score_macro}')
                 print(f'Dice score by class: {dice_score}')
                 print(f'True positives: {tp}')
