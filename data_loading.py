@@ -25,7 +25,7 @@ class MMWHSDataset(Dataset):
         self.patch_size = patch_size
         self.is_validation_dataset = is_validation_dataset
         self.patches_filter = patches_filter
-        self.x, self.y, self.num_classes = self.load_data()
+        self.x, self.y, self.num_classes, self.label_values = self.load_data()
 
     def __len__(self) -> int:
         """
@@ -109,7 +109,7 @@ class MMWHSDataset(Dataset):
         normalized_data = (raw_data - min_val_low_p) / (max_val_high_p - min_val_low_p)
         return normalized_data
 
-    def preprocess_label_data(self, raw_data: np.ndarray) -> Tuple[np.ndarray, int]:
+    def preprocess_label_data(self, raw_data: np.ndarray) -> Tuple[np.ndarray, int, np.ndarray]:
         """
         Prepare the label data for training.
 
@@ -125,7 +125,7 @@ class MMWHSDataset(Dataset):
             raw_data[raw_data == val] = ind
 
         raw_data = np.squeeze(raw_data)
-        return raw_data, len(label_values)
+        return raw_data, len(label_values), label_values
 
     def create_training_data_array(self, path_list: list) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -165,7 +165,7 @@ class MMWHSDataset(Dataset):
         ret_imgs, ret_labels = self.create_training_data_array(image_path_names)
         return ret_imgs, ret_labels
 
-    def load_data(self) -> Tuple[torch.Tensor, torch.Tensor, int]:
+    def load_data(self) -> Tuple[torch.Tensor, torch.Tensor, int, np.ndarray]:
         """
         Load and preprocess the dataset.
 
@@ -175,5 +175,5 @@ class MMWHSDataset(Dataset):
         print("Data loading begins")
         img_data, label_data = self.get_training_data_from_system()
         img_data = self.normalize_minmax_data(img_data, 0, 100)
-        label_data, num_classes = self.preprocess_label_data(label_data)
-        return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes
+        label_data, num_classes, label_values = self.preprocess_label_data(label_data)
+        return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes, label_values
