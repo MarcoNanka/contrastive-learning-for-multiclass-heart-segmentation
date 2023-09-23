@@ -185,13 +185,11 @@ class Trainer:
                                                 masks={
                         "predictions": {
                             "mask_data": prediction_mask[:][:][100],
-                            "class_labels": class_labels,
-                            "caption": "predictions"
+                            "class_labels": class_labels
                         },
                         "ground_truth": {
                             "mask_data": self.validation_dataset.original_label_data[:][:][100],
-                            "class_labels": class_labels,
-                            "caption": "ground_truth"
+                            "class_labels": class_labels
                         }
                     })
                     })
@@ -224,6 +222,10 @@ def main(args):
             "validation_interval": args.validation_interval,
             "training_shuffle": args.training_shuffle,
             "normalization_percentiles": args.normalization_percentiles
+            "min_value_training": dataset.min_val_low_p,
+            "max_value_training": dataset.max_val_high_p,
+            "min_value_validation": validation_dataset.min_val_low_p,
+            "max_value_validation": validation_dataset.max_val_high_p
         }
     )
     config = wandb.config

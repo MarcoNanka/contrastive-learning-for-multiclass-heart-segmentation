@@ -27,8 +27,8 @@ class MMWHSDataset(Dataset):
         self.is_validation_dataset = is_validation_dataset
         self.patches_filter = patches_filter
         self.low_percentile, self.high_percentile = normalization_percentiles
-        self.x, self.y, self.num_classes, self.label_values, self.original_image_data, self.original_label_data = \
-            self.load_data()
+        self.x, self.y, self.num_classes, self.label_values, self.original_image_data, self.original_label_data, \
+            self.min_val_low_p, self.max_val_high_p = self.load_data()
 
     def __len__(self) -> int:
         """
@@ -95,7 +95,7 @@ class MMWHSDataset(Dataset):
 
         return np.array(image_patches), np.array(label_patches)
 
-    def normalize_minmax_data(self, raw_data: np.ndarray) -> np.ndarray:
+    def normalize_minmax_data(self, raw_data: np.ndarray) -> Tuple[np.ndarray, float, float]:
         """
         Normalize the given raw data using min-max scaling.
 
@@ -109,7 +109,7 @@ class MMWHSDataset(Dataset):
         max_val_high_p = np.percentile(raw_data, self.high_percentile)
         print(f"NORMALIZATION --- min value: {min_val_low_p}, max_value: {max_val_high_p}")
         normalized_data = (raw_data - min_val_low_p) / (max_val_high_p - min_val_low_p)
-        return normalized_data
+        return normalized_data, min_val_low_p, max_val_high_p
 
     def preprocess_label_data(self, raw_data: np.ndarray) -> Tuple[np.ndarray, int, np.ndarray]:
         """
@@ -169,7 +169,7 @@ class MMWHSDataset(Dataset):
             self.create_training_data_array(image_path_names)
         return ret_imgs, ret_labels, original_image_data, original_label_data
 
-    def load_data(self) -> Tuple[torch.Tensor, torch.Tensor, int, np.ndarray, np.ndarray, np.ndarray]:
+    def load_data(self) -> Tuple[torch.Tensor, torch.Tensor, int, np.ndarray, np.ndarray, np.ndarray, float, float]:
         """
         Load and preprocess the dataset.
 
@@ -177,7 +177,7 @@ class MMWHSDataset(Dataset):
             tuple: The preprocessed input and target data tensors.
         """
         img_data, label_data, original_image_data, original_label_data = self.get_training_data_from_system()
-        img_data = self.normalize_minmax_data(img_data)
+        img_data, min_val_low_p, max_val_high_p = self.normalize_minmax_data(img_data)
         label_data, num_classes, label_values = self.preprocess_label_data(label_data)
         return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes, label_values, \
-            original_image_data, original_label_data
+            original_image_data, original_label_data, min_val_low_p, max_val_high_p
