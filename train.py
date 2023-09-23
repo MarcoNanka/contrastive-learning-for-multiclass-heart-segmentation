@@ -92,11 +92,9 @@ class Trainer:
 
         with torch.no_grad():
             for val_batch_x, val_batch_y in val_dataloader:
-                val_batch_x = val_batch_x.to(device=self.device, dtype=torch.float)
-                val_batch_y = val_batch_y.to(device=self.device, dtype=torch.long)
-                val_outputs = self.model(val_batch_x)
-                print(f"val_batch_x.shape, val_batch_y.shape, val_outputs.shape: "
-                      f"{val_batch_x.shape, val_batch_y.shape, val_outputs.shape}")
+                val_batch_x = val_batch_x.to(device=self.device, dtype=torch.float)  # shape: batch_size, 1, patch_dims
+                val_batch_y = val_batch_y.to(device=self.device, dtype=torch.long)  # shape: batch_size, patch_dims
+                val_outputs = self.model(val_batch_x)  # shape: batch_size, num_labels, patch_dims
                 val_loss = val_criterion(input=val_outputs, target=val_batch_y)
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
