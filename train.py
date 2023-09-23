@@ -53,14 +53,6 @@ class Trainer:
         Returns:
             np.ndarray: The reconstructed original label data.
         """
-        print(f"second try predicted shape: {predicted.shape}")
-        print(f"second try predicted shape: {predicted.shape}")
-        print(f"second try predicted shape: {predicted.shape}")
-        print(f"second try predicted shape: {predicted.shape}")
-        print(f"second try predicted shape: {predicted.shape}")
-        print(f"second try predicted shape: {predicted.shape}")
-        print(f"second try predicted shape: {predicted.shape}")
-        print(f"second try predicted shape: {predicted.shape}")
         num_patches, _, patch_dim_x, patch_dim_y, patch_dim_z = predicted.shape
         og_shape = self.validation_dataset.original_image_data.shape
         reconstructed_label = np.zeros(og_shape)
@@ -103,6 +95,8 @@ class Trainer:
                 val_batch_x = val_batch_x.to(device=self.device, dtype=torch.float)
                 val_batch_y = val_batch_y.to(device=self.device, dtype=torch.long)
                 val_outputs = self.model(val_batch_x)
+                print(f"val_batch_x.shape, val_batch_y.shape, val_outputs.shape: "
+                      f"{val_batch_x.shape, val_batch_y.shape, val_outputs.shape}")
                 val_loss = val_criterion(input=val_outputs, target=val_batch_y)
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
@@ -130,14 +124,8 @@ class Trainer:
             dice_score_macro = np.mean(dice_score)
 
         print(f"predicted.shape: {predicted.shape}")
-        print(f"predicted.shape: {predicted.shape}")
-        print(f"predicted.shape: {predicted.shape}")
-        print(f"predicted.shape: {predicted.shape}")
-        print(f"predicted.shape: {predicted.shape}")
-        print(f"predicted.shape: {predicted.shape}")
-        print(f"predicted.shape: {predicted.shape}")
-        print(f"predicted.shape: {predicted.shape}")
-        prediction_mask = self.reconstruct_labels(predicted)
+        # prediction_mask = self.reconstruct_labels(predicted)
+        prediction_mask = np.zeros(self.validation_dataset.original_image_data.shape)
 
         return true_positives, average_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
             accuracy, precision, recall, dice_score, prediction_mask
