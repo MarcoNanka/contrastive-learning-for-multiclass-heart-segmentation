@@ -3,6 +3,7 @@ import glob
 import numpy as np
 import torch
 import nibabel as nib
+from numpy import ndarray
 from torch.utils.data import Dataset
 from typing import Tuple
 
@@ -25,7 +26,8 @@ class MMWHSDataset(Dataset):
         self.patch_size = patch_size
         self.is_validation_dataset = is_validation_dataset
         self.patches_filter = patches_filter
-        self.x, self.y, self.num_classes, self.label_values = self.load_data()
+        self.x, self.y, self.num_classes, self.label_values, self.original_image_data, self.original_label_data = \
+            self.load_data()
 
     def __len__(self) -> int:
         """
@@ -53,7 +55,7 @@ class MMWHSDataset(Dataset):
         Extract patches from the given image data.
 
         Args:
-            image_data (np.ndarray): The input image data.
+            image_data (np.ndarray): The input image data, dimensions: (width, height, depth).
             label_data (np.ndarray): The input label data.
 
         Returns:
@@ -76,10 +78,10 @@ class MMWHSDataset(Dataset):
             for y in range(0, image_data.shape[1], self.patch_size[1]):
                 for z in range(0, image_data.shape[2], self.patch_size[2]):
                     img_patch = image_data[x: x + self.patch_size[0], y: y + self.patch_size[1],
-                                z: z + self.patch_size[2]]
+                                           z: z + self.patch_size[2]]
                     img_patch = np.expand_dims(img_patch, axis=0)
                     label_patch = label_data[x: x + self.patch_size[0], y: y + self.patch_size[1],
-                                z: z + self.patch_size[2]]
+                                             z: z + self.patch_size[2]]
                     label_patch = np.expand_dims(label_patch, axis=0)
                     unique, counts = np.unique(label_patch, return_counts=True)
                     counts_descending = -np.sort(-counts)
@@ -128,7 +130,7 @@ class MMWHSDataset(Dataset):
         raw_data = np.squeeze(raw_data)
         return raw_data, len(label_values), label_values
 
-    def create_training_data_array(self, path_list: list) -> Tuple[np.ndarray, np.ndarray]:
+    def create_training_data_array(self, path_list: list) -> tuple[ndarray, ndarray, ndarray, ndarray]:
         """
         Create the training data array from the given list of paths.
 
@@ -143,8 +145,9 @@ class MMWHSDataset(Dataset):
         patches_labels = []
         for path in path_list:
             image_data = np.array(nib.load(path).get_fdata())
-            print(f"shape of image: {image_data.shape}")
             label_data = np.array(nib.load(path.replace('image', 'label')).get_fdata())
+            original_image_data = image_data
+            original_label_data = label_data
             image_data, label_data = self.extract_patches(image_data, label_data)
             patches_images.append(image_data)
             patches_labels.append(label_data)
@@ -152,9 +155,9 @@ class MMWHSDataset(Dataset):
         patches_images = np.concatenate(patches_images, axis=0)
         patches_labels = np.concatenate(patches_labels, axis=0)
         print(f"patches_images.shape: {patches_images.shape}")
-        return patches_images, patches_labels
+        return patches_images, patches_labels, original_image_data, original_label_data
 
-    def get_training_data_from_system(self) -> Tuple[np.ndarray, np.ndarray]:
+    def get_training_data_from_system(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Load the training data from the file system.
 
@@ -164,10 +167,11 @@ class MMWHSDataset(Dataset):
         image_path_names = glob.glob(os.path.join(self.folder_path, "*image.nii*"))
         if not image_path_names:
             raise ValueError("Empty list! Check if folder path contains images.")
-        ret_imgs, ret_labels = self.create_training_data_array(image_path_names)
-        return ret_imgs, ret_labels
+        ret_imgs, ret_labels, original_image_data, original_label_data = \
+            self.create_training_data_array(image_path_names)
+        return ret_imgs, ret_labels, original_image_data, original_label_data
 
-    def load_data(self) -> Tuple[torch.Tensor, torch.Tensor, int, np.ndarray]:
+    def load_data(self) -> Tuple[torch.Tensor, torch.Tensor, int, np.ndarray, np.ndarray, np.ndarray]:
         """
         Load and preprocess the dataset.
 
@@ -175,7 +179,9 @@ class MMWHSDataset(Dataset):
             tuple: The preprocessed input and target data tensors.
         """
         print("Data loading begins")
-        img_data, label_data = self.get_training_data_from_system()
+        img_data, label_data, original_image_data, original_label_data = self.get_training_data_from_system()
         img_data = self.normalize_minmax_data(img_data, 0, 100)
         label_data, num_classes, label_values = self.preprocess_label_data(label_data)
-        return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes, label_values
+        return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes, label_values, \
+            original_image_data, original_label_data
+

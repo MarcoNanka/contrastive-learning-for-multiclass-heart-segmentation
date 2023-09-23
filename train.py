@@ -54,22 +54,23 @@ class Trainer:
             np.ndarray: The reconstructed original label data.
         """
         num_patches, _, patch_dim_x, patch_dim_y, patch_dim_z = predicted.shape
-        reconstructed_label = np.zeros(self.validation_dataset.y.shape)
+        og_shape = self.validation_dataset.original_image_data.shape
+        reconstructed_label = np.zeros(og_shape)
 
         patch_idx = 0
-        for x in range(0, self.validation_dataset.y.shape[0], self.patch_size[0]):
-            for y in range(0, self.validation_dataset.y.shape[1], self.patch_size[1]):
-                for z in range(0, self.validation_dataset.y.shape[2], self.patch_size[2]):
+        for x in range(0, og_shape[0], self.patch_size[0]):
+            for y in range(0, og_shape[1], self.patch_size[1]):
+                for z in range(0, og_shape[2], self.patch_size[2]):
                     label_patch = predicted[patch_idx]
                     reconstructed_label[x: x + patch_dim_x, y: y + patch_dim_y,
-                    z: z + patch_dim_z] = label_patch[0]
+                                        z: z + patch_dim_z] = label_patch[0]
                     patch_idx += 1
 
         return reconstructed_label
 
-    def evaluate_validation(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, float, np.ndarray,
+    def evaluate_validation(self) -> Tuple[np.ndarray, float, np.ndarray,
                                            np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-                                           np.ndarray]:
+                                           np.ndarray, np.ndarray]:
         """
         Evaluate the model on the validation dataset.
 
@@ -120,8 +121,10 @@ class Trainer:
             accuracy_macro = np.mean(accuracy)
             dice_score_macro = np.mean(dice_score)
 
-        return true_positives, false_positives, true_negatives, false_negatives, average_loss, accuracy_macro, \
-            precision_macro, recall_macro, dice_score_macro, accuracy, precision, recall, dice_score
+        prediction_mask = self.reconstruct_labels(predicted)
+
+        return true_positives, average_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
+            accuracy, precision, recall, dice_score, prediction_mask
 
     def train(self):
         """
@@ -171,19 +174,19 @@ class Trainer:
             print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
-                tp, fp, tn, fn, validation_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
-                    accuracy, precision, recall, dice_score = self.evaluate_validation()
+                tp, validation_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
+                    accuracy, precision, recall, dice_score, prediction_mask = self.evaluate_validation()
                 wandb.log({
                     "Epoch": epoch,
                     "Validation Loss": validation_loss,
                     "Validation Dice": dice_score_macro,
-                    "my_image_key": wandb.Image(self.validation_dataset.x, masks={
+                    "my_image_key": wandb.Image(self.validation_dataset.original_image_data, masks={
                         "predictions": {
-                        #     "mask_data": prediction_mask,
+                            "mask_data": prediction_mask,
                             "class_labels": class_labels
                         },
                         "ground_truth": {
-                            "mask_data": self.validation_dataset.y,
+                            "mask_data": self.validation_dataset.original_label_data,
                             "class_labels": class_labels
                         }
                     })
