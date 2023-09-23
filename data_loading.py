@@ -123,7 +123,6 @@ class MMWHSDataset(Dataset):
             np.ndarray: The prepared label data.
         """
         label_values = np.sort(np.unique(raw_data))
-        print(f"label_values: {label_values}")
         for ind, val in enumerate(label_values):
             raw_data[raw_data == val] = ind
 
@@ -178,7 +177,6 @@ class MMWHSDataset(Dataset):
         Returns:
             tuple: The preprocessed input and target data tensors.
         """
-        print("Data loading begins")
         img_data, label_data, original_image_data, original_label_data = self.get_training_data_from_system()
         img_data = self.normalize_minmax_data(img_data, 0, 100)
         label_data, num_classes, label_values = self.preprocess_label_data(label_data)

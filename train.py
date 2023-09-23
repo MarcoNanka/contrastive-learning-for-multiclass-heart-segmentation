@@ -121,6 +121,7 @@ class Trainer:
             accuracy_macro = np.mean(accuracy)
             dice_score_macro = np.mean(dice_score)
 
+        print(f"predicted.shape: {predicted.shape}")
         prediction_mask = self.reconstruct_labels(predicted)
 
         return true_positives, average_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
