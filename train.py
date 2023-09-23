@@ -181,14 +181,17 @@ class Trainer:
                     "Epoch": epoch,
                     "Validation Loss": validation_loss,
                     "Validation Dice": dice_score_macro,
-                    "my_image_key": wandb.Image(self.validation_dataset.original_image_data[:][:][100], masks={
+                    "my_image_key": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:][:][100],
+                                                masks={
                         "predictions": {
                             "mask_data": prediction_mask[:][:][100],
-                            "class_labels": class_labels
+                            "class_labels": class_labels,
+                            "caption": "predictions"
                         },
                         "ground_truth": {
                             "mask_data": self.validation_dataset.original_label_data[:][:][100],
-                            "class_labels": class_labels
+                            "class_labels": class_labels,
+                            "caption": "ground_truth"
                         }
                     })
                     })
