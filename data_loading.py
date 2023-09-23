@@ -85,10 +85,9 @@ class MMWHSDataset(Dataset):
                     label_patch = np.expand_dims(label_patch, axis=0)
                     unique, counts = np.unique(label_patch, return_counts=True)
                     counts_descending = -np.sort(-counts)
-                    if self.is_validation_dataset or (len(unique) >= 1 and counts_descending[1] >= self.patches_filter) \
-                            or unique[0] != 0:
-                        image_patches.append(img_patch)
-                        label_patches.append(label_patch)
+
+                    image_patches.append(img_patch)
+                    label_patches.append(label_patch)
 
         print(f"validation dataset? {self.is_validation_dataset}, number patches: {len(image_patches)}")
 
