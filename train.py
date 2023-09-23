@@ -121,7 +121,6 @@ class Trainer:
             accuracy_macro = np.mean(accuracy)
             dice_score_macro = np.mean(dice_score)
 
-        print(f"predicted.shape: {predicted.shape}")
         # prediction_mask = self.reconstruct_labels(predicted)
         prediction_mask = np.zeros(self.validation_dataset.original_image_data.shape)
 

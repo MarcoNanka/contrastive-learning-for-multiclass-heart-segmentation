@@ -105,6 +105,7 @@ class MMWHSDataset(Dataset):
         Returns:
             np.ndarray: The normalized data.
         """
+        print(f"low percentile: {self.low_percentile}, high_percentile: {self.high_percentile}")
         min_val_low_p = np.percentile(raw_data, self.low_percentile)
         max_val_high_p = np.percentile(raw_data, self.high_percentile)
         print(f"NORMALIZATION --- min value: {min_val_low_p}, max_value: {max_val_high_p}")
