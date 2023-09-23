@@ -222,10 +222,10 @@ def main(args):
             "validation_interval": args.validation_interval,
             "training_shuffle": args.training_shuffle,
             "normalization_percentiles": args.normalization_percentiles
-            "min_value_training": dataset.min_val_low_p,
-            "max_value_training": dataset.max_val_high_p,
-            "min_value_validation": validation_dataset.min_val_low_p,
-            "max_value_validation": validation_dataset.max_val_high_p
+            "min_value_low_percentile_training": dataset.min_val_low_p,
+            "max_value_high_percentile_training": dataset.max_val_high_p,
+            "min_value_low_percentile_validation": validation_dataset.min_val_low_p,
+            "max_value_high_percentile_validation": validation_dataset.max_val_high_p
         }
     )
     config = wandb.config
