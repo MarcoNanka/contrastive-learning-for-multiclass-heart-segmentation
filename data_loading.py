@@ -14,7 +14,7 @@ class MMWHSDataset(Dataset):
     """
 
     def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], is_validation_dataset: bool,
-                 patches_filter: int) -> None:
+                 patches_filter: int, normalization_percentiles: Tuple[int, int]) -> None:
         """
         Initialize the MMWHSDataset.
 
@@ -26,6 +26,7 @@ class MMWHSDataset(Dataset):
         self.patch_size = patch_size
         self.is_validation_dataset = is_validation_dataset
         self.patches_filter = patches_filter
+        self.low_percentile, self.high_percentile = normalization_percentiles
         self.x, self.y, self.num_classes, self.label_values, self.original_image_data, self.original_label_data = \
             self.load_data()
 
@@ -85,28 +86,27 @@ class MMWHSDataset(Dataset):
                     label_patch = np.expand_dims(label_patch, axis=0)
                     unique, counts = np.unique(label_patch, return_counts=True)
                     counts_descending = -np.sort(-counts)
-
-                    image_patches.append(img_patch)
-                    label_patches.append(label_patch)
+                    if self.is_validation_dataset or (len(unique) > 1 and counts_descending[1] >= self.patches_filter) \
+                            or unique[0] != 0:
+                        image_patches.append(img_patch)
+                        label_patches.append(label_patch)
 
         print(f"validation dataset? {self.is_validation_dataset}, number patches: {len(image_patches)}")
 
         return np.array(image_patches), np.array(label_patches)
 
-    def normalize_minmax_data(self, raw_data: np.ndarray, min_val: float = 1, max_val: float = 99) -> np.ndarray:
+    def normalize_minmax_data(self, raw_data: np.ndarray) -> np.ndarray:
         """
         Normalize the given raw data using min-max scaling.
 
         Args:
             raw_data (np.ndarray): The raw input data.
-            min_val (float): The minimum percentile for normalization (default: 1).
-            max_val (float): The maximum percentile for normalization (default: 99).
 
         Returns:
             np.ndarray: The normalized data.
         """
-        min_val_low_p = np.percentile(raw_data, min_val)
-        max_val_high_p = np.percentile(raw_data, max_val)
+        min_val_low_p = np.percentile(raw_data, self.low_percentile)
+        max_val_high_p = np.percentile(raw_data, self.high_percentile)
         print(f"NORMALIZATION --- min value: {min_val_low_p}, max_value: {max_val_high_p}")
         normalized_data = (raw_data - min_val_low_p) / (max_val_high_p - min_val_low_p)
         return normalized_data
@@ -153,7 +153,6 @@ class MMWHSDataset(Dataset):
         patches_images = np.concatenate(patches_images, axis=0)
         patches_labels = np.concatenate(patches_labels, axis=0)
         print(f"patches_images.shape: {patches_images.shape}")
-        print(f"count_zeros ={np.count_nonzero(patches_images == 0)}")
         return patches_images, patches_labels, original_image_data, original_label_data
 
     def get_training_data_from_system(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -178,8 +177,7 @@ class MMWHSDataset(Dataset):
             tuple: The preprocessed input and target data tensors.
         """
         img_data, label_data, original_image_data, original_label_data = self.get_training_data_from_system()
-        img_data = self.normalize_minmax_data(img_data, 0, 100)
+        img_data = self.normalize_minmax_data(img_data)
         label_data, num_classes, label_values = self.preprocess_label_data(label_data)
         return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes, label_values, \
             original_image_data, original_label_data
-

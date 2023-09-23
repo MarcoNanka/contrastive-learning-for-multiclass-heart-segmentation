@@ -14,5 +14,7 @@ def parse_args():
     parser.add_argument("--patches_filter", type=int, default=1, help="Number of relevant voxels")
     parser.add_argument("--training_shuffle", type=float, default=0.8, help="Percentage of training patches used for "
                                                                             "each epoch")
+    parser.add_argument("--normalization_percentiles", type=int, nargs=2, help="Min and max percentile values for "
+                                                                               "normalization of data")
     args = parser.parse_args()
     return args

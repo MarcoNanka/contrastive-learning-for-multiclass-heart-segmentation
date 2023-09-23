@@ -203,9 +203,10 @@ class Trainer:
 
 def main(args):
     dataset = MMWHSDataset(folder_path=args.folder_path, patch_size=args.patch_size, is_validation_dataset=False,
-                           patches_filter=args.patches_filter)
+                           patches_filter=args.patches_filter, normalization_percentiles=args.normalization_percentiles)
     validation_dataset = MMWHSDataset(folder_path=args.val_folder_path, patch_size=args.patch_size,
-                                      is_validation_dataset=True, patches_filter=args.patches_filter)
+                                      is_validation_dataset=True, patches_filter=args.patches_filter,
+                                      normalization_percentiles=args.normalization_percentiles)
     number_of_channels = dataset.x.shape[1]
     model = UNet(in_channels=number_of_channels, num_classes=dataset.num_classes)
     start_train = time.process_time()
@@ -219,7 +220,8 @@ def main(args):
             "learning_rate": args.learning_rate,
             "patch_size": args.patch_size,
             "validation_interval": args.validation_interval,
-            "training_shuffle": args.training_shuffle
+            "training_shuffle": args.training_shuffle,
+            "normalization_percentiles": args.normalization_percentiles
         }
     )
     config = wandb.config
