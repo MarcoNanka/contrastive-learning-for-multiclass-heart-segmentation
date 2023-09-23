@@ -19,7 +19,7 @@ os.environ['WANDB_TEMP'] = "$HOME/wandb_tmp"
 
 class Trainer:
     def __init__(self, model, dataset, num_epochs, batch_size, learning_rate, validation_dataset,
-                 validation_interval, training_shuffle):
+                 validation_interval, training_shuffle, patch_size):
         """
         Trainer class for training a model.
 
@@ -41,6 +41,31 @@ class Trainer:
         self.validation_dataset = validation_dataset
         self.validation_interval = validation_interval
         self.training_shuffle = training_shuffle
+        self.patch_size = patch_size
+
+    def reconstruct_labels(self, predicted: np.ndarray) -> np.ndarray:
+        """
+        Reconstruct the original label data from the extracted label patches.
+
+        Args:
+            predicted (np.ndarray): An array of extracted label patches.
+
+        Returns:
+            np.ndarray: The reconstructed original label data.
+        """
+        num_patches, _, patch_dim_x, patch_dim_y, patch_dim_z = predicted.shape
+        reconstructed_label = np.zeros(self.validation_dataset.y.shape)
+
+        patch_idx = 0
+        for x in range(0, self.validation_dataset.y.shape[0], self.patch_size[0]):
+            for y in range(0, self.validation_dataset.y.shape[1], self.patch_size[1]):
+                for z in range(0, self.validation_dataset.y.shape[2], self.patch_size[2]):
+                    label_patch = predicted[patch_idx]
+                    reconstructed_label[x: x + patch_dim_x, y: y + patch_dim_y,
+                    z: z + patch_dim_z] = label_patch[0]
+                    patch_idx += 1
+
+        return reconstructed_label
 
     def evaluate_validation(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, float, np.ndarray,
                                            np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
@@ -111,6 +136,16 @@ class Trainer:
         num_patches = len(self.dataset)
         print(f"Number of patches: {num_patches}")
         num_patches_to_use = int(self.training_shuffle * num_patches)
+        class_labels = {
+            0: "background",
+            205: "myocardium of the left ventricle",
+            420: "left atrium blood cavity",
+            500: "left ventricle blood cavity",
+            550: "right atrium blood cavity",
+            600: "right ventricle blood cavity",
+            820: "ascending aorta",
+            850: "pulmonary artery"
+        }
 
         for epoch in range(self.num_epochs):
             # Shuffle the dataset to ensure random patch selection
@@ -142,16 +177,16 @@ class Trainer:
                     "Epoch": epoch,
                     "Validation Loss": validation_loss,
                     "Validation Dice": dice_score_macro,
-                    # "my_image_key": wandb.Image(self.validation_dataset.x, masks={
-                    #     # "predictions": {
-                    #     #     "mask_data": prediction_mask,
-                    #     #     "class_labels": class_labels
-                    #     # },
-                    #     "ground_truth": {
-                    #         "mask_data": self.validation_dataset.y,
-                    #         "class_labels": self.validation_dataset.label_values
-                    #     }
-                    # })
+                    "my_image_key": wandb.Image(self.validation_dataset.x, masks={
+                        "predictions": {
+                        #     "mask_data": prediction_mask,
+                            "class_labels": class_labels
+                        },
+                        "ground_truth": {
+                            "mask_data": self.validation_dataset.y,
+                            "class_labels": class_labels
+                        }
+                    })
                     })
                 print(f'Dice score macro: {dice_score_macro}')
                 print(f'Dice score by class: {dice_score}')
@@ -177,6 +212,7 @@ def main(args):
             "num_epochs": args.num_epochs,
             "batch_size": args.batch_size,
             "learning_rate": args.learning_rate,
+            "patch_size": args.patch_size,
             "validation_interval": args.validation_interval,
             "training_shuffle": args.training_shuffle
         }
@@ -185,7 +221,8 @@ def main(args):
 
     trainer = Trainer(model=model, dataset=dataset, num_epochs=config.num_epochs, batch_size=config.batch_size,
                       learning_rate=config.learning_rate, validation_dataset=validation_dataset,
-                      validation_interval=config.validation_interval, training_shuffle=config.training_shuffle)
+                      validation_interval=config.validation_interval, training_shuffle=config.training_shuffle,
+                      patch_size=config.patch_size)
     trainer.train()
     print(f"time for training: {time.process_time() - start_train}")
 

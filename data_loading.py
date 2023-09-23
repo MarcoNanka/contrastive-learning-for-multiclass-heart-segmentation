@@ -143,6 +143,7 @@ class MMWHSDataset(Dataset):
         patches_labels = []
         for path in path_list:
             image_data = np.array(nib.load(path).get_fdata())
+            print(f"shape of image: {image_data.shape}")
             label_data = np.array(nib.load(path.replace('image', 'label')).get_fdata())
             image_data, label_data = self.extract_patches(image_data, label_data)
             patches_images.append(image_data)
@@ -161,7 +162,6 @@ class MMWHSDataset(Dataset):
             tuple: The input and target training data.
         """
         image_path_names = glob.glob(os.path.join(self.folder_path, "*image.nii*"))
-        print(f"image path names: {image_path_names}")
         if not image_path_names:
             raise ValueError("Empty list! Check if folder path contains images.")
         ret_imgs, ret_labels = self.create_training_data_array(image_path_names)
