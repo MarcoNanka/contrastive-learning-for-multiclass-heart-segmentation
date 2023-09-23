@@ -53,6 +53,7 @@ class Trainer:
         Returns:
             np.ndarray: The reconstructed original label data.
         """
+        print(f"second try predicted shape: {predicted.shape}")
         num_patches, _, patch_dim_x, patch_dim_y, patch_dim_z = predicted.shape
         og_shape = self.validation_dataset.original_image_data.shape
         reconstructed_label = np.zeros(og_shape)
