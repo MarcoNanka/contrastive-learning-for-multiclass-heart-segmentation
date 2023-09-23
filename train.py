@@ -54,6 +54,13 @@ class Trainer:
             np.ndarray: The reconstructed original label data.
         """
         print(f"second try predicted shape: {predicted.shape}")
+        print(f"second try predicted shape: {predicted.shape}")
+        print(f"second try predicted shape: {predicted.shape}")
+        print(f"second try predicted shape: {predicted.shape}")
+        print(f"second try predicted shape: {predicted.shape}")
+        print(f"second try predicted shape: {predicted.shape}")
+        print(f"second try predicted shape: {predicted.shape}")
+        print(f"second try predicted shape: {predicted.shape}")
         num_patches, _, patch_dim_x, patch_dim_y, patch_dim_z = predicted.shape
         og_shape = self.validation_dataset.original_image_data.shape
         reconstructed_label = np.zeros(og_shape)
@@ -122,6 +129,13 @@ class Trainer:
             accuracy_macro = np.mean(accuracy)
             dice_score_macro = np.mean(dice_score)
 
+        print(f"predicted.shape: {predicted.shape}")
+        print(f"predicted.shape: {predicted.shape}")
+        print(f"predicted.shape: {predicted.shape}")
+        print(f"predicted.shape: {predicted.shape}")
+        print(f"predicted.shape: {predicted.shape}")
+        print(f"predicted.shape: {predicted.shape}")
+        print(f"predicted.shape: {predicted.shape}")
         print(f"predicted.shape: {predicted.shape}")
         prediction_mask = self.reconstruct_labels(predicted)
 
