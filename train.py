@@ -221,7 +221,8 @@ def main(args):
             "patch_size": args.patch_size,
             "validation_interval": args.validation_interval,
             "training_shuffle": args.training_shuffle,
-            "normalization_percentiles": args.normalization_percentiles
+            "mean": dataset.mean,
+            "std_dev": dataset.std_dev
         }
     )
     config = wandb.config
