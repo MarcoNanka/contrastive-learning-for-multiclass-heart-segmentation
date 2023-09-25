@@ -5,7 +5,7 @@ import torch
 import nibabel as nib
 from numpy import ndarray
 from torch.utils.data import Dataset
-from typing import Tuple
+from typing import Tuple, Optional
 
 
 class MMWHSDataset(Dataset):
@@ -14,21 +14,27 @@ class MMWHSDataset(Dataset):
     """
 
     def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], is_validation_dataset: bool,
-                 patches_filter: int, normalization_percentiles: Tuple[int, int]) -> None:
+                 patches_filter: int, mean: Optional[float] = None,
+                 std_dev: Optional[float] = None) -> None:
         """
         Initialize the MMWHSDataset.
 
         Args:
             folder_path (str): The path to the folder containing the dataset.
             patch_size (tuple): The size of the patches to extract from the data.
+            is_validation_dataset (bool): True if this is a validation dataset, False for training.
+            patches_filter (int): The filter value for patches.
+            mean (float, optional): The mean value for normalization (default: None).
+            std_dev (float, optional): The standard deviation value for normalization (default: None).
         """
         self.folder_path = folder_path
         self.patch_size = patch_size
         self.is_validation_dataset = is_validation_dataset
         self.patches_filter = patches_filter
-        self.low_percentile, self.high_percentile = normalization_percentiles
+        self.mean = mean
+        self.std_dev = std_dev
         self.x, self.y, self.num_classes, self.label_values, self.original_image_data, self.original_label_data, \
-            self.min_val_low_p, self.max_val_high_p = self.load_data()
+            self.mean, self.std_dev = self.load_data()
 
     def __len__(self) -> int:
         """
@@ -95,9 +101,9 @@ class MMWHSDataset(Dataset):
 
         return np.array(image_patches), np.array(label_patches)
 
-    def normalize_minmax_data(self, raw_data: np.ndarray) -> Tuple[np.ndarray, float, float]:
+    def normalize_z_score_data(self, raw_data: np.ndarray) -> Tuple[np.ndarray, float, float]:
         """
-        Normalize the given raw data using min-max scaling.
+        Normalize the given raw data using z-score normalization.
 
         Args:
             raw_data (np.ndarray): The raw input data.
@@ -105,13 +111,21 @@ class MMWHSDataset(Dataset):
         Returns:
             np.ndarray: The normalized data.
         """
-        min_val_low_p = np.percentile(raw_data, self.low_percentile)
-        max_val_high_p = np.percentile(raw_data, self.high_percentile)
-        print(f"NORMALIZATION --- min value: {min_val_low_p}, max_value: {max_val_high_p}")
-        normalized_data = (raw_data - min_val_low_p) / (max_val_high_p - min_val_low_p)
-        return normalized_data, min_val_low_p, max_val_high_p
+        if self.is_validation_dataset and self.mean is not None and self.std_dev is not None:
+            print("Mean/Std dev NOT calculated extra")
+            mean = self.mean
+            std_dev = self.std_dev
+        else:
+            print("Mean/Std dev calculated extra")
+            mean = float(np.mean(raw_data))
+            std_dev = float(np.std(raw_data))
 
-    def preprocess_label_data(self, raw_data: np.ndarray) -> Tuple[np.ndarray, int, np.ndarray]:
+        print(f"NORMALIZATION --- mean: {mean}, standard deviation: {std_dev}")
+        normalized_data = (raw_data - mean) / std_dev
+        return normalized_data, mean, std_dev
+
+    @staticmethod
+    def preprocess_label_data(raw_data: np.ndarray) -> Tuple[np.ndarray, int, np.ndarray]:
         """
         Prepare the label data for training.
 
@@ -177,7 +191,7 @@ class MMWHSDataset(Dataset):
             tuple: The preprocessed input and target data tensors.
         """
         img_data, label_data, original_image_data, original_label_data = self.get_training_data_from_system()
-        img_data, min_val_low_p, max_val_high_p = self.normalize_minmax_data(img_data)
+        img_data, mean, std_dev = self.normalize_z_score_data(img_data)
         label_data, num_classes, label_values = self.preprocess_label_data(label_data)
         return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes, label_values, \
-            original_image_data, original_label_data, min_val_low_p, max_val_high_p
+            original_image_data, original_label_data, mean, std_dev
