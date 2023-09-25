@@ -112,13 +112,13 @@ class MMWHSDataset(Dataset):
             np.ndarray: The normalized data.
         """
         if self.is_validation_dataset and self.mean is not None and self.std_dev is not None:
-            print("Mean/Std dev NOT calculated extra")
             mean = self.mean
             std_dev = self.std_dev
+            print(f"Mean/Std dev NOT calculated extra - mean={mean}, std_dev={std_dev}")
         else:
-            print("Mean/Std dev calculated extra")
             mean = float(np.mean(raw_data))
             std_dev = float(np.std(raw_data))
+            print(f"Mean/Std dev calculated extra - mean={mean}, std_dev={std_dev}")
 
         print(f"NORMALIZATION --- mean: {mean}, standard deviation: {std_dev}")
         normalized_data = (raw_data - mean) / std_dev
