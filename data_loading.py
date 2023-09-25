@@ -120,7 +120,6 @@ class MMWHSDataset(Dataset):
             std_dev = float(np.std(raw_data))
             print(f"Mean/Std dev calculated extra - mean={mean}, std_dev={std_dev}")
 
-        print(f"NORMALIZATION --- mean: {mean}, standard deviation: {std_dev}")
         normalized_data = (raw_data - mean) / std_dev
         return normalized_data, mean, std_dev
 

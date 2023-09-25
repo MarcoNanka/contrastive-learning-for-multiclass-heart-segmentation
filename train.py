@@ -63,7 +63,7 @@ class Trainer:
                 for z in range(0, og_shape[2], self.patch_size[2]):
                     label_patch = predicted[patch_idx]
                     reconstructed_label[x: x + patch_dim_x, y: y + patch_dim_y,
-                                        z: z + patch_dim_z] = label_patch[0]
+                    z: z + patch_dim_z] = label_patch[0]
                     patch_idx += 1
 
         return reconstructed_label
@@ -89,6 +89,7 @@ class Trainer:
         false_positives = np.zeros(num_classes)
         false_negatives = np.zeros(num_classes)
         true_negatives = np.zeros(num_classes)
+        i = 0
 
         with torch.no_grad():
             for val_batch_x, val_batch_y in val_dataloader:
@@ -98,6 +99,8 @@ class Trainer:
                 val_loss = val_criterion(input=val_outputs, target=val_batch_y)
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
+                print(f"val_batch_x.shape: {val_batch_x.shape}, predicted.shape: {predicted.shape}, i: {i}")
+                i += 1
 
                 for class_idx in range(num_classes):
                     true_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
@@ -125,7 +128,7 @@ class Trainer:
         prediction_mask = np.zeros(self.validation_dataset.original_image_data.shape)
 
         return true_positives, average_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
-            accuracy, precision, recall, dice_score, prediction_mask
+               accuracy, precision, recall, dice_score, prediction_mask
 
     def train(self):
         """
@@ -176,23 +179,24 @@ class Trainer:
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
                 tp, validation_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
-                    accuracy, precision, recall, dice_score, prediction_mask = self.evaluate_validation()
+                accuracy, precision, recall, dice_score, prediction_mask = self.evaluate_validation()
                 wandb.log({
                     "Epoch": epoch,
                     "Validation Loss": validation_loss,
                     "Validation Dice": dice_score_macro,
                     "my_image_key": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:][:][100],
                                                 masks={
-                        "predictions": {
-                            "mask_data": prediction_mask[:][:][100],
-                            "class_labels": class_labels
-                        },
-                        "ground_truth": {
-                            "mask_data": self.validation_dataset.original_label_data[:][:][100],
-                            "class_labels": class_labels
-                        }
-                    })
-                    })
+                                                    "predictions": {
+                                                        "mask_data": prediction_mask[:][:][100],
+                                                        "class_labels": class_labels
+                                                    },
+                                                    "ground_truth": {
+                                                        "mask_data": self.validation_dataset.original_label_data[:][:][
+                                                            100],
+                                                        "class_labels": class_labels
+                                                    }
+                                                })
+                })
                 print(f'Dice score macro: {dice_score_macro}')
                 print(f'Dice score by class: {dice_score}')
                 print(f'True positives: {tp}')
