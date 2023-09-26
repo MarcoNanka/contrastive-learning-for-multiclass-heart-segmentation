@@ -91,12 +91,12 @@ class Trainer:
         true_negatives = np.zeros(num_classes)
         i = 0
         print(f"label.shape: {self.validation_dataset.y.shape}")
-        print(f"self.validation_dataset.original_image_data[:][:][100]: "
-              f"{self.validation_dataset.original_image_data[:][:][100]}")
-        print(f"self.validation_dataset.original_label_data[:][:][100]: "
-              f"{self.validation_dataset.original_label_data[:][:][100]}")
-        print(f"self.validation_dataset.original_label_data: "
-              f"{self.validation_dataset.original_label_data}")
+        print(f"self.validation_dataset.original_image_data[:][:][100].shape: "
+              f"{self.validation_dataset.original_image_data[:][:][100].shape}")
+        print(f"self.validation_dataset.original_label_data[:][:][100].shape: "
+              f"{self.validation_dataset.original_label_data[:][:][100].shape}")
+        print(f"self.validation_dataset.original_label_data.shape: "
+              f"{self.validation_dataset.original_label_data.shape}")
 
 
         with torch.no_grad():
