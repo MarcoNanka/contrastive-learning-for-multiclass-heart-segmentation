@@ -159,14 +159,17 @@ class Trainer:
         num_patches_to_use = int(self.training_shuffle * num_patches)
         class_labels = {
             0: "background",
-            205.: "myocardium of the left ventricle",
-            420.: "left atrium blood cavity",
-            500.: "left ventricle blood cavity",
-            550.: "right atrium blood cavity",
-            600.: "right ventricle blood cavity",
-            820.: "ascending aorta",
-            850.: "pulmonary artery"
+            205: "myocardium of the left ventricle",
+            420: "left atrium blood cavity",
+            500: "left ventricle blood cavity",
+            550: "right atrium blood cavity",
+            600: "right ventricle blood cavity",
+            820: "ascending aorta",
+            850: "pulmonary artery"
         }
+        og_labels_int = np.astype(self.validation_dataset.original_label_data, int)
+        print(f"self.validation_dataset.label_values: {self.validation_dataset.label_values}")
+        print(f"og_labels_int unique values: {np.unique(og_labels_int)}")
 
         for epoch in range(self.num_epochs):
             # Shuffle the dataset to ensure random patch selection
@@ -205,7 +208,7 @@ class Trainer:
                                                     #     "class_labels": class_labels
                                                     # },
                                                     "ground_truth": {
-                                                        "mask_data": self.validation_dataset.original_label_data[:][:][
+                                                        "mask_data": og_labels_int[:][:][
                                                             50],
                                                         "class_labels": class_labels
                                                     }
@@ -217,7 +220,7 @@ class Trainer:
                                                     #     "class_labels": class_labels
                                                     # },
                                                     "ground_truth": {
-                                                        "mask_data": self.validation_dataset.original_label_data[:][:][
+                                                        "mask_data": og_labels_int[:][:][
                                                             100],
                                                         "class_labels": class_labels
                                                     }
@@ -229,7 +232,7 @@ class Trainer:
                                                     #     "class_labels": class_labels
                                                     # },
                                                     "ground_truth": {
-                                                        "mask_data": self.validation_dataset.original_label_data[:][:][
+                                                        "mask_data": og_labels_int[:][:][
                                                             150],
                                                         "class_labels": class_labels
                                                     }
@@ -241,7 +244,7 @@ class Trainer:
                                                 #     "class_labels": class_labels
                                                 # },
                                                 "ground_truth": {
-                                                    "mask_data": self.validation_dataset.original_label_data[:][:][
+                                                    "mask_data": og_labels_int[:][:][
                                                         200],
                                                     "class_labels": class_labels
                                                 }
