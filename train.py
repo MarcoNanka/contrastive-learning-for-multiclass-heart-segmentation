@@ -124,6 +124,7 @@ class Trainer:
             dice_score_macro = np.mean(dice_score)
 
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
+        print(f"unique values predicted: {np.unique(combined_predicted_array)}")
         # prediction_mask = self.reconstruct_labels(predicted)
         prediction_mask = np.zeros(self.validation_dataset.original_image_data.shape)
 
