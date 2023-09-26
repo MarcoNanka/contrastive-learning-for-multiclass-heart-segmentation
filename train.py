@@ -167,7 +167,7 @@ class Trainer:
             820: "ascending aorta",
             850: "pulmonary artery"
         }
-        og_labels_int = self.validation_dataset.original_label_data.astype(int)
+        og_labels_int, _, _ = MMWHSDataset.preprocess_label_data(self.validation_dataset.original_label_data.astype)
         print(f"self.validation_dataset.label_values: {self.validation_dataset.label_values}")
         print(f"og_labels_int unique values: {np.unique(og_labels_int)}, type: {type(og_labels_int)}")
 
