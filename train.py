@@ -3,7 +3,6 @@ from torch import nn
 from torch.utils.data import DataLoader
 from model import UNet
 from data_loading import MMWHSDataset
-import time
 import numpy as np
 from typing import Tuple
 from config import parse_args
@@ -92,15 +91,6 @@ class Trainer:
 
         predicted_arrays_list = []
 
-        i = 0
-        print(f"label.shape: {self.validation_dataset.y.shape}")
-        print(f"self.validation_dataset.original_image_data[:,:,100].shape: "
-              f"{self.validation_dataset.original_image_data[:, :, 100].shape}")
-        print(f"self.validation_dataset.original_label_data[:,:,100].shape: "
-              f"{self.validation_dataset.original_label_data[:, :, 100].shape}")
-        print(f"self.validation_dataset.original_label_data.shape: "
-              f"{self.validation_dataset.original_label_data.shape}")
-
         with torch.no_grad():
             for val_batch_x, val_batch_y in val_dataloader:
                 val_batch_x = val_batch_x.to(device=self.device, dtype=torch.float)  # shape: batch_size, 1, patch_dims
@@ -110,9 +100,6 @@ class Trainer:
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
                 predicted_arrays_list.append(predicted.cpu().numpy())
-                if i < 4:
-                    print(f"val_batch_y.shape: {val_batch_y.shape}, predicted.shape: {predicted.shape}, i: {i}")
-                i += 1
 
                 for class_idx in range(num_classes):
                     true_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
@@ -154,28 +141,18 @@ class Trainer:
         self.model.to(device=self.device, dtype=torch.float)
         # Calculate the number of training patches to use for this epoch (80% of the total)
         num_patches = len(self.dataset)
-        print(f"Number of patches: {num_patches}")
         num_patches_to_use = int(self.training_shuffle * num_patches)
+        # for wandb image plotting
         class_labels = {
             0: "background",
-            1: "myocardium of the left ventricle",
-            2: "left atrium blood cavity",
-            3: "left ventricle blood cavity",
-            4: "right atrium blood cavity",
-            5: "right ventricle blood cavity",
-            6: "ascending aorta",
-            7: "pulmonary artery"
+            1: "myocardium of the left ventricle",  # 205
+            2: "left atrium blood cavity",  # 420
+            3: "left ventricle blood cavity",  # 500
+            4: "right atrium blood cavity",  # 550
+            5: "right ventricle blood cavity",  # 600
+            6: "ascending aorta",  # 820
+            7: "pulmonary artery"  # 850
         }
-        # class_labels = {
-        #     0: "background",
-        #     205: "myocardium of the left ventricle",
-        #     420: "left atrium blood cavity",
-        #     500: "left ventricle blood cavity",
-        #     550: "right atrium blood cavity",
-        #     600: "right ventricle blood cavity",
-        #     820: "ascending aorta",
-        #     850: "pulmonary artery"
-        # }
         og_labels_int, _, _ = MMWHSDataset.preprocess_label_data(self.validation_dataset.original_label_data)
 
         for epoch in range(self.num_epochs):
@@ -200,8 +177,6 @@ class Trainer:
                 })
 
             print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
-            print(f"self.validation_dataset.label_values: {self.validation_dataset.label_values}")
-            print(f"og_labels_int unique values: {np.unique(og_labels_int)}, type: {type(og_labels_int)}")
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
                 tp, validation_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
@@ -275,7 +250,6 @@ def main(args):
                                       mean=dataset.mean, std_dev=dataset.std_dev)
     number_of_channels = dataset.x.shape[1]
     model = UNet(in_channels=number_of_channels, num_classes=dataset.num_classes)
-    start_train = time.process_time()
     wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
     wandb.init(
         entity="marco-n",
@@ -298,7 +272,6 @@ def main(args):
                       validation_interval=config.validation_interval, training_shuffle=config.training_shuffle,
                       patch_size=config.patch_size)
     trainer.train()
-    print(f"time for training: {time.process_time() - start_train}")
 
 
 if __name__ == "__main__":
