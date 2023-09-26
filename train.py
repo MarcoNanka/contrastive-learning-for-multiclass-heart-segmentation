@@ -117,6 +117,8 @@ class Trainer:
             dice_score = (2 * true_positives) / (2 * true_positives + false_negatives + false_positives)
             precision = true_positives / (true_positives + false_positives)
             recall = true_positives / (true_positives + false_negatives)
+            print(f"tp+fp={np.sum([true_positives, false_positives])}, "
+                  f"tn+fn={np.sum([true_negatives, false_negatives])}")
 
             precision_macro = np.mean(precision)
             recall_macro = np.mean(recall)
@@ -124,7 +126,6 @@ class Trainer:
             dice_score_macro = np.mean(dice_score)
 
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
-        print(f"unique values predicted: {np.unique(combined_predicted_array)}")
         # prediction_mask = self.reconstruct_labels(predicted)
         prediction_mask = np.zeros(self.validation_dataset.original_image_data.shape)
 

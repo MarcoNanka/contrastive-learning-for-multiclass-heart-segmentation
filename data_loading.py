@@ -97,8 +97,6 @@ class MMWHSDataset(Dataset):
                         image_patches.append(img_patch)
                         label_patches.append(label_patch)
 
-        print(f"validation dataset? {self.is_validation_dataset}, number patches: {len(image_patches)}")
-
         return np.array(image_patches), np.array(label_patches)
 
     def normalize_z_score_data(self, raw_data: np.ndarray) -> Tuple[np.ndarray, float, float]:
@@ -114,11 +112,9 @@ class MMWHSDataset(Dataset):
         if self.is_validation_dataset and self.mean is not None and self.std_dev is not None:
             mean = self.mean
             std_dev = self.std_dev
-            print(f"Mean/Std dev NOT calculated extra - mean={mean}, std_dev={std_dev}")
         else:
             mean = float(np.mean(raw_data))
             std_dev = float(np.std(raw_data))
-            print(f"Mean/Std dev calculated extra - mean={mean}, std_dev={std_dev}")
 
         normalized_data = (raw_data - mean) / std_dev
         return normalized_data, mean, std_dev
