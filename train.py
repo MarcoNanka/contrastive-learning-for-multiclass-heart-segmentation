@@ -117,8 +117,6 @@ class Trainer:
             dice_score = (2 * true_positives) / (2 * true_positives + false_negatives + false_positives)
             precision = true_positives / (true_positives + false_positives)
             recall = true_positives / (true_positives + false_negatives)
-            print(f"tp+fp={np.sum([true_positives, false_positives])}, "
-                  f"tn+fn={np.sum([true_negatives, false_negatives])}")
 
             precision_macro = np.mean(precision)
             recall_macro = np.mean(recall)
@@ -194,8 +192,7 @@ class Trainer:
                                                     #     "class_labels": class_labels
                                                     # },
                                                     "ground_truth": {
-                                                        "mask_data": og_labels_int[:][:][
-                                                            50],
+                                                        "mask_data": og_labels_int[:, :, 50],
                                                         "class_labels": class_labels
                                                     }
                                                 }),
@@ -206,8 +203,7 @@ class Trainer:
                                                     #     "class_labels": class_labels
                                                     # },
                                                     "ground_truth": {
-                                                        "mask_data": og_labels_int[:][:][
-                                                            100],
+                                                        "mask_data": og_labels_int[:, :, 100],
                                                         "class_labels": class_labels
                                                     }
                                                 }),
@@ -218,8 +214,7 @@ class Trainer:
                                                     #     "class_labels": class_labels
                                                     # },
                                                     "ground_truth": {
-                                                        "mask_data": og_labels_int[:][:][
-                                                            150],
+                                                        "mask_data": og_labels_int[:, :, 150],
                                                         "class_labels": class_labels
                                                     }
                                                 }),
@@ -230,8 +225,7 @@ class Trainer:
                                                 #     "class_labels": class_labels
                                                 # },
                                                 "ground_truth": {
-                                                    "mask_data": og_labels_int[:][:][
-                                                        200],
+                                                    "mask_data": og_labels_int[:, :, 200],
                                                     "class_labels": class_labels
                                                 }
                                             })

@@ -161,7 +161,7 @@ class MMWHSDataset(Dataset):
 
         patches_images = np.concatenate(patches_images, axis=0)
         patches_labels = np.concatenate(patches_labels, axis=0)
-        print(f"patches_images.shape: {patches_images.shape}")
+        print(f"is validation: {self.is_validation_dataset} -> shape of patches array: {patches_images.shape}")
         return patches_images, patches_labels, original_image_data, original_label_data
 
     def get_training_data_from_system(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
