@@ -137,7 +137,6 @@ class Trainer:
             dice_score_macro = np.mean(dice_score)
 
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
-        print(f"combined_predicted_array.shape: {combined_predicted_array.shape}")
         # prediction_mask = self.reconstruct_labels(predicted)
         prediction_mask = np.zeros(self.validation_dataset.original_image_data.shape)
 
@@ -168,8 +167,6 @@ class Trainer:
             850: "pulmonary artery"
         }
         og_labels_int, _, _ = MMWHSDataset.preprocess_label_data(self.validation_dataset.original_label_data)
-        print(f"self.validation_dataset.label_values: {self.validation_dataset.label_values}")
-        print(f"og_labels_int unique values: {np.unique(og_labels_int)}, type: {type(og_labels_int)}")
 
         for epoch in range(self.num_epochs):
             # Shuffle the dataset to ensure random patch selection
@@ -193,6 +190,8 @@ class Trainer:
                 })
 
             print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
+            print(f"self.validation_dataset.label_values: {self.validation_dataset.label_values}")
+            print(f"og_labels_int unique values: {np.unique(og_labels_int)}, type: {type(og_labels_int)}")
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
                 tp, validation_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
