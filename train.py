@@ -90,6 +90,7 @@ class Trainer:
         false_negatives = np.zeros(num_classes)
         true_negatives = np.zeros(num_classes)
         i = 0
+        print(f"label.shape: {self.validation_dataset.y.shape}")
 
         with torch.no_grad():
             for val_batch_x, val_batch_y in val_dataloader:
@@ -99,7 +100,8 @@ class Trainer:
                 val_loss = val_criterion(input=val_outputs, target=val_batch_y)
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
-                print(f"val_batch_x.shape: {val_batch_x.shape}, predicted.shape: {predicted.shape}, i: {i}")
+                if i < 4:
+                    print(f"val_batch_y.shape: {val_batch_y.shape}, predicted.shape: {predicted.shape}, i: {i}")
                 i += 1
 
                 for class_idx in range(num_classes):
