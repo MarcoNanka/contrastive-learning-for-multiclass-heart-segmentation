@@ -167,9 +167,9 @@ class Trainer:
             820: "ascending aorta",
             850: "pulmonary artery"
         }
-        og_labels_int = np.astype(self.validation_dataset.original_label_data, int)
+        og_labels_int = self.validation_dataset.original_label_data.astype(int)
         print(f"self.validation_dataset.label_values: {self.validation_dataset.label_values}")
-        print(f"og_labels_int unique values: {np.unique(og_labels_int)}")
+        print(f"og_labels_int unique values: {np.unique(og_labels_int)}, type: {type(og_labels_int)}")
 
         for epoch in range(self.num_epochs):
             # Shuffle the dataset to ensure random patch selection
