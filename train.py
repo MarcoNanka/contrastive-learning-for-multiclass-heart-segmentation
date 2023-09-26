@@ -159,13 +159,13 @@ class Trainer:
         num_patches_to_use = int(self.training_shuffle * num_patches)
         class_labels = {
             0: "background",
-            205: "myocardium of the left ventricle",
-            420: "left atrium blood cavity",
-            500: "left ventricle blood cavity",
-            550: "right atrium blood cavity",
-            600: "right ventricle blood cavity",
-            820: "ascending aorta",
-            850: "pulmonary artery"
+            205.: "myocardium of the left ventricle",
+            420.: "left atrium blood cavity",
+            500.: "left ventricle blood cavity",
+            550.: "right atrium blood cavity",
+            600.: "right ventricle blood cavity",
+            820.: "ascending aorta",
+            850.: "pulmonary artery"
         }
 
         for epoch in range(self.num_epochs):
