@@ -89,6 +89,9 @@ class Trainer:
         false_positives = np.zeros(num_classes)
         false_negatives = np.zeros(num_classes)
         true_negatives = np.zeros(num_classes)
+
+        predicted_arrays_list = []
+
         i = 0
         print(f"label.shape: {self.validation_dataset.y.shape}")
         print(f"self.validation_dataset.original_image_data[:,:,100].shape: "
@@ -106,6 +109,7 @@ class Trainer:
                 val_loss = val_criterion(input=val_outputs, target=val_batch_y)
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
+                predicted_arrays_list.append(predicted.cpu().numpy())
                 if i < 4:
                     print(f"val_batch_y.shape: {val_batch_y.shape}, predicted.shape: {predicted.shape}, i: {i}")
                 i += 1
@@ -132,6 +136,8 @@ class Trainer:
             accuracy_macro = np.mean(accuracy)
             dice_score_macro = np.mean(dice_score)
 
+        combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
+        print(f"combined_predicted_array.shape: {combined_predicted_array.shape}")
         # prediction_mask = self.reconstruct_labels(predicted)
         prediction_mask = np.zeros(self.validation_dataset.original_image_data.shape)
 
@@ -192,18 +198,54 @@ class Trainer:
                     "Epoch": epoch,
                     "Validation Loss": validation_loss,
                     "Validation Dice": dice_score_macro,
-                    "my_image_key": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 100],
-                                                masks={
-                                                    "predictions": {
-                                                        "mask_data": prediction_mask[:, :, 100],
+                    "slide50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 50],
+                                           masks={
+                                                    # "predictions": {
+                                                    #     "mask_data": prediction_mask[:, :, 50],
+                                                    #     "class_labels": class_labels
+                                                    # },
+                                                    "ground_truth": {
+                                                        "mask_data": self.validation_dataset.original_label_data[:][:][
+                                                            50],
                                                         "class_labels": class_labels
-                                                    },
+                                                    }
+                                                }),
+                    "slide100": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 100],
+                                            masks={
+                                                    # "predictions": {
+                                                    #     "mask_data": prediction_mask[:, :, 100],
+                                                    #     "class_labels": class_labels
+                                                    # },
                                                     "ground_truth": {
                                                         "mask_data": self.validation_dataset.original_label_data[:][:][
                                                             100],
                                                         "class_labels": class_labels
                                                     }
-                                                })
+                                                }),
+                    "slide150": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 150],
+                                            masks={
+                                                    # "predictions": {
+                                                    #     "mask_data": prediction_mask[:, :, 150],
+                                                    #     "class_labels": class_labels
+                                                    # },
+                                                    "ground_truth": {
+                                                        "mask_data": self.validation_dataset.original_label_data[:][:][
+                                                            150],
+                                                        "class_labels": class_labels
+                                                    }
+                                                }),
+                    "slide200": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 200],
+                                            masks={
+                                                # "predictions": {
+                                                #     "mask_data": prediction_mask[:, :, 200],
+                                                #     "class_labels": class_labels
+                                                # },
+                                                "ground_truth": {
+                                                    "mask_data": self.validation_dataset.original_label_data[:][:][
+                                                        200],
+                                                    "class_labels": class_labels
+                                                }
+                                            })
                 })
                 print(f'Dice score macro: {dice_score_macro}')
                 print(f'Dice score by class: {dice_score}')
