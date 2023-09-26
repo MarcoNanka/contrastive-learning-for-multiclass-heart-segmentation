@@ -158,14 +158,24 @@ class Trainer:
         num_patches_to_use = int(self.training_shuffle * num_patches)
         class_labels = {
             0: "background",
-            205: "myocardium of the left ventricle",
-            420: "left atrium blood cavity",
-            500: "left ventricle blood cavity",
-            550: "right atrium blood cavity",
-            600: "right ventricle blood cavity",
-            820: "ascending aorta",
-            850: "pulmonary artery"
+            1: "myocardium of the left ventricle",
+            2: "left atrium blood cavity",
+            3: "left ventricle blood cavity",
+            4: "right atrium blood cavity",
+            5: "right ventricle blood cavity",
+            6: "ascending aorta",
+            7: "pulmonary artery"
         }
+        # class_labels = {
+        #     0: "background",
+        #     205: "myocardium of the left ventricle",
+        #     420: "left atrium blood cavity",
+        #     500: "left ventricle blood cavity",
+        #     550: "right atrium blood cavity",
+        #     600: "right ventricle blood cavity",
+        #     820: "ascending aorta",
+        #     850: "pulmonary artery"
+        # }
         og_labels_int, _, _ = MMWHSDataset.preprocess_label_data(self.validation_dataset.original_label_data)
 
         for epoch in range(self.num_epochs):
