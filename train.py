@@ -185,47 +185,47 @@ class Trainer:
                     "Epoch": epoch,
                     "Validation Loss": validation_loss,
                     "Validation Dice": dice_score_macro,
-                    "slide50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 50],
+                    "slide50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 49],
                                            masks={
                                                     # "predictions": {
-                                                    #     "mask_data": prediction_mask[:, :, 50],
+                                                    #     "mask_data": prediction_mask[:, :, 49],
                                                     #     "class_labels": class_labels
                                                     # },
                                                     "ground_truth": {
-                                                        "mask_data": og_labels_int[:, :, 50],
+                                                        "mask_data": og_labels_int[:, :, 49],
                                                         "class_labels": class_labels
                                                     }
                                                 }),
-                    "slide100": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 100],
+                    "slide100": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 99],
                                             masks={
                                                     # "predictions": {
-                                                    #     "mask_data": prediction_mask[:, :, 100],
+                                                    #     "mask_data": prediction_mask[:, :, 99],
                                                     #     "class_labels": class_labels
                                                     # },
                                                     "ground_truth": {
-                                                        "mask_data": og_labels_int[:, :, 100],
+                                                        "mask_data": og_labels_int[:, :, 99],
                                                         "class_labels": class_labels
                                                     }
                                                 }),
-                    "slide150": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 150],
+                    "slide150": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 149],
                                             masks={
                                                     # "predictions": {
-                                                    #     "mask_data": prediction_mask[:, :, 150],
+                                                    #     "mask_data": prediction_mask[:, :, 149],
                                                     #     "class_labels": class_labels
                                                     # },
                                                     "ground_truth": {
-                                                        "mask_data": og_labels_int[:, :, 150],
+                                                        "mask_data": og_labels_int[:, :, 149],
                                                         "class_labels": class_labels
                                                     }
                                                 }),
-                    "slide200": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 200],
+                    "slide200": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 199],
                                             masks={
                                                 # "predictions": {
-                                                #     "mask_data": prediction_mask[:, :, 200],
+                                                #     "mask_data": prediction_mask[:, :, 199],
                                                 #     "class_labels": class_labels
                                                 # },
                                                 "ground_truth": {
-                                                    "mask_data": og_labels_int[:, :, 200],
+                                                    "mask_data": og_labels_int[:, :, 199],
                                                     "class_labels": class_labels
                                                 }
                                             })
