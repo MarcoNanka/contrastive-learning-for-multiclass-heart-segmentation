@@ -69,6 +69,7 @@ class MMWHSDataset(Dataset):
             np.ndarray: An array of extracted image patches.
             np.ndarray: An array of extracted label patches.
         """
+        print(f"image_data.shape: {image_data.shape}, label_data.shape: {label_data.shape}")
         image_patches = []
         label_patches = []
         dim_x, dim_y, dim_z = image_data.shape
@@ -190,7 +191,5 @@ class MMWHSDataset(Dataset):
         img_data, label_data, original_image_data, original_label_data = self.get_training_data_from_system()
         img_data, mean, std_dev = self.normalize_z_score_data(img_data)
         label_data, num_classes, label_values = self.preprocess_label_data(label_data)
-        unique, counts = np.unique(label_data, return_counts=True)
-        print(f"unique: {unique}, counts: {counts}")
         return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes, label_values, \
             original_image_data, original_label_data, mean, std_dev
