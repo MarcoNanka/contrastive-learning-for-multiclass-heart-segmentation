@@ -201,10 +201,10 @@ class Trainer:
                                                 }),
                     "slide100": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 99],
                                             masks={
-                                                    # "predictions": {
-                                                    #     "mask_data": prediction_mask[:, :, 99],
-                                                    #     "class_labels": class_labels
-                                                    # },
+                                                    "predictions": {
+                                                        "mask_data": prediction_mask[:, :, 99],
+                                                        "class_labels": class_labels
+                                                    },
                                                     "ground_truth": {
                                                         "mask_data": og_labels_int[:, :, 99],
                                                         "class_labels": class_labels
@@ -212,10 +212,10 @@ class Trainer:
                                                 }),
                     "slide150": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 149],
                                             masks={
-                                                    # "predictions": {
-                                                    #     "mask_data": prediction_mask[:, :, 149],
-                                                    #     "class_labels": class_labels
-                                                    # },
+                                                    "predictions": {
+                                                        "mask_data": prediction_mask[:, :, 149],
+                                                        "class_labels": class_labels
+                                                    },
                                                     "ground_truth": {
                                                         "mask_data": og_labels_int[:, :, 149],
                                                         "class_labels": class_labels
@@ -223,10 +223,10 @@ class Trainer:
                                                 }),
                     "slide200": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 199],
                                             masks={
-                                                # "predictions": {
-                                                #     "mask_data": prediction_mask[:, :, 199],
-                                                #     "class_labels": class_labels
-                                                # },
+                                                "predictions": {
+                                                    "mask_data": prediction_mask[:, :, 199],
+                                                    "class_labels": class_labels
+                                                },
                                                 "ground_truth": {
                                                     "mask_data": og_labels_int[:, :, 199],
                                                     "class_labels": class_labels
