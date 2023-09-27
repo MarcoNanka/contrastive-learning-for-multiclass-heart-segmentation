@@ -54,7 +54,7 @@ class Trainer:
         """
         original_shape = self.validation_dataset.original_label_data.shape
         dim_x, dim_y, dim_z = original_shape
-        label_data = np.zeros(original_shape, dtype=label_patches.dtype)
+        label_data = np.zeros(original_shape, dtype=label_patches.dtype.numpy())
 
         patch_index = 0
 
@@ -193,10 +193,10 @@ class Trainer:
                     "Validation Dice": dice_score_macro,
                     "slide50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 49],
                                            masks={
-                                                    # "predictions": {
-                                                    #     "mask_data": prediction_mask[:, :, 49],
-                                                    #     "class_labels": class_labels
-                                                    # },
+                                                    "predictions": {
+                                                        "mask_data": prediction_mask[:, :, 49],
+                                                        "class_labels": class_labels
+                                                    },
                                                     "ground_truth": {
                                                         "mask_data": og_labels_int[:, :, 49],
                                                         "class_labels": class_labels
