@@ -52,8 +52,9 @@ class Trainer:
         Returns:
             np.ndarray: The reconstructed original label data.
         """
-        dim_x, dim_y, dim_z = self.validation_dataset.y.shape
-        label_data = np.zeros(self.validation_dataset.y.shape, dtype=label_patches.dtype)
+        og_labels_shape = self.validation_dataset.original_label_data.shape
+        dim_x, dim_y, dim_z = og_labels_shape
+        label_data = np.zeros(og_labels_shape, dtype=label_patches.dtype)
 
         patch_index = 0
 
