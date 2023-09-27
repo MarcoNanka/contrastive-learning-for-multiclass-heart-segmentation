@@ -91,6 +91,7 @@ class MMWHSDataset(Dataset):
                                              z: z + self.patch_size[2]]
                     label_patch = np.expand_dims(label_patch, axis=0)
                     unique, counts = np.unique(label_patch, return_counts=True)
+                    print(f"unique: {unique}, counts: {counts}")
                     counts_descending = -np.sort(-counts)
                     if self.is_validation_dataset or (len(unique) > 1 and counts_descending[1] >= self.patches_filter) \
                             or unique[0] != 0:
@@ -112,9 +113,11 @@ class MMWHSDataset(Dataset):
         if self.is_validation_dataset and self.mean is not None and self.std_dev is not None:
             mean = self.mean
             std_dev = self.std_dev
+            print(f"ADOPTED --- mean: {mean}, std dev: {std_dev}")
         else:
             mean = float(np.mean(raw_data))
             std_dev = float(np.std(raw_data))
+            print(f"CALCULATED --- mean: {mean}, std dev: {std_dev}")
 
         normalized_data = (raw_data - mean) / std_dev
         return normalized_data, mean, std_dev
