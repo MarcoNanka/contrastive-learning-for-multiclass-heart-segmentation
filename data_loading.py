@@ -91,7 +91,6 @@ class MMWHSDataset(Dataset):
                                              z: z + self.patch_size[2]]
                     label_patch = np.expand_dims(label_patch, axis=0)
                     unique, counts = np.unique(label_patch, return_counts=True)
-                    print(f"unique: {unique}, counts: {counts}")
                     counts_descending = -np.sort(-counts)
                     if self.is_validation_dataset or (len(unique) > 1 and counts_descending[1] >= self.patches_filter) \
                             or unique[0] != 0:
@@ -191,5 +190,7 @@ class MMWHSDataset(Dataset):
         img_data, label_data, original_image_data, original_label_data = self.get_training_data_from_system()
         img_data, mean, std_dev = self.normalize_z_score_data(img_data)
         label_data, num_classes, label_values = self.preprocess_label_data(label_data)
+        unique, counts = np.unique(label_data, return_counts=True)
+        print(f"unique: {unique}, counts: {counts}")
         return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes, label_values, \
             original_image_data, original_label_data, mean, std_dev
