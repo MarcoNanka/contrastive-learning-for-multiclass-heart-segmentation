@@ -128,6 +128,9 @@ class Trainer:
 
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
         prediction_mask = self.undo_extract_patches_label_only(combined_predicted_array)
+        reconstructed_val_labels = self.undo_extract_patches_label_only(np.squeeze(self.validation_dataset.y))
+        print(f"self.validation_dataset.y.shape: {self.validation_dataset.y.shape}")
+        print(f"arrays are same: {np.array_equal(reconstructed_val_labels, self.validation_dataset.original_label_data)}")
         #  prediction_mask = np.zeros(self.validation_dataset.original_image_data.shape)
 
         return true_positives, average_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
