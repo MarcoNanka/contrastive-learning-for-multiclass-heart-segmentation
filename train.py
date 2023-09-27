@@ -52,9 +52,9 @@ class Trainer:
         Returns:
             np.ndarray: The reconstructed original label data.
         """
-        og_labels_shape = self.validation_dataset.original_label_data.shape
-        dim_x, dim_y, dim_z = og_labels_shape
-        label_data = np.zeros(og_labels_shape, dtype=label_patches.dtype)
+        original_shape = self.validation_dataset.original_label_data.shape
+        dim_x, dim_y, dim_z = original_shape
+        label_data = np.zeros(original_shape, dtype=label_patches.dtype)
 
         patch_index = 0
 
@@ -62,8 +62,10 @@ class Trainer:
             for y in range(0, dim_y, self.patch_size[1]):
                 for z in range(0, dim_z, self.patch_size[2]):
                     label_patch = label_patches[patch_index]
-                    label_data[x:x + self.patch_size[0], y:y + self.patch_size[1], z:z + self.patch_size[2]] = \
-                        label_patch
+                    x_end = min(x + self.patch_size[0], dim_x)  # Ensure we don't go out of bounds
+                    y_end = min(y + self.patch_size[1], dim_y)  # Ensure we don't go out of bounds
+                    z_end = min(z + self.patch_size[2], dim_z)  # Ensure we don't go out of bounds
+                    label_data[x:x_end, y:y_end, z:z_end] = label_patch[:x_end - x, :y_end - y, :z_end - z]
                     patch_index += 1
 
         return label_data
