@@ -42,30 +42,30 @@ class Trainer:
         self.training_shuffle = training_shuffle
         self.patch_size = patch_size
 
-    def reconstruct_labels(self, predicted: np.ndarray) -> np.ndarray:
+    def undo_extract_patches_label_only(self, label_patches: np.ndarray) -> np.ndarray:
         """
-        Reconstruct the original label data from the extracted label patches.
+        Reconstruct the original label data from extracted label patches of the validation dataset.
 
         Args:
-            predicted (np.ndarray): An array of extracted label patches.
+            label_patches (np.ndarray): An array of extracted label patches for the validation dataset.
 
         Returns:
             np.ndarray: The reconstructed original label data.
         """
-        num_patches, _, patch_dim_x, patch_dim_y, patch_dim_z = predicted.shape
-        og_shape = self.validation_dataset.original_image_data.shape
-        reconstructed_label = np.zeros(og_shape)
+        dim_x, dim_y, dim_z = self.validation_dataset.y.shape
+        label_data = np.zeros(self.validation_dataset.y.shape, dtype=label_patches.dtype)
 
-        patch_idx = 0
-        for x in range(0, og_shape[0], self.patch_size[0]):
-            for y in range(0, og_shape[1], self.patch_size[1]):
-                for z in range(0, og_shape[2], self.patch_size[2]):
-                    label_patch = predicted[patch_idx]
-                    reconstructed_label[x: x + patch_dim_x, y: y + patch_dim_y,
-                                        z: z + patch_dim_z] = label_patch[0]
-                    patch_idx += 1
+        patch_index = 0
 
-        return reconstructed_label
+        for x in range(0, dim_x, self.patch_size[0]):
+            for y in range(0, dim_y, self.patch_size[1]):
+                for z in range(0, dim_z, self.patch_size[2]):
+                    label_patch = label_patches[patch_index]
+                    label_data[x:x + self.patch_size[0], y:y + self.patch_size[1], z:z + self.patch_size[2]] = \
+                        label_patch
+                    patch_index += 1
+
+        return label_data
 
     def evaluate_validation(self) -> Tuple[np.ndarray, float, np.ndarray,
                                            np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
@@ -124,8 +124,8 @@ class Trainer:
             dice_score_macro = np.mean(dice_score)
 
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
-        # prediction_mask = self.reconstruct_labels(predicted)
-        prediction_mask = np.zeros(self.validation_dataset.original_image_data.shape)
+        prediction_mask = self.undo_extract_patches_label_only(combined_predicted_array)
+        #  prediction_mask = np.zeros(self.validation_dataset.original_image_data.shape)
 
         return true_positives, average_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
             accuracy, precision, recall, dice_score, prediction_mask

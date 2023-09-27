@@ -96,7 +96,7 @@ class MMWHSDataset(Dataset):
                             or unique[0] != 0:
                         image_patches.append(img_patch)
                         label_patches.append(label_patch)
-        print(f"np.array(image_patches).shape: {np.array(image_patches).shape}, np.array(label_patches).shape: {np.array(label_patches).shape}")
+
         return np.array(image_patches), np.array(label_patches)
 
     def normalize_z_score_data(self, raw_data: np.ndarray) -> Tuple[np.ndarray, float, float]:
