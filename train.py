@@ -212,14 +212,14 @@ class Trainer:
                                                         "class_labels": class_labels
                                                     }
                                                 }),
-                    "slide150": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 149],
+                    "slide140": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 139],
                                             masks={
                                                     "predictions": {
-                                                        "mask_data": prediction_mask[:, :, 149],
+                                                        "mask_data": prediction_mask[:, :, 139],
                                                         "class_labels": class_labels
                                                     },
                                                     "ground_truth": {
-                                                        "mask_data": og_labels_int[:, :, 149],
+                                                        "mask_data": og_labels_int[:, :, 139],
                                                         "class_labels": class_labels
                                                     }
                                                 }),

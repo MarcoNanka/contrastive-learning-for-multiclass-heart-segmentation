@@ -8,6 +8,48 @@ from torch.utils.data import Dataset
 from typing import Tuple, Optional
 
 
+class DataProcessor:
+    @staticmethod
+    def preprocess_label_data(raw_data: np.ndarray) -> Tuple[np.ndarray, int, np.ndarray]:
+        """
+        Prepare the label data for training.
+
+        Args:
+            raw_data (np.ndarray): The raw label data.
+
+        Returns:
+            np.ndarray: The prepared label data.
+        """
+        label_values = np.sort(np.unique(raw_data))
+        for ind, val in enumerate(label_values):
+            raw_data[raw_data == val] = ind
+
+        raw_data = np.squeeze(raw_data)
+        return raw_data, len(label_values), label_values
+
+    @staticmethod
+    def normalize_z_score_data(raw_data: np.ndarray, is_validation_dataset: bool = False, mean: float = None,
+                               std_dev: float = None) -> Tuple[np.ndarray, float, float]:
+        """
+        Normalize the given raw data using z-score normalization.
+
+        Args:
+            raw_data (np.ndarray): The raw input data.
+            is_validation_dataset (bool)
+            mean (float)
+            std_dev (float)
+
+        Returns:
+            np.ndarray: The normalized data.
+        """
+        if not is_validation_dataset:
+            mean = float(np.mean(raw_data))
+            std_dev = float(np.std(raw_data))
+
+        normalized_data = (raw_data - mean) / std_dev
+        return normalized_data, mean, std_dev
+
+
 class MMWHSDataset(Dataset):
     """
     Custom PyTorch Dataset for loading MM-WHS dataset.
@@ -99,44 +141,6 @@ class MMWHSDataset(Dataset):
 
         return np.array(image_patches), np.array(label_patches)
 
-    def normalize_z_score_data(self, raw_data: np.ndarray) -> Tuple[np.ndarray, float, float]:
-        """
-        Normalize the given raw data using z-score normalization.
-
-        Args:
-            raw_data (np.ndarray): The raw input data.
-
-        Returns:
-            np.ndarray: The normalized data.
-        """
-        if self.is_validation_dataset and self.mean is not None and self.std_dev is not None:
-            mean = self.mean
-            std_dev = self.std_dev
-        else:
-            mean = float(np.mean(raw_data))
-            std_dev = float(np.std(raw_data))
-
-        normalized_data = (raw_data - mean) / std_dev
-        return normalized_data, mean, std_dev
-
-    @staticmethod
-    def preprocess_label_data(raw_data: np.ndarray) -> Tuple[np.ndarray, int, np.ndarray]:
-        """
-        Prepare the label data for training.
-
-        Args:
-            raw_data (np.ndarray): The raw label data.
-
-        Returns:
-            np.ndarray: The prepared label data.
-        """
-        label_values = np.sort(np.unique(raw_data))
-        for ind, val in enumerate(label_values):
-            raw_data[raw_data == val] = ind
-
-        raw_data = np.squeeze(raw_data)
-        return raw_data, len(label_values), label_values
-
     def create_training_data_array(self, path_list: list) -> tuple[ndarray, ndarray, ndarray, ndarray]:
         """
         Create the training data array from the given list of paths.
@@ -186,7 +190,27 @@ class MMWHSDataset(Dataset):
             tuple: The preprocessed input and target data tensors.
         """
         img_data, label_data, original_image_data, original_label_data = self.get_training_data_from_system()
-        img_data, mean, std_dev = self.normalize_z_score_data(img_data)
-        label_data, num_classes, label_values = self.preprocess_label_data(label_data)
+        img_data, mean, std_dev = DataProcessor.normalize_z_score_data(img_data, self.is_validation_dataset,
+                                                                       self.mean, self.std_dev)
+        label_data, num_classes, label_values = DataProcessor.preprocess_label_data(label_data)
         return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes, label_values, \
             original_image_data, original_label_data, mean, std_dev
+
+
+# class MMWHSContrastiveDataset(Dataset):
+#     def __init__(self, data):
+#         self.data = data
+#         self.transform = transforms.Compose([
+#             transforms.RandomResizedCrop(96),
+#             transforms.RandomHorizontalFlip(),
+#             transforms.ToTensor()
+#         ])
+#
+#     def __len__(self):
+#         return len(self.data)
+#
+#     def __getitem__(self, idx):
+#         sample = self.data[idx]
+#         positive_pair = self.transform(sample)
+#         negative_pair = self.transform(random.choice(self.data))
+#         return positive_pair, negative_pair
