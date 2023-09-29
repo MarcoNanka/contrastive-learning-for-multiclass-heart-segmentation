@@ -5,7 +5,7 @@ import torch
 import nibabel as nib
 from numpy import ndarray
 from torch.utils.data import Dataset
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Union
 import random
 from monai.transforms import Compose, RandFlip, ToTensor, RandZoom, RandGaussianNoise, RandGaussianSmooth
 
@@ -31,7 +31,8 @@ class DataProcessor:
 
     @staticmethod
     def normalize_z_score_data(raw_data: np.ndarray, is_validation_dataset: bool = False, mean: float = None,
-                               std_dev: float = None) -> Tuple[np.ndarray, float, float]:
+                               std_dev: float = None, is_contrastive_dataset: bool = False) -> \
+            Union[Tuple[np.ndarray, float, float], list]:
         """
         Normalize the given raw data using z-score normalization.
 
@@ -40,10 +41,22 @@ class DataProcessor:
             is_validation_dataset (bool)
             mean (float)
             std_dev (float)
+            is_contrastive_dataset (bool)
 
         Returns:
             np.ndarray: The normalized data.
         """
+        if is_contrastive_dataset:
+            buf_raw_data = np.concatenate(raw_data, axis=0)
+            mean = float(np.mean(buf_raw_data))
+            std_dev = float(np.std(buf_raw_data))
+            print(f"contrastive dataset --- mean: {mean}, std_dev: {std_dev}")
+            ret_array = []
+            for idx, _ in enumerate(raw_data):
+                normalized_data = (raw_data[idx] - mean) / std_dev
+                ret_array.append(normalized_data)
+            return ret_array
+
         if not is_validation_dataset:
             mean = float(np.mean(raw_data))
             std_dev = float(np.std(raw_data))
@@ -88,9 +101,12 @@ class DataProcessor:
                     img_patch = image_data[x: x + patch_size[0], y: y + patch_size[1],
                                            z: z + patch_size[2]]
                     img_patch = np.expand_dims(img_patch, axis=0)
-                    label_patch = label_data[x: x + patch_size[0], y: y + patch_size[1],
-                                             z: z + patch_size[2]]
-                    label_patch = np.expand_dims(label_patch, axis=0)
+                    if not is_contrastive_dataset:
+                        label_patch = label_data[x: x + patch_size[0], y: y + patch_size[1],
+                                                 z: z + patch_size[2]]
+                        label_patch = np.expand_dims(label_patch, axis=0)
+                    else:
+                        label_patch = np.empty((0, 0, 0))
                     unique, counts = np.unique(label_patch, return_counts=True)
                     counts_descending = -np.sort(-counts)
                     if is_validation_dataset or is_contrastive_dataset or unique[0] != 0 or \
@@ -139,8 +155,10 @@ class DataProcessor:
         if not is_contrastive_dataset:
             patches_images = np.concatenate(patches_images, axis=0)
             patches_labels = np.concatenate(patches_labels, axis=0)
+            print(f"is validation: {is_validation_dataset} -> shape of patches array: {patches_images.shape}")
 
-        print(f"is validation: {is_validation_dataset} -> shape of patches array: {patches_images.shape}")
+        else:
+            print(f"contrastive dataset length: {len(patches_images)}, shape of first image: {patches_images[0].shape}")
 
         return patches_images, patches_labels, original_image_data, original_label_data
 
@@ -265,7 +283,7 @@ class MMWHSContrastiveDataset(Dataset):
             RandGaussianSmooth(prob=0.5),
             ToTensor()
         ])
-        self.x, self.original_image_data, self.mean, self.std_dev = self.load_data()
+        self.x, self.original_image_data = self.load_data()
 
     def __len__(self):
         """
@@ -303,5 +321,5 @@ class MMWHSContrastiveDataset(Dataset):
                                           is_validation_dataset=False, patch_size=self.patch_size,
                                           patches_filter=self.patches_filter,
                                           is_contrastive_dataset=True)
-        img_data, mean, std_dev = DataProcessor.normalize_z_score_data(raw_data=img_data)
-        return torch.from_numpy(img_data), original_image_data, mean, std_dev
+        img_data = DataProcessor.normalize_z_score_data(raw_data=img_data, is_contrastive_dataset=True)
+        return torch.from_numpy(img_data), original_image_data
