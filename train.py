@@ -245,7 +245,7 @@ class Trainer:
 
 def main(args):
     print("data loading for contrastive begins")
-    contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.folder_path, patch_size=args.patch_size,
+    contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.contrastive_folder_path, patch_size=args.patch_size,
                                                   patches_filter=args.patches_filter)
     print("data loading for contrastive ends")
 
