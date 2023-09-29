@@ -262,6 +262,7 @@ def main(args):
             "patch_size": args.patch_size,
             "validation_interval": args.validation_interval,
             "training_shuffle": args.training_shuffle,
+            "patches_filter": args.patches_filter,
             "mean": dataset.mean,
             "std_dev": dataset.std_dev
         }
