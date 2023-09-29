@@ -100,7 +100,8 @@ class DataProcessor:
 
     @staticmethod
     def create_training_data_array(path_list: list, is_validation_dataset: bool, patch_size: Tuple[int, int, int],
-                                   patches_filter: int) -> tuple[ndarray, ndarray, ndarray, ndarray]:
+                                   patches_filter: int, is_contrastive_dataset: bool) -> \
+            tuple[ndarray, ndarray, ndarray, ndarray]:
         """
         Create the training data array from the given list of paths.
 
@@ -109,6 +110,7 @@ class DataProcessor:
             is_validation_dataset (bool)
             patch_size (tuple)
             patches_filter (int)
+            is_contrastive_dataset (bool)
 
         Returns:
             np.ndarray: The patched image data.
@@ -128,14 +130,18 @@ class DataProcessor:
             patches_images.append(image_data)
             patches_labels.append(label_data)
 
-        patches_images = np.concatenate(patches_images, axis=0)
-        patches_labels = np.concatenate(patches_labels, axis=0)
+        if not is_contrastive_dataset:
+            patches_images = np.concatenate(patches_images, axis=0)
+            patches_labels = np.concatenate(patches_labels, axis=0)
+
         print(f"is validation: {is_validation_dataset} -> shape of patches array: {patches_images.shape}")
+
         return patches_images, patches_labels, original_image_data, original_label_data
 
     @staticmethod
     def get_training_data_from_system(folder_path: str, is_validation_dataset: bool, patch_size: Tuple[int, int, int],
-                                      patches_filter: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+                                      patches_filter: int, is_contrastive_dataset: bool = False) -> \
+            Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Load the training data from the file system.
 
@@ -144,6 +150,7 @@ class DataProcessor:
             is_validation_dataset (bool)
             patch_size (tuple)
             patches_filter (int)
+            is_contrastive_dataset (bool)
 
         Returns:
             tuple: The input and target training data.
@@ -154,7 +161,8 @@ class DataProcessor:
         ret_imgs, ret_labels, original_image_data, original_label_data = \
             DataProcessor.create_training_data_array(path_list=image_path_names,
                                                      is_validation_dataset=is_validation_dataset, patch_size=patch_size,
-                                                     patches_filter=patches_filter)
+                                                     patches_filter=patches_filter,
+                                                     is_contrastive_dataset=is_contrastive_dataset)
         return ret_imgs, ret_labels, original_image_data, original_label_data
 
 
@@ -214,7 +222,7 @@ class MMWHSDataset(Dataset):
         Returns:
             tuple: The preprocessed input and target data tensors.
         """
-        img_data, label_data, original_image_data, original_label_data = DataProcessor.\
+        img_data, label_data, original_image_data, original_label_data = DataProcessor. \
             get_training_data_from_system(folder_path=self.folder_path,
                                           is_validation_dataset=self.is_validation_dataset, patch_size=self.patch_size,
                                           patches_filter=self.patches_filter)
@@ -230,6 +238,7 @@ class MMWHSContrastiveDataset(Dataset):
     """
         Custom PyTorch Dataset for loading MM-WHS contrastive learning dataset.
     """
+
     def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], patches_filter: int):
         """
             Initialize the MMWHSDataset for contrastive learning.
@@ -283,10 +292,10 @@ class MMWHSContrastiveDataset(Dataset):
         Returns:
             tuple: The preprocessed input and target data tensors.
         """
-        # adjust get_training_data_from_system such that it works properly
-        img_data, _, original_image_data, _ = DataProcessor.\
+        img_data, _, original_image_data, _ = DataProcessor. \
             get_training_data_from_system(folder_path=self.folder_path,
                                           is_validation_dataset=False, patch_size=self.patch_size,
-                                          patches_filter=self.patches_filter)
+                                          patches_filter=self.patches_filter,
+                                          is_contrastive_dataset=True)
         img_data, mean, std_dev = DataProcessor.normalize_z_score_data(raw_data=img_data)
         return torch.from_numpy(img_data), original_image_data, mean, std_dev

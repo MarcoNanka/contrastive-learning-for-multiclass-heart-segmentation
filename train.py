@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from model import UNet
-from data_loading import MMWHSDataset, DataProcessor
+from data_loading import MMWHSDataset, DataProcessor, MMWHSContrastiveDataset
 import numpy as np
 from typing import Tuple
 from config import parse_args
@@ -244,6 +244,13 @@ class Trainer:
 
 
 def main(args):
+    print("data loading for contrastive begins")
+    contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.folder_path, patch_size=args.patch_size,
+                                                  patches_filter=args.patches_filter)
+    print("data loading for contrastive ends")
+
+    print(f"contrastive_dataset.x.shape: {contrastive_dataset.x.shape}")
+    print(f"contrastive_dataset.original_image_data.shape: {contrastive_dataset.original_image_data.shape}")
     dataset = MMWHSDataset(folder_path=args.folder_path, patch_size=args.patch_size, is_validation_dataset=False,
                            patches_filter=args.patches_filter)
     validation_dataset = MMWHSDataset(folder_path=args.val_folder_path, patch_size=args.patch_size,
