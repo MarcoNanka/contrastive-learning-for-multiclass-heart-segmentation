@@ -182,12 +182,12 @@ class DataProcessor:
         image_path_names = glob.glob(os.path.join(folder_path, "*image.nii*"))
         if not image_path_names:
             raise ValueError("Empty list! Check if folder path contains images.")
-        ret_imgs, ret_labels, original_image_data, original_label_data = \
-            DataProcessor.create_training_data_array(path_list=image_path_names,
-                                                     is_validation_dataset=is_validation_dataset, patch_size=patch_size,
-                                                     patches_filter=patches_filter,
-                                                     is_contrastive_dataset=is_contrastive_dataset)
-        return ret_imgs, ret_labels, original_image_data, original_label_data
+
+        return DataProcessor.create_training_data_array(path_list=image_path_names,
+                                                        is_validation_dataset=is_validation_dataset,
+                                                        patch_size=patch_size,
+                                                        patches_filter=patches_filter,
+                                                        is_contrastive_dataset=is_contrastive_dataset)
 
 
 class MMWHSDataset(Dataset):
@@ -322,4 +322,6 @@ class MMWHSContrastiveDataset(Dataset):
                                           patches_filter=self.patches_filter,
                                           is_contrastive_dataset=True)
         img_data = DataProcessor.normalize_z_score_data(raw_data=img_data, is_contrastive_dataset=True)
-        return torch.from_numpy(img_data), original_image_data
+        for idx, _ in enumerate(img_data):
+            torch.from_numpy(img_data[idx])
+        return img_data, original_image_data
