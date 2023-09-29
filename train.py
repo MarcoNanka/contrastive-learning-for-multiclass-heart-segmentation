@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from model import UNet
-from data_loading import DataProcessor
+from data_loading import MMWHSDataset, DataProcessor
 import numpy as np
 from typing import Tuple
 from config import parse_args
