@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from model import UNet
-from data_loading import MMWHSDataset
+from data_loading import DataProcessor
 import numpy as np
 from typing import Tuple
 from config import parse_args
@@ -158,7 +158,7 @@ class Trainer:
             6: "ascending aorta",  # 820
             7: "pulmonary artery"  # 850
         }
-        og_labels_int, _, _ = MMWHSDataset.preprocess_label_data(self.validation_dataset.original_label_data)
+        og_labels_int, _, _ = DataProcessor.preprocess_label_data(self.validation_dataset.original_label_data)
 
         for epoch in range(self.num_epochs):
             # Shuffle the dataset to ensure random patch selection
