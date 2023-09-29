@@ -98,9 +98,6 @@ class DataProcessor:
                         image_patches.append(img_patch)
                         label_patches.append(label_patch)
 
-        print(f"image_patches.shape: {image_patches.shape}")
-        print(f"label_patches.shape: {label_patches.shape}")
-
         return np.array(image_patches), np.array(label_patches)
 
     @staticmethod
