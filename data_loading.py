@@ -120,9 +120,12 @@ class DataProcessor:
         patches_labels = []
         for path in path_list:
             image_data = np.array(nib.load(path).get_fdata())
-            label_data = np.array(nib.load(path.replace('image', 'label')).get_fdata())
             original_image_data = image_data
-            original_label_data = label_data
+            if not is_contrastive_dataset:
+                label_data = np.array(nib.load(path.replace('image', 'label')).get_fdata())
+                original_label_data = label_data
+            else:
+                label_data = original_label_data = np.empty((0, 0, 0))
             image_data, label_data = DataProcessor.extract_patches(image_data=image_data, label_data=label_data,
                                                                    patch_size=patch_size,
                                                                    is_validation_dataset=is_validation_dataset,
