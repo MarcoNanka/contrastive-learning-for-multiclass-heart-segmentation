@@ -53,7 +53,8 @@ class DataProcessor:
 
     @staticmethod
     def extract_patches(image_data: np.ndarray, label_data: np.ndarray, patch_size: Tuple[int, int, int],
-                        is_validation_dataset: bool, patches_filter: int) -> Tuple[np.ndarray, np.ndarray]:
+                        is_validation_dataset: bool, patches_filter: int, is_contrastive_dataset: bool) -> \
+            Tuple[np.ndarray, np.ndarray]:
         """
         Extract patches from the given image data.
 
@@ -63,6 +64,7 @@ class DataProcessor:
             patch_size (tuple)
             is_validation_dataset (bool)
             patches_filter (int)
+            is_contrastive_dataset (bool)
 
         Returns:
             np.ndarray: An array of extracted image patches.
@@ -91,8 +93,8 @@ class DataProcessor:
                     label_patch = np.expand_dims(label_patch, axis=0)
                     unique, counts = np.unique(label_patch, return_counts=True)
                     counts_descending = -np.sort(-counts)
-                    if is_validation_dataset or (len(unique) > 1 and counts_descending[1] >= patches_filter) \
-                            or unique[0] != 0:
+                    if is_validation_dataset or is_contrastive_dataset or unique[0] != 0 or \
+                            (len(unique) > 1 and counts_descending[1] >= patches_filter):
                         image_patches.append(img_patch)
                         label_patches.append(label_patch)
 
@@ -129,7 +131,8 @@ class DataProcessor:
             image_data, label_data = DataProcessor.extract_patches(image_data=image_data, label_data=label_data,
                                                                    patch_size=patch_size,
                                                                    is_validation_dataset=is_validation_dataset,
-                                                                   patches_filter=patches_filter)
+                                                                   patches_filter=patches_filter,
+                                                                   is_contrastive_dataset=is_contrastive_dataset)
             patches_images.append(image_data)
             patches_labels.append(label_data)
 
