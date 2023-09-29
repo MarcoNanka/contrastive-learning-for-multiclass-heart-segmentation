@@ -251,8 +251,10 @@ def main(args):
     #
     # print(f"contrastive_dataset.x.shape: {contrastive_dataset.x.shape}")
     # print(f"contrastive_dataset.original_image_data.shape: {contrastive_dataset.original_image_data.shape}")
+    print("dataset starts")
     dataset = MMWHSDataset(folder_path=args.folder_path, patch_size=args.patch_size, is_validation_dataset=False,
                            patches_filter=args.patches_filter)
+    print("dataset finished")
     validation_dataset = MMWHSDataset(folder_path=args.val_folder_path, patch_size=args.patch_size,
                                       is_validation_dataset=True, patches_filter=args.patches_filter,
                                       mean=dataset.mean, std_dev=dataset.std_dev)
