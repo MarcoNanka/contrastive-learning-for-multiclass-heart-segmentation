@@ -6,6 +6,8 @@ import nibabel as nib
 from numpy import ndarray
 from torch.utils.data import Dataset
 from typing import Tuple, Optional
+import random
+from monai.transforms import Compose, RandFlip, ToTensor, RandZoom, RandGaussianNoise, RandGaussianSmooth
 
 
 class DataProcessor:
@@ -48,62 +50,6 @@ class DataProcessor:
 
         normalized_data = (raw_data - mean) / std_dev
         return normalized_data, mean, std_dev
-
-    @staticmethod
-    def get_training_data_from_system(folder_path: str, is_validation_dataset: bool, patch_size: Tuple[int, int, int],
-                                      patches_filter: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Load the training data from the file system.
-
-        Args:
-            folder_path (str)
-            is_validation_dataset (bool)
-            patch_size (tuple)
-            patches_filter (int)
-
-        Returns:
-            tuple: The input and target training data.
-        """
-        image_path_names = glob.glob(os.path.join(folder_path, "*image.nii*"))
-        if not image_path_names:
-            raise ValueError("Empty list! Check if folder path contains images.")
-        ret_imgs, ret_labels, original_image_data, original_label_data = \
-            DataProcessor.create_training_data_array(image_path_names, is_validation_dataset, patch_size,
-                                                     patches_filter)
-        return ret_imgs, ret_labels, original_image_data, original_label_data
-
-    @staticmethod
-    def create_training_data_array(path_list: list, is_validation_dataset: bool, patch_size: Tuple[int, int, int],
-                                   patches_filter: int) -> tuple[ndarray, ndarray, ndarray, ndarray]:
-        """
-        Create the training data array from the given list of paths.
-
-        Args:
-            path_list (list): The list of file paths.
-            is_validation_dataset (bool)
-            patch_size (tuple)
-            patches_filter (int)
-
-        Returns:
-            np.ndarray: The patched image data.
-            np.ndarray: The patched label data.
-        """
-        patches_images = []
-        patches_labels = []
-        for path in path_list:
-            image_data = np.array(nib.load(path).get_fdata())
-            label_data = np.array(nib.load(path.replace('image', 'label')).get_fdata())
-            original_image_data = image_data
-            original_label_data = label_data
-            image_data, label_data = DataProcessor.extract_patches(image_data, label_data, patch_size,
-                                                                   is_validation_dataset, patches_filter)
-            patches_images.append(image_data)
-            patches_labels.append(label_data)
-
-        patches_images = np.concatenate(patches_images, axis=0)
-        patches_labels = np.concatenate(patches_labels, axis=0)
-        print(f"is validation: {is_validation_dataset} -> shape of patches array: {patches_images.shape}")
-        return patches_images, patches_labels, original_image_data, original_label_data
 
     @staticmethod
     def extract_patches(image_data: np.ndarray, label_data: np.ndarray, patch_size: Tuple[int, int, int],
@@ -152,6 +98,65 @@ class DataProcessor:
 
         return np.array(image_patches), np.array(label_patches)
 
+    @staticmethod
+    def create_training_data_array(path_list: list, is_validation_dataset: bool, patch_size: Tuple[int, int, int],
+                                   patches_filter: int) -> tuple[ndarray, ndarray, ndarray, ndarray]:
+        """
+        Create the training data array from the given list of paths.
+
+        Args:
+            path_list (list): The list of file paths.
+            is_validation_dataset (bool)
+            patch_size (tuple)
+            patches_filter (int)
+
+        Returns:
+            np.ndarray: The patched image data.
+            np.ndarray: The patched label data.
+        """
+        patches_images = []
+        patches_labels = []
+        for path in path_list:
+            image_data = np.array(nib.load(path).get_fdata())
+            label_data = np.array(nib.load(path.replace('image', 'label')).get_fdata())
+            original_image_data = image_data
+            original_label_data = label_data
+            image_data, label_data = DataProcessor.extract_patches(image_data=image_data, label_data=label_data,
+                                                                   patch_size=patch_size,
+                                                                   is_validation_dataset=is_validation_dataset,
+                                                                   patches_filter=patches_filter)
+            patches_images.append(image_data)
+            patches_labels.append(label_data)
+
+        patches_images = np.concatenate(patches_images, axis=0)
+        patches_labels = np.concatenate(patches_labels, axis=0)
+        print(f"is validation: {is_validation_dataset} -> shape of patches array: {patches_images.shape}")
+        return patches_images, patches_labels, original_image_data, original_label_data
+
+    @staticmethod
+    def get_training_data_from_system(folder_path: str, is_validation_dataset: bool, patch_size: Tuple[int, int, int],
+                                      patches_filter: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Load the training data from the file system.
+
+        Args:
+            folder_path (str)
+            is_validation_dataset (bool)
+            patch_size (tuple)
+            patches_filter (int)
+
+        Returns:
+            tuple: The input and target training data.
+        """
+        image_path_names = glob.glob(os.path.join(folder_path, "*image.nii*"))
+        if not image_path_names:
+            raise ValueError("Empty list! Check if folder path contains images.")
+        ret_imgs, ret_labels, original_image_data, original_label_data = \
+            DataProcessor.create_training_data_array(path_list=image_path_names,
+                                                     is_validation_dataset=is_validation_dataset, patch_size=patch_size,
+                                                     patches_filter=patches_filter)
+        return ret_imgs, ret_labels, original_image_data, original_label_data
+
 
 class MMWHSDataset(Dataset):
     """
@@ -162,7 +167,7 @@ class MMWHSDataset(Dataset):
                  patches_filter: int, mean: Optional[float] = None,
                  std_dev: Optional[float] = None) -> None:
         """
-        Initialize the MMWHSDataset.
+        Initialize the MMWHSDataset for supervised learning.
 
         Args:
             folder_path (str): The path to the folder containing the dataset.
@@ -210,29 +215,78 @@ class MMWHSDataset(Dataset):
             tuple: The preprocessed input and target data tensors.
         """
         img_data, label_data, original_image_data, original_label_data = DataProcessor.\
-            get_training_data_from_system(self.folder_path, self.is_validation_dataset, self.patch_size,
-                                          self.patches_filter)
-        img_data, mean, std_dev = DataProcessor.normalize_z_score_data(img_data, self.is_validation_dataset,
-                                                                       self.mean, self.std_dev)
-        label_data, num_classes, label_values = DataProcessor.preprocess_label_data(label_data)
+            get_training_data_from_system(folder_path=self.folder_path,
+                                          is_validation_dataset=self.is_validation_dataset, patch_size=self.patch_size,
+                                          patches_filter=self.patches_filter)
+        img_data, mean, std_dev = DataProcessor.normalize_z_score_data(raw_data=img_data, is_validation_dataset=self.
+                                                                       is_validation_dataset, mean=self.mean,
+                                                                       std_dev=self.std_dev)
+        label_data, num_classes, label_values = DataProcessor.preprocess_label_data(raw_data=label_data)
         return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes, label_values, \
             original_image_data, original_label_data, mean, std_dev
 
 
-# class MMWHSContrastiveDataset(Dataset):
-#     def __init__(self, data):
-#         self.data = data
-#         self.transform = transforms.Compose([
-#             transforms.RandomResizedCrop(96),
-#             transforms.RandomHorizontalFlip(),
-#             transforms.ToTensor()
-#         ])
-#
-#     def __len__(self):
-#         return len(self.data)
-#
-#     def __getitem__(self, idx):
-#         sample = self.data[idx]
-#         positive_pair = self.transform(sample)
-#         negative_pair = self.transform(random.choice(self.data))
-#         return positive_pair, negative_pair
+class MMWHSContrastiveDataset(Dataset):
+    """
+        Custom PyTorch Dataset for loading MM-WHS contrastive learning dataset.
+    """
+    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], patches_filter: int):
+        """
+            Initialize the MMWHSDataset for contrastive learning.
+
+            Args:
+                folder_path (str): The path to the folder containing the dataset.
+                patch_size (tuple): The size of the patches to extract from the data.
+                patches_filter (int): The filter value for patches.
+            """
+        self.folder_path = folder_path
+        self.patch_size = patch_size
+        self.patches_filter = patches_filter
+        self.transform = Compose([
+            RandFlip(spatial_axis=0, prob=0.5),
+            RandFlip(spatial_axis=1, prob=0.5),
+            RandZoom(min_zoom=0.8, max_zoom=1.2, prob=0.5),
+            RandGaussianNoise(prob=0.5),
+            RandGaussianSmooth(prob=0.5),
+            ToTensor()
+        ])
+        self.x, self.original_image_data, self.mean, self.std_dev = self.load_data()
+
+    def __len__(self):
+        """
+        Get the number of samples in the dataset.
+
+        Returns:
+            int: The number of samples.
+        """
+        return len(self.x)
+
+    def __getitem__(self, idx):
+        """
+       Get a specific sample from the dataset.
+
+       Args:
+           idx (int): The index of the sample.
+
+       Returns:
+           tuple: The input and target data for the sample.
+       """
+        sample = self.x[idx]
+        positive_pair = self.transform(sample)
+        negative_pair = self.transform(random.choice(self.x))
+        return positive_pair, negative_pair
+
+    def load_data(self):
+        """
+        Load and preprocess the dataset.
+
+        Returns:
+            tuple: The preprocessed input and target data tensors.
+        """
+        # adjust get_training_data_from_system such that it works properly
+        img_data, _, original_image_data, _ = DataProcessor.\
+            get_training_data_from_system(folder_path=self.folder_path,
+                                          is_validation_dataset=False, patch_size=self.patch_size,
+                                          patches_filter=self.patches_filter)
+        img_data, mean, std_dev = DataProcessor.normalize_z_score_data(raw_data=img_data)
+        return torch.from_numpy(img_data), original_image_data, mean, std_dev

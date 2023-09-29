@@ -2,3 +2,4 @@ numpy~=1.24.3
 torch~=2.0.1
 nibabel~=5.1.0
 wandb~=0.15.8
+monai~=1.2.0
