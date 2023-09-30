@@ -65,6 +65,39 @@ class DataProcessor:
         return normalized_data, mean, std_dev
 
     @staticmethod
+    def undo_extract_patches_label_only(label_patches: np.ndarray, patch_size: Tuple[int, int, int],
+                                        original_label_data: np.ndarray) -> np.ndarray:
+        """
+        Reconstruct the original label data from extracted label patches of the validation dataset.
+
+        Args:
+            label_patches (np.ndarray): An array of extracted label patches for the validation dataset.
+            patch_size (tuple)
+            original_label_data (np.ndarray)
+
+        Returns:
+            np.ndarray: The reconstructed original label data.
+        """
+        original_shape = original_label_data.shape
+        dim_x, dim_y, dim_z = original_shape
+        label_data = np.zeros(original_shape, dtype=label_patches.dtype)
+
+        patch_index = 0
+
+        for x in range(0, dim_x, patch_size[0]):
+            for y in range(0, dim_y, patch_size[1]):
+                for z in range(0, dim_z, patch_size[2]):
+                    label_patch = label_patches[patch_index]
+                    x_end = min(x + patch_size[0], dim_x)
+                    y_end = min(y + patch_size[1], dim_y)
+                    z_end = min(z + patch_size[2], dim_z)
+                    label_data[x:x_end, y:y_end, z:z_end] = label_patch[:x_end - x, :y_end - y, :z_end - z]
+                    patch_index += 1
+
+        return label_data
+
+
+    @staticmethod
     def extract_patches(image_data: np.ndarray, label_data: np.ndarray, patch_size: Tuple[int, int, int],
                         is_validation_dataset: bool, patches_filter: int, is_contrastive_dataset: bool) -> \
             Tuple[np.ndarray, np.ndarray]:

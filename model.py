@@ -3,7 +3,7 @@ from torch import nn
 
 
 class UNet(nn.Module):
-    def __init__(self, in_channels=1, num_classes=8):
+    def __init__(self, in_channels=1, num_classes=8, encoder_weights: tuple = None, encoder_biases: tuple = None):
         """
         U-Net model for semantic segmentation.
 
@@ -18,6 +18,17 @@ class UNet(nn.Module):
         self.encoder_conv2 = nn.Conv3d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
         self.encoder_conv3 = nn.Conv3d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
         self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
+
+        if encoder_weights is not None and encoder_biases is not None:
+            encoder_conv1_weights, encoder_conv2_weights, encoder_conv3_weights = encoder_weights
+            encoder_conv1_biases, encoder_conv2_biases, encoder_conv3_biases = encoder_biases
+
+            self.encoder_conv1.weight = nn.Parameter(encoder_conv1_weights)
+            self.encoder_conv1.bias = nn.Parameter(encoder_conv1_biases)
+            self.encoder_conv2.weight = nn.Parameter(encoder_conv2_weights)
+            self.encoder_conv2.bias = nn.Parameter(encoder_conv2_biases)
+            self.encoder_conv3.weight = nn.Parameter(encoder_conv3_weights)
+            self.encoder_conv3.bias = nn.Parameter(encoder_conv3_biases)
 
         # Expanding path: Decreasing features, increasing spatial dimensions
         self.upconv1 = nn.ConvTranspose3d(in_channels=64, out_channels=32, kernel_size=2, stride=2)
@@ -55,3 +66,21 @@ class UNet(nn.Module):
         output = self.relu(self.decoder_conv3(x5))  # 16, 8, 24, 24, 24
 
         return output
+
+
+class Encoder(nn.Module):
+    def __init__(self, in_channels=1):
+        super(Encoder, self).__init__()
+        self.encoder_conv1 = nn.Conv3d(in_channels=in_channels, out_channels=16, kernel_size=3, padding=1)
+        self.encoder_conv2 = nn.Conv3d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
+        self.encoder_conv3 = nn.Conv3d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
+        self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x1 = self.relu(self.encoder_conv1(x))
+        x2 = self.pool(x1)
+        x2 = self.relu(self.encoder_conv2(x2))
+        x3 = self.pool(x2)
+        x3 = self.relu(self.encoder_conv3(x3))
+        return x3

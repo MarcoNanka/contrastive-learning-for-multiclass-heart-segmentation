@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from model import UNet
+from model import UNet, Encoder
 from data_loading import MMWHSDataset, DataProcessor, MMWHSContrastiveDataset
 import numpy as np
 from typing import Tuple
@@ -9,6 +9,7 @@ from config import parse_args
 import wandb
 import os
 import random
+from contrastive import PreTrainer
 
 os.environ['WANDB_CACHE_DIR'] = "$HOME/wandb_tmp"
 os.environ['WANDB_CONFIG_DIR'] = "$HOME/wandb_tmp"
@@ -23,13 +24,14 @@ class Trainer:
         Trainer class for training a model.
 
         Args:
-            model (torch.nn.Module): The model to train.
-            dataset (torch.utils.data.Dataset): The training dataset.
-            num_epochs (int): The number of training epochs.
-            batch_size (int, optional): The batch size for training. Default is 4.
-            learning_rate (float, optional): The learning rate for the optimizer. Default is 0.001.
-            validation_dataset (torch.utils.data.Dataset, optional): The validation dataset. Default is None.
-            validation_interval (int, optional): The number of epochs between each validation evaluation. Default is 5.
+            model (torch.nn.Module)
+            dataset (torch.utils.data.Dataset)
+            num_epochs (int)
+            batch_size (int)
+            learning_rate (float)
+            validation_dataset (torch.utils.data.Dataset)
+            validation_interval (int)
+            patch_size (tuple)
         """
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = model
@@ -41,34 +43,6 @@ class Trainer:
         self.validation_interval = validation_interval
         self.training_shuffle = training_shuffle
         self.patch_size = patch_size
-
-    def undo_extract_patches_label_only(self, label_patches: np.ndarray) -> np.ndarray:
-        """
-        Reconstruct the original label data from extracted label patches of the validation dataset.
-
-        Args:
-            label_patches (np.ndarray): An array of extracted label patches for the validation dataset.
-
-        Returns:
-            np.ndarray: The reconstructed original label data.
-        """
-        original_shape = self.validation_dataset.original_label_data.shape
-        dim_x, dim_y, dim_z = original_shape
-        label_data = np.zeros(original_shape, dtype=label_patches.dtype)
-
-        patch_index = 0
-
-        for x in range(0, dim_x, self.patch_size[0]):
-            for y in range(0, dim_y, self.patch_size[1]):
-                for z in range(0, dim_z, self.patch_size[2]):
-                    label_patch = label_patches[patch_index]
-                    x_end = min(x + self.patch_size[0], dim_x)  # Ensure we don't go out of bounds
-                    y_end = min(y + self.patch_size[1], dim_y)  # Ensure we don't go out of bounds
-                    z_end = min(z + self.patch_size[2], dim_z)  # Ensure we don't go out of bounds
-                    label_data[x:x_end, y:y_end, z:z_end] = label_patch[:x_end - x, :y_end - y, :z_end - z]
-                    patch_index += 1
-
-        return label_data
 
     def evaluate_validation(self) -> Tuple[np.ndarray, float, np.ndarray,
                                            np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
@@ -127,7 +101,10 @@ class Trainer:
             dice_score_macro = np.mean(dice_score)
 
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
-        prediction_mask = self.undo_extract_patches_label_only(combined_predicted_array)
+        prediction_mask = DataProcessor.\
+            undo_extract_patches_label_only(label_patches=combined_predicted_array,
+                                            patch_size=self.patch_size,
+                                            original_label_data=self.validation_dataset.original_label_data)
         # reconstructed_val_labels = self.undo_extract_patches_label_only(self.validation_dataset.y.cpu().numpy())
         # print(f"arrays are identical? {np.array_equal(reconstructed_val_labels, self.validation_dataset.
         # original_label_data)}")
@@ -244,20 +221,19 @@ class Trainer:
 
 
 def main(args):
+    # LOAD DATASETS
     print("data loading for contrastive begins")
     contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.contrastive_folder_path, patch_size=args.patch_size,
                                                   patches_filter=args.patches_filter)
     print("data loading for contrastive ends")
-
-    print(f"contrastive_dataset.x.shape: {contrastive_dataset.x.shape}")
     print(f"contrastive_dataset.original_image_data.shape: {contrastive_dataset.original_image_data.shape}")
-    dataset = MMWHSDataset(folder_path=args.folder_path, patch_size=args.patch_size, is_validation_dataset=False,
-                           patches_filter=args.patches_filter)
-    validation_dataset = MMWHSDataset(folder_path=args.val_folder_path, patch_size=args.patch_size,
-                                      is_validation_dataset=True, patches_filter=args.patches_filter,
-                                      mean=dataset.mean, std_dev=dataset.std_dev)
-    number_of_channels = dataset.x.shape[1]
-    model = UNet(in_channels=number_of_channels, num_classes=dataset.num_classes)
+    dataset = MMWHSDataset(folder_path=args.folder_path, is_validation_dataset=False,
+                           patches_filter=args.patches_filter, patch_size=args.patch_size)
+    validation_dataset = MMWHSDataset(folder_path=args.val_folder_path, is_validation_dataset=True,
+                                      patches_filter=args.patches_filter, mean=dataset.mean, std_dev=dataset.std_dev,
+                                      patch_size=args.patch_size)
+
+    # SET UP WEIGHTS & BIASES
     wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
     wandb.init(
         entity="marco-n",
@@ -276,6 +252,15 @@ def main(args):
     )
     config = wandb.config
 
+    # CONTRASTIVE LEARNING
+    encoder = Encoder()
+    pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset, num_epochs=args.num_epochs,
+                             batch_size=args.batch_size, learning_rate=args.learning_rate, patch_size=args.patch_size)
+    encoder_weights, encoder_biases = pre_trainer.pre_train()
+
+    # SUPERVISED LEARNING
+    model = UNet(in_channels=dataset.x.shape[1], num_classes=dataset.num_classes, encoder_weights=encoder_weights,
+                 encoder_biases=encoder_biases)
     trainer = Trainer(model=model, dataset=dataset, num_epochs=config.num_epochs, batch_size=config.batch_size,
                       learning_rate=config.learning_rate, validation_dataset=validation_dataset,
                       validation_interval=config.validation_interval, training_shuffle=config.training_shuffle,
