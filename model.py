@@ -57,7 +57,7 @@ class UNet(nn.Module):
         x3 = self.pool(x2)  # 16, 32, 6, 6, 6
         x3 = self.relu(self.encoder_conv3(x3))  # 16, 64, 6, 6, 6
         x4 = self.pool(x3)  # 16, 64, 3, 3, 3
-        x4 = self.relu(self.encoder_conv3(x4))  # 16, 128, 3, 3, 3
+        x4 = self.relu(self.encoder_conv4(x4))  # 16, 128, 3, 3, 3
 
         # Expanding path: Refining features
         x5 = self.upconv1(x4)  # 16, 64, 6, 6, 6
