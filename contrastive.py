@@ -52,8 +52,8 @@ class PreTrainer:
             print(f'Epoch [{epoch + 1}/{self.num_epochs}], Loss: {loss.item():.4f}')
 
         encoder_weights = (self.encoder.encoder_conv1.weight.data, self.encoder.encoder_conv2.weight.data,
-                           self.encoder.encoder_conv3.weight.data)
+                           self.encoder.encoder_conv3.weight.data, self.encoder.encoder_conv4.weight.data)
         encoder_biases = (self.encoder.encoder_conv1.bias.data, self.encoder.encoder_conv2.bias.data,
-                          self.encoder.encoder_conv3.bias.data)
+                          self.encoder.encoder_conv3.bias.data, self.encoder.encoder_conv4.bias.data)
 
         return encoder_weights, encoder_biases

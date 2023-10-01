@@ -13,11 +13,12 @@ class UNet(nn.Module):
         self.encoder_conv1 = nn.Conv3d(in_channels=in_channels, out_channels=16, kernel_size=3, padding=1)
         self.encoder_conv2 = nn.Conv3d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
         self.encoder_conv3 = nn.Conv3d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
+        self.encoder_conv4 = nn.Conv3d(in_channels=64, out_channels=128, kernel_size=3, padding=1)
         self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
 
         if encoder_weights is not None and encoder_biases is not None:
-            encoder_conv1_weights, encoder_conv2_weights, encoder_conv3_weights = encoder_weights
-            encoder_conv1_biases, encoder_conv2_biases, encoder_conv3_biases = encoder_biases
+            encoder_conv1_weights, encoder_conv2_weights, encoder_conv3_weights, encoder_conv4_weights = encoder_weights
+            encoder_conv1_biases, encoder_conv2_biases, encoder_conv3_biases, encoder_conv4_biases = encoder_biases
 
             self.encoder_conv1.weight = nn.Parameter(encoder_conv1_weights)
             self.encoder_conv1.bias = nn.Parameter(encoder_conv1_biases)
@@ -25,13 +26,17 @@ class UNet(nn.Module):
             self.encoder_conv2.bias = nn.Parameter(encoder_conv2_biases)
             self.encoder_conv3.weight = nn.Parameter(encoder_conv3_weights)
             self.encoder_conv3.bias = nn.Parameter(encoder_conv3_biases)
+            self.encoder_conv4.weight = nn.Parameter(encoder_conv4_weights)
+            self.encoder_conv4.bias = nn.Parameter(encoder_conv4_biases)
 
         # Expanding path: Decreasing features, increasing spatial dimensions
-        self.upconv1 = nn.ConvTranspose3d(in_channels=64, out_channels=32, kernel_size=2, stride=2)
-        self.upconv2 = nn.ConvTranspose3d(in_channels=32, out_channels=16, kernel_size=2, stride=2)
-        self.decoder_conv1 = nn.Conv3d(in_channels=64, out_channels=32, kernel_size=3, padding=1)
-        self.decoder_conv2 = nn.Conv3d(in_channels=32, out_channels=16, kernel_size=3, padding=1)
-        self.decoder_conv3 = nn.Conv3d(in_channels=16, out_channels=num_classes, kernel_size=1)
+        self.upconv1 = nn.ConvTranspose3d(in_channels=128, out_channels=64, kernel_size=2, stride=2)
+        self.upconv2 = nn.ConvTranspose3d(in_channels=64, out_channels=32, kernel_size=2, stride=2)
+        self.upconv3 = nn.ConvTranspose3d(in_channels=32, out_channels=16, kernel_size=2, stride=2)
+        self.decoder_conv1 = nn.Conv3d(in_channels=128, out_channels=64, kernel_size=3, padding=1)
+        self.decoder_conv2 = nn.Conv3d(in_channels=64, out_channels=32, kernel_size=3, padding=1)
+        self.decoder_conv3 = nn.Conv3d(in_channels=32, out_channels=16, kernel_size=3, padding=1)
+        self.decoder_conv4 = nn.Conv3d(in_channels=16, out_channels=num_classes, kernel_size=1)
 
         self.relu = nn.ReLU()
 
@@ -51,15 +56,20 @@ class UNet(nn.Module):
         x2 = self.relu(self.encoder_conv2(x2))  # 16, 32, 12, 12, 12
         x3 = self.pool(x2)  # 16, 32, 6, 6, 6
         x3 = self.relu(self.encoder_conv3(x3))  # 16, 64, 6, 6, 6
+        x4 = self.pool(x3)  # 16, 64, 3, 3, 3
+        x4 = self.relu(self.encoder_conv3(x4))  # 16, 128, 3, 3, 3
 
         # Expanding path: Refining features
-        x4 = self.upconv1(x3)  # 16, 32, 12, 12, 12
-        x4 = torch.cat((x2, x4), dim=1)  # 16, 64, 12, 12, 12
-        x4 = self.relu(self.decoder_conv1(x4))  # 16, 32, 12, 12, 12
-        x5 = self.upconv2(x4)  # 16, 16, 24, 24, 24
-        x5 = torch.cat((x1, x5), dim=1)  # 16, 32, 24, 24, 24
-        x5 = self.relu(self.decoder_conv2(x5))  # 16, 16, 24, 24, 24
-        output = self.relu(self.decoder_conv3(x5))  # 16, 8, 24, 24, 24
+        x5 = self.upconv1(x4)  # 16, 64, 6, 6, 6
+        x5 = torch.cat((x3, x5), dim=1)  # 16, 128, 6, 6, 6
+        x5 = self.relu(self.decoder_conv1())  # 16, 64, 6, 6, 6
+        x6 = self.upconv2(x3)  # 16, 32, 12, 12, 12
+        x6 = torch.cat((x2, x6), dim=1)  # 16, 64, 12, 12, 12
+        x6 = self.relu(self.decoder_conv2(x6))  # 16, 32, 12, 12, 12
+        x7 = self.upconv3(x6)  # 16, 16, 24, 24, 24
+        x7 = torch.cat((x1, x7), dim=1)  # 16, 32, 24, 24, 24
+        x7 = self.relu(self.decoder_conv3(x7))  # 16, 16, 24, 24, 24
+        output = self.relu(self.decoder_conv4(x7))  # 16, 8, 24, 24, 24
 
         return output
 
@@ -70,6 +80,7 @@ class Encoder(nn.Module):
         self.encoder_conv1 = nn.Conv3d(in_channels=in_channels, out_channels=16, kernel_size=3, padding=1)
         self.encoder_conv2 = nn.Conv3d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
         self.encoder_conv3 = nn.Conv3d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
+        self.encoder_conv4 = nn.Conv3d(in_channels=64, out_channels=128, kernel_size=3, padding=1)
         self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
         self.relu = nn.ReLU()
 
@@ -79,4 +90,6 @@ class Encoder(nn.Module):
         x2 = self.relu(self.encoder_conv2(x2))
         x3 = self.pool(x2)
         x3 = self.relu(self.encoder_conv3(x3))
-        return x3
+        x4 = self.pool(x3)
+        x4 = self.relu(self.encoder_conv4(x4))
+        return x4
