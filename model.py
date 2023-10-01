@@ -62,8 +62,8 @@ class UNet(nn.Module):
         # Expanding path: Refining features
         x5 = self.upconv1(x4)  # 16, 64, 6, 6, 6
         x5 = torch.cat((x3, x5), dim=1)  # 16, 128, 6, 6, 6
-        x5 = self.relu(self.decoder_conv1())  # 16, 64, 6, 6, 6
-        x6 = self.upconv2(x3)  # 16, 32, 12, 12, 12
+        x5 = self.relu(self.decoder_conv1(x5))  # 16, 64, 6, 6, 6
+        x6 = self.upconv2(x5)  # 16, 32, 12, 12, 12
         x6 = torch.cat((x2, x6), dim=1)  # 16, 64, 12, 12, 12
         x6 = self.relu(self.decoder_conv2(x6))  # 16, 32, 12, 12, 12
         x7 = self.upconv3(x6)  # 16, 16, 24, 24, 24
