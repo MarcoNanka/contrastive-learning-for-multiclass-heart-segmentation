@@ -198,11 +198,11 @@ class Trainer:
 
 def main(args):
     # LOAD DATASETS
-    print("data loading for contrastive begins")
-    contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.contrastive_folder_path, patch_size=args.patch_size,
-                                                  patches_filter=args.patches_filter)
-    print("data loading for contrastive ends")
-    print(f"contrastive_dataset.original_image_data.shape: {contrastive_dataset.original_image_data.shape}")
+    # print("data loading for contrastive begins")
+    # contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.contrastive_folder_path, patch_size=args.patch_size,
+    #                                               patches_filter=args.patches_filter)
+    # print("data loading for contrastive ends")
+    # print(f"contrastive_dataset.original_image_data.shape: {contrastive_dataset.original_image_data.shape}")
     dataset = MMWHSDataset(folder_path=args.folder_path, is_validation_dataset=False,
                            patches_filter=args.patches_filter, patch_size=args.patch_size)
     validation_dataset = MMWHSDataset(folder_path=args.val_folder_path, is_validation_dataset=True,
@@ -228,15 +228,16 @@ def main(args):
     )
     config = wandb.config
 
-    # CONTRASTIVE LEARNING
-    encoder = Encoder()
-    pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset, num_epochs=args.num_epochs,
-                             batch_size=args.batch_size, learning_rate=args.learning_rate, patch_size=args.patch_size)
-    encoder_weights, encoder_biases = pre_trainer.pre_train()
+    # # CONTRASTIVE LEARNING
+    # encoder = Encoder()
+    # pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset, num_epochs=args.num_epochs,
+    #                          batch_size=args.batch_size, learning_rate=args.learning_rate, patch_size=args.patch_size)
+    # encoder_weights, encoder_biases = pre_trainer.pre_train()
 
     # SUPERVISED LEARNING
-    model = UNet(in_channels=dataset.x.shape[1], num_classes=dataset.num_classes, encoder_weights=encoder_weights,
-                 encoder_biases=encoder_biases)
+    # model = UNet(in_channels=dataset.x.shape[1], num_classes=dataset.num_classes, encoder_weights=encoder_weights,
+    #              encoder_biases=encoder_biases)
+    model = UNet(in_channels=dataset.x.shape[1], num_classes=dataset.num_classes)
     trainer = Trainer(model=model, dataset=dataset, num_epochs=config.num_epochs, batch_size=config.batch_size,
                       learning_rate=config.learning_rate, validation_dataset=validation_dataset,
                       validation_interval=config.validation_interval, training_shuffle=config.training_shuffle,
