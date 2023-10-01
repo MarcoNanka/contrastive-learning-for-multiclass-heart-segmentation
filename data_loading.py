@@ -15,12 +15,6 @@ class DataProcessor:
     def preprocess_label_data(raw_data: np.ndarray) -> Tuple[np.ndarray, int, np.ndarray]:
         """
         Prepare the label data for training.
-
-        Args:
-            raw_data (np.ndarray): The raw label data.
-
-        Returns:
-            np.ndarray: The prepared label data.
         """
         label_values = np.sort(np.unique(raw_data))
         for ind, val in enumerate(label_values):
@@ -35,16 +29,6 @@ class DataProcessor:
             Union[Tuple[np.ndarray, float, float], list]:
         """
         Normalize the given raw data using z-score normalization.
-
-        Args:
-            raw_data (np.ndarray): The raw input data.
-            is_validation_dataset (bool)
-            mean (float)
-            std_dev (float)
-            is_contrastive_dataset (bool)
-
-        Returns:
-            np.ndarray: The normalized data.
         """
         if is_contrastive_dataset:
             buf_raw_data = np.concatenate(raw_data, axis=0)
@@ -69,14 +53,6 @@ class DataProcessor:
                                         original_label_data: np.ndarray) -> np.ndarray:
         """
         Reconstruct the original label data from extracted label patches of the validation dataset.
-
-        Args:
-            label_patches (np.ndarray): An array of extracted label patches for the validation dataset.
-            patch_size (tuple)
-            original_label_data (np.ndarray)
-
-        Returns:
-            np.ndarray: The reconstructed original label data.
         """
         original_shape = original_label_data.shape
         dim_x, dim_y, dim_z = original_shape
@@ -96,25 +72,12 @@ class DataProcessor:
 
         return label_data
 
-
     @staticmethod
     def extract_patches(image_data: np.ndarray, label_data: np.ndarray, patch_size: Tuple[int, int, int],
                         is_validation_dataset: bool, patches_filter: int, is_contrastive_dataset: bool) -> \
             Tuple[np.ndarray, np.ndarray]:
         """
         Extract patches from the given image data.
-
-        Args:
-            image_data (np.ndarray): The input image data, dimensions: (width, height, depth).
-            label_data (np.ndarray): The input label data.
-            patch_size (tuple)
-            is_validation_dataset (bool)
-            patches_filter (int)
-            is_contrastive_dataset (bool)
-
-        Returns:
-            np.ndarray: An array of extracted image patches.
-            np.ndarray: An array of extracted label patches.
         """
         image_patches = []
         label_patches = []
@@ -155,17 +118,6 @@ class DataProcessor:
             tuple[ndarray, ndarray, ndarray, ndarray]:
         """
         Create the training data array from the given list of paths.
-
-        Args:
-            path_list (list): The list of file paths.
-            is_validation_dataset (bool)
-            patch_size (tuple)
-            patches_filter (int)
-            is_contrastive_dataset (bool)
-
-        Returns:
-            np.ndarray: The patched image data.
-            np.ndarray: The patched label data.
         """
         patches_images = []
         patches_labels = []
@@ -201,16 +153,6 @@ class DataProcessor:
             Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Load the training data from the file system.
-
-        Args:
-            folder_path (str)
-            is_validation_dataset (bool)
-            patch_size (tuple)
-            patches_filter (int)
-            is_contrastive_dataset (bool)
-
-        Returns:
-            tuple: The input and target training data.
         """
         image_path_names = glob.glob(os.path.join(folder_path, "*image.nii*"))
         if not image_path_names:
@@ -233,14 +175,6 @@ class MMWHSDataset(Dataset):
                  std_dev: Optional[float] = None) -> None:
         """
         Initialize the MMWHSDataset for supervised learning.
-
-        Args:
-            folder_path (str): The path to the folder containing the dataset.
-            patch_size (tuple): The size of the patches to extract from the data.
-            is_validation_dataset (bool): True if this is a validation dataset, False for training.
-            patches_filter (int): The filter value for patches.
-            mean (float, optional): The mean value for normalization (default: None).
-            std_dev (float, optional): The standard deviation value for normalization (default: None).
         """
         self.folder_path = folder_path
         self.patch_size = patch_size
@@ -254,30 +188,18 @@ class MMWHSDataset(Dataset):
     def __len__(self) -> int:
         """
         Get the number of samples in the dataset.
-
-        Returns:
-            int: The number of samples.
         """
         return len(self.x)
 
     def __getitem__(self, idx: int) -> Tuple[np.ndarray, np.ndarray]:
         """
        Get a specific sample from the dataset.
-
-       Args:
-           idx (int): The index of the sample.
-
-       Returns:
-           tuple: The input and target data for the sample.
        """
         return self.x[idx], self.y[idx]
 
     def load_data(self) -> Tuple[torch.Tensor, torch.Tensor, int, np.ndarray, np.ndarray, np.ndarray, float, float]:
         """
         Load and preprocess the dataset.
-
-        Returns:
-            tuple: The preprocessed input and target data tensors.
         """
         img_data, label_data, original_image_data, original_label_data = DataProcessor. \
             get_training_data_from_system(folder_path=self.folder_path,
@@ -299,11 +221,6 @@ class MMWHSContrastiveDataset(Dataset):
     def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], patches_filter: int):
         """
             Initialize the MMWHSDataset for contrastive learning.
-
-            Args:
-                folder_path (str): The path to the folder containing the dataset.
-                patch_size (tuple): The size of the patches to extract from the data.
-                patches_filter (int): The filter value for patches.
             """
         self.folder_path = folder_path
         self.patch_size = patch_size
@@ -321,21 +238,12 @@ class MMWHSContrastiveDataset(Dataset):
     def __len__(self):
         """
         Get the number of samples in the dataset.
-
-        Returns:
-            int: The number of samples.
         """
         return len(self.x)
 
     def __getitem__(self, idx):
         """
        Get a specific sample from the dataset.
-
-       Args:
-           idx (int): The index of the sample.
-
-       Returns:
-           tuple: The input and target data for the sample.
        """
         sample = self.x[idx]
         positive_pair = self.transform(sample)
@@ -345,9 +253,6 @@ class MMWHSContrastiveDataset(Dataset):
     def load_data(self):
         """
         Load and preprocess the dataset.
-
-        Returns:
-            tuple: The preprocessed input and target data tensors.
         """
         img_data, _, original_image_data, _ = DataProcessor. \
             get_training_data_from_system(folder_path=self.folder_path,

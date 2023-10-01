@@ -6,10 +6,6 @@ class UNet(nn.Module):
     def __init__(self, in_channels=1, num_classes=8, encoder_weights: tuple = None, encoder_biases: tuple = None):
         """
         U-Net model for semantic segmentation.
-
-        Args:
-            in_channels (int): Number of input channels.
-            num_classes (int): Number of output classes.
         """
         super(UNet, self).__init__()
 
@@ -39,7 +35,7 @@ class UNet(nn.Module):
 
         self.relu = nn.ReLU()
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
         """
        Forward pass of the U-Net model.
 

@@ -20,19 +20,6 @@ os.environ['WANDB_TEMP'] = "$HOME/wandb_tmp"
 class Trainer:
     def __init__(self, model, dataset, num_epochs, batch_size, learning_rate, validation_dataset,
                  validation_interval, training_shuffle, patch_size):
-        """
-        Trainer class for training a model.
-
-        Args:
-            model (torch.nn.Module)
-            dataset (torch.utils.data.Dataset)
-            num_epochs (int)
-            batch_size (int)
-            learning_rate (float)
-            validation_dataset (torch.utils.data.Dataset)
-            validation_interval (int)
-            patch_size (tuple)
-        """
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = model
         self.dataset = dataset
@@ -47,12 +34,6 @@ class Trainer:
     def evaluate_validation(self) -> Tuple[np.ndarray, float, np.ndarray,
                                            np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
                                            np.ndarray, np.ndarray]:
-        """
-        Evaluate the model on the validation dataset.
-
-        Returns:
-            tuple: Validation loss, validation accuracy, validation precision, and validation recall.
-        """
         self.model.eval()
 
         val_dataloader = DataLoader(dataset=self.validation_dataset, batch_size=self.batch_size, shuffle=False)
@@ -113,11 +94,6 @@ class Trainer:
             accuracy, precision, recall, dice_score, prediction_mask
 
     def train(self):
-        """
-        Trains the model using the provided dataset.
-
-        Prints the loss and validation performance at the end of each epoch.
-        """
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.learning_rate)
         self.model.to(device=self.device, dtype=torch.float)
