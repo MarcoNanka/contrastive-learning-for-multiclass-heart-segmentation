@@ -213,7 +213,7 @@ class MMWHSDataset(Dataset):
                                                                        is_validation_dataset, mean=self.mean,
                                                                        std_dev=self.std_dev)
         label_data, num_classes, label_values = DataProcessor.preprocess_label_data(raw_data=label_data)
-        print(num_classes, label_values)
+        print(f"LOAD DATA: {num_classes, label_values}")
         return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes, label_values, \
             original_image_data, original_label_data, mean, std_dev
 
