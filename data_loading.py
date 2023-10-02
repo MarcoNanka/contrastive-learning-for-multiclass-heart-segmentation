@@ -16,6 +16,7 @@ class DataProcessor:
         """
         Prepare the label data for training.
         """
+        print(np.unique(raw_data, return_counts=True))
         label_values = np.array([0., 205., 420., 500., 550., 600., 820., 850.])
         print(f"PREPROCESS LABEL VALUES: {label_values}")
         for ind, val in enumerate(label_values):
