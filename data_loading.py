@@ -110,6 +110,8 @@ class DataProcessor:
                         image_patches.append(img_patch)
                         label_patches.append(label_patch)
 
+        unique, counts = np.unique(np.array(label_patches), return_counts=True)
+        print(f"COUNTER LABELS: {unique, counts}")
         return np.array(image_patches), np.array(label_patches)
 
     @staticmethod
