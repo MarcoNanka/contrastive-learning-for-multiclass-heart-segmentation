@@ -42,34 +42,34 @@ class UNet(nn.Module):
 
     def forward(self, x: torch.Tensor):
         """
-       Forward pass of the U-Net model.
+       Forward pass of the U-Net model. Comments are based on example values: 96^3 patch size, 16 batch size
 
        Args:
-           x (torch.Tensor): Input tensor of shape (batch_size, in_channels, depth, height, width).
+           x (torch.Tensor): Input tensor of shape (batch_size, in_channels, height, width, depth).
 
        Returns:
-           torch.Tensor: Output tensor of shape (batch_size, num_classes, depth, height, width).
+           torch.Tensor: Output tensor of shape (batch_size, num_classes, height, width, depth).
        """
         # Contracting path: Finding High-level patterns
-        x1 = self.relu(self.encoder_conv1(x))  # 16,16,24,24,24
-        x2 = self.pool(x1)  # 16,16,12,12,12
-        x2 = self.relu(self.encoder_conv2(x2))  # 16, 32, 12, 12, 12
-        x3 = self.pool(x2)  # 16, 32, 6, 6, 6
-        x3 = self.relu(self.encoder_conv3(x3))  # 16, 64, 6, 6, 6
-        x4 = self.pool(x3)  # 16, 64, 3, 3, 3
-        x4 = self.relu(self.encoder_conv4(x4))  # 16, 128, 3, 3, 3
+        x1 = self.relu(self.encoder_conv1(x))  # 16, 16, 96, 96, 96
+        x2 = self.pool(x1)  # 16, 16, 48, 48, 48
+        x2 = self.relu(self.encoder_conv2(x2))  # 16, 32, 48, 48, 48
+        x3 = self.pool(x2)  # 16, 32, 24, 24, 24
+        x3 = self.relu(self.encoder_conv3(x3))  # 16, 64, 24, 24, 24
+        x4 = self.pool(x3)  # 16, 64, 12, 12, 12
+        x4 = self.relu(self.encoder_conv4(x4))  # 16, 128, 12, 12, 12
 
         # Expanding path: Refining features
-        x5 = self.upconv1(x4)  # 16, 64, 6, 6, 6
-        x5 = torch.cat((x3, x5), dim=1)  # 16, 128, 6, 6, 6
-        x5 = self.relu(self.decoder_conv1(x5))  # 16, 64, 6, 6, 6
-        x6 = self.upconv2(x5)  # 16, 32, 12, 12, 12
-        x6 = torch.cat((x2, x6), dim=1)  # 16, 64, 12, 12, 12
-        x6 = self.relu(self.decoder_conv2(x6))  # 16, 32, 12, 12, 12
-        x7 = self.upconv3(x6)  # 16, 16, 24, 24, 24
-        x7 = torch.cat((x1, x7), dim=1)  # 16, 32, 24, 24, 24
-        x7 = self.relu(self.decoder_conv3(x7))  # 16, 16, 24, 24, 24
-        output = self.relu(self.decoder_conv4(x7))  # 16, 8, 24, 24, 24
+        x5 = self.upconv1(x4)  # 16, 64, 24, 24, 24
+        x5 = torch.cat((x3, x5), dim=1)  # 16, 128, 24, 24, 24
+        x5 = self.relu(self.decoder_conv1(x5))  # 16, 64, 24, 24, 24
+        x6 = self.upconv2(x5)  # 16, 32, 48, 48, 48
+        x6 = torch.cat((x2, x6), dim=1)  # 16, 64, 48, 48, 48
+        x6 = self.relu(self.decoder_conv2(x6))  # 16, 32, 48, 48, 48
+        x7 = self.upconv3(x6)  # 16, 16, 96, 96, 96
+        x7 = torch.cat((x1, x7), dim=1)  # 16, 32, 96, 96, 96
+        x7 = self.relu(self.decoder_conv3(x7))  # 16, 16, 96, 96, 96
+        output = self.relu(self.decoder_conv4(x7))  # 16, 8, 96, 96, 96
 
         return output
 
