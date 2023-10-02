@@ -17,6 +17,7 @@ class DataProcessor:
         Prepare the label data for training.
         """
         label_values = np.sort(np.unique(raw_data))
+        print(f"PREPROCESS LABEL VALUES: {label_values}")
         for ind, val in enumerate(label_values):
             raw_data[raw_data == val] = ind
 
