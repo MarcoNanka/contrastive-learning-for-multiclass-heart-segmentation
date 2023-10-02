@@ -129,9 +129,6 @@ class DataProcessor:
                 original_label_data = label_data
             else:
                 label_data = original_label_data = np.empty((0, 0, 0))
-            if not is_validation_dataset:
-                unique, counts = np.unique(label_data, return_counts=True)
-                print(f"{unique, counts, path}")
             image_data, label_data = DataProcessor.extract_patches(image_data=image_data, label_data=label_data,
                                                                    patch_size=patch_size,
                                                                    is_validation_dataset=is_validation_dataset,
