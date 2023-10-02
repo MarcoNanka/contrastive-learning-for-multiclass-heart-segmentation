@@ -16,9 +16,7 @@ class DataProcessor:
         """
         Prepare the label data for training.
         """
-        print(np.unique(raw_data, return_counts=True))
         label_values = np.array([0., 205., 420., 500., 550., 600., 820., 850.])
-        print(f"PREPROCESS LABEL VALUES: {label_values}")
         for ind, val in enumerate(label_values):
             raw_data[raw_data == val] = ind
 
@@ -131,9 +129,9 @@ class DataProcessor:
                 original_label_data = label_data
             else:
                 label_data = original_label_data = np.empty((0, 0, 0))
-            if is_validation_dataset:
+            if not is_validation_dataset:
                 unique, counts = np.unique(label_data, return_counts=True)
-                print(f"COUNTER LABELS (without background padding): {unique, counts}")
+                print(f"{unique, counts, path}")
             image_data, label_data = DataProcessor.extract_patches(image_data=image_data, label_data=label_data,
                                                                    patch_size=patch_size,
                                                                    is_validation_dataset=is_validation_dataset,
