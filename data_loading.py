@@ -16,7 +16,7 @@ class DataProcessor:
         """
         Prepare the label data for training.
         """
-        label_values = np.sort(np.unique(raw_data))
+        label_values = np.array([0., 205., 420., 500., 550., 600., 820., 850.])
         print(f"PREPROCESS LABEL VALUES: {label_values}")
         for ind, val in enumerate(label_values):
             raw_data[raw_data == val] = ind
@@ -213,7 +213,6 @@ class MMWHSDataset(Dataset):
                                                                        is_validation_dataset, mean=self.mean,
                                                                        std_dev=self.std_dev)
         label_data, num_classes, label_values = DataProcessor.preprocess_label_data(raw_data=label_data)
-        print(f"LOAD DATA: {num_classes, label_values}")
         return torch.from_numpy(img_data), torch.from_numpy(label_data), num_classes, label_values, \
             original_image_data, original_label_data, mean, std_dev
 
