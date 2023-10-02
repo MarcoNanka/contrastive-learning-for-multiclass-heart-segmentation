@@ -110,8 +110,6 @@ class DataProcessor:
                         image_patches.append(img_patch)
                         label_patches.append(label_patch)
 
-        unique, counts = np.unique(np.array(label_patches), return_counts=True)
-        print(f"COUNTER LABELS: {unique, counts}")
         return np.array(image_patches), np.array(label_patches)
 
     @staticmethod
@@ -131,6 +129,9 @@ class DataProcessor:
                 original_label_data = label_data
             else:
                 label_data = original_label_data = np.empty((0, 0, 0))
+            if is_validation_dataset:
+                unique, counts = np.unique(label_data, return_counts=True)
+                print(f"COUNTER LABELS (without background padding): {unique, counts}")
             image_data, label_data = DataProcessor.extract_patches(image_data=image_data, label_data=label_data,
                                                                    patch_size=patch_size,
                                                                    is_validation_dataset=is_validation_dataset,
