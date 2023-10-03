@@ -94,7 +94,15 @@ class Trainer:
             accuracy, precision, recall, dice_score, prediction_mask
 
     def train(self):
-        criterion = nn.CrossEntropyLoss()
+        _, class_counts = np.unique(self.dataset.y, return_counts=True)
+        total_samples = np.sum(class_counts)
+        class_weights = total_samples / (class_counts + 1)
+        class_weights /= np.sum(class_weights)
+        class_weights_tensor = torch.tensor(class_weights, dtype=torch.float32).to(self.device)
+        criterion = nn.CrossEntropyLoss(weight=class_weights_tensor)
+        print(f"COUNTS: {class_counts}"
+              f"TOTAL SAMPLES: {total_samples}"
+              f"CLASS WEIGHTS: {class_weights}")
         optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.learning_rate)
         self.model.to(device=self.device, dtype=torch.float)
         # Calculate the number of training patches to use for this epoch (80% of the total)
