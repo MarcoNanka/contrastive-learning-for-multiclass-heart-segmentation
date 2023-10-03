@@ -31,14 +31,14 @@ class Trainer:
         self.training_shuffle = training_shuffle
         self.patch_size = patch_size
 
-    def evaluate_validation(self) -> Tuple[np.ndarray, float, np.ndarray,
-                                           np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-                                           np.ndarray, np.ndarray]:
+    def evaluate_validation(self, weights: torch.Tensor) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray, np.ndarray,
+                                                                  np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+                                                                  np.ndarray, np.ndarray]:
         self.model.eval()
 
         val_dataloader = DataLoader(dataset=self.validation_dataset, batch_size=self.batch_size, shuffle=False)
 
-        val_criterion = nn.CrossEntropyLoss()
+        val_criterion = nn.CrossEntropyLoss(weight=weights)
         total_loss = 0.0
         num_classes = self.dataset.num_classes
 
@@ -94,14 +94,15 @@ class Trainer:
             accuracy, precision, recall, dice_score, prediction_mask
 
     def train(self):
-        _, class_counts = np.unique(self.dataset.y, return_counts=True)
+        unique, class_counts = np.unique(self.dataset.y, return_counts=True)
         total_samples = np.sum(class_counts)
         class_weights = total_samples / (class_counts + 1)
         class_weights /= np.sum(class_weights)
         class_weights_tensor = torch.tensor(class_weights, dtype=torch.float32).to(self.device)
         criterion = nn.CrossEntropyLoss(weight=class_weights_tensor)
-        print(f"COUNTS: {class_counts}"
-              f"TOTAL SAMPLES: {total_samples}"
+        print(f"COUNTS: {class_counts}\n"
+              f"UNIQUE: {unique}\n"
+              f"TOTAL SAMPLES: {total_samples}\n"
               f"CLASS WEIGHTS: {class_weights}")
         optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.learning_rate)
         self.model.to(device=self.device, dtype=torch.float)
@@ -146,7 +147,8 @@ class Trainer:
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
                 tp, validation_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
-                    accuracy, precision, recall, dice_score, prediction_mask = self.evaluate_validation()
+                    accuracy, precision, recall, dice_score, prediction_mask = \
+                    self.evaluate_validation(weights=class_weights_tensor)
                 wandb.log({
                     "Epoch": epoch,
                     "Validation Loss": validation_loss,
