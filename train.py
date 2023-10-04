@@ -98,7 +98,8 @@ class Trainer:
         class_weights = total_samples / (class_counts + 1)
         class_weights /= np.sum(class_weights)
         class_weights_tensor = torch.tensor(class_weights, dtype=torch.float32).to(self.device)
-        criterion = nn.CrossEntropyLoss(weight=class_weights_tensor)
+        # criterion = nn.CrossEntropyLoss(weight=class_weights_tensor)
+        criterion = nn.CrossEntropyLoss()
         print(f"COUNTS: {class_counts}\n"
               f"UNIQUE: {unique}\n"
               f"TOTAL SAMPLES: {total_samples}\n"
