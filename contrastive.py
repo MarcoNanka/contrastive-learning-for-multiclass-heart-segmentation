@@ -29,10 +29,10 @@ class ContrastiveLoss(nn.Module):
         # Extract diagonal elements
         diag_elements = torch.diagonal(similarity_matrix, dim1=-2, dim2=-1).unsqueeze(1)
 
-        # Extract off-diagonal elements
+        # Extract off-diagonal elements excluding diagonal
         off_diag_elements = similarity_matrix.clone()
         off_diag_elements[torch.eye(off_diag_elements.size(0)).bool()] = float('-inf')
-        off_diag_elements = off_diag_elements.view(-1, 1)
+        off_diag_elements = off_diag_elements.view(similarity_matrix.size(0), -1)
 
         logits = torch.cat([diag_elements, off_diag_elements], dim=1)
         labels = torch.zeros(logits.size(0), dtype=torch.long).to(logits.device)
