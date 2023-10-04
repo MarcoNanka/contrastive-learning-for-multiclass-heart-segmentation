@@ -2,6 +2,10 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 import torch.optim as optim
+import wandb
+from model import Encoder
+from data_loading import MMWHSContrastiveDataset
+from config import parse_args
 
 
 class ContrastiveLoss(nn.Module):
@@ -59,3 +63,38 @@ class PreTrainer:
                           self.encoder.encoder_conv5.bias.data)
 
         return encoder_weights, encoder_biases
+
+
+def main(args):
+    # DATA LOADING
+    print("data loading for contrastive begins")
+    contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.contrastive_folder_path, patch_size=args.patch_size,
+                                                  patches_filter=args.patches_filter)
+    print("data loading for contrastive ends")
+    print(f"contrastive_dataset.original_image_data.shape: {contrastive_dataset.original_image_data.shape}")
+
+    # SET UP WEIGHTS & BIASES
+    wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
+    wandb.init(
+        entity="marco-n",
+        project="local-contrastive-learning",
+        config={
+            "num_epochs": args.num_epochs,
+            "batch_size": args.batch_size,
+            "learning_rate": args.learning_rate,
+            "patch_size": args.patch_size,
+            "patches_filter": args.patches_filter
+        }
+    )
+
+    # CONTRASTIVE LEARNING
+    encoder = Encoder()
+    pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset, num_epochs=args.num_epochs,
+                             batch_size=args.batch_size, learning_rate=args.learning_rate, patch_size=args.patch_size)
+    encoder_weights, encoder_biases = pre_trainer.pre_train()
+    torch.save({'encoder_weights': encoder_weights, 'encoder_biases': encoder_biases}, 'pretrained_encoder.pth')
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)

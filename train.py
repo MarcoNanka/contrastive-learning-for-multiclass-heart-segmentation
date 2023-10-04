@@ -1,15 +1,14 @@
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from model import UNet, Encoder
-from data_loading import MMWHSDataset, DataProcessor, MMWHSContrastiveDataset
+from model import UNet
+from data_loading import MMWHSDataset, DataProcessor
 import numpy as np
 from typing import Tuple
 from config import parse_args
 import wandb
 import os
 import random
-from contrastive import PreTrainer
 
 os.environ['WANDB_CACHE_DIR'] = "$HOME/wandb_tmp"
 os.environ['WANDB_CONFIG_DIR'] = "$HOME/wandb_tmp"
@@ -186,11 +185,6 @@ class Trainer:
 
 def main(args):
     # LOAD DATASETS
-    # print("data loading for contrastive begins")
-    # contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.contrastive_folder_path, patch_size=args.patch_size,
-    #                                               patches_filter=args.patches_filter)
-    # print("data loading for contrastive ends")
-    # print(f"contrastive_dataset.original_image_data.shape: {contrastive_dataset.original_image_data.shape}")
     dataset = MMWHSDataset(folder_path=args.folder_path, is_validation_dataset=False,
                            patches_filter=args.patches_filter, patch_size=args.patch_size)
     validation_dataset = MMWHSDataset(folder_path=args.val_folder_path, is_validation_dataset=True,
@@ -216,16 +210,16 @@ def main(args):
     )
     config = wandb.config
 
-    # # CONTRASTIVE LEARNING
-    # encoder = Encoder()
-    # pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset, num_epochs=args.num_epochs,
-    #                          batch_size=args.batch_size, learning_rate=args.learning_rate, patch_size=args.patch_size)
-    # encoder_weights, encoder_biases = pre_trainer.pre_train()
-
     # SUPERVISED LEARNING
-    # model = UNet(in_channels=dataset.x.shape[1], num_classes=dataset.num_classes, encoder_weights=encoder_weights,
-    #              encoder_biases=encoder_biases)
-    model = UNet(in_channels=dataset.x.shape[1], num_classes=dataset.num_classes)
+    if os.path.isfile('pretrained_encoder.pth'):
+        pretrained_encoder = torch.load('pretrained_encoder.pth')
+        encoder_weights, encoder_biases = pretrained_encoder['encoder_weights'], pretrained_encoder['encoder_biases']
+        print("Pre-trained encoder is LOADED")
+    else:
+        encoder_weights, encoder_biases = None, None
+        print("Pre-trained encoder does NOT EXIST")
+    model = UNet(in_channels=dataset.x.shape[1], num_classes=dataset.num_classes, encoder_weights=encoder_weights,
+                 encoder_biases=encoder_biases)
     trainer = Trainer(model=model, dataset=dataset, num_epochs=config.num_epochs, batch_size=config.batch_size,
                       learning_rate=config.learning_rate, validation_dataset=validation_dataset,
                       validation_interval=config.validation_interval, training_shuffle=config.training_shuffle,
