@@ -139,7 +139,7 @@ class Trainer:
                 loss.backward()
                 optimizer.step()
                 wandb.log({
-                    "Epoch": epoch,
+                    "Epoch": epoch + 1,
                     "Training Loss": loss.item()
                 })
 
@@ -150,7 +150,7 @@ class Trainer:
                     accuracy, precision, recall, dice_score, prediction_mask = \
                     self.evaluate_validation(weights=class_weights_tensor)
                 wandb.log({
-                    "Epoch": epoch,
+                    "Epoch": epoch + 1,
                     "Validation Loss": validation_loss,
                     "Validation Dice": dice_score_macro,
                     "slice50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 49],

@@ -49,16 +49,23 @@ class PreTrainer:
             for batch in contrastive_dataloader:
                 # Split the batch into two augmented views and apply the model
                 view1, view2 = batch
+                print(f"FIRST {view1.shape, view2.shape}")
                 view1 = nn.functional.normalize(view1, dim=1, p=2)
                 view2 = nn.functional.normalize(view2, dim=1, p=2)
+                print(f"SECOND {view1.shape, view2.shape}")
                 output1 = self.encoder(view1)
                 output2 = self.encoder(view2)
+                print(f"THIRD {view1.shape, view2.shape}")
 
                 loss = contrastive_loss(output1, output2)
 
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+                wandb.log({
+                    "Epoch": epoch+1,
+                    "Training Loss": loss.item()
+                })
 
             print(f'Epoch [{epoch + 1}/{self.num_epochs}], Loss: {loss.item():.4f}')
 
