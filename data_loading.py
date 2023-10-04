@@ -245,9 +245,14 @@ class MMWHSContrastiveDataset(Dataset):
         """
        Get a specific sample from the dataset.
        """
-        sample = self.x[idx]
-        positive_pair = self.transform(sample)
-        negative_pair = self.transform(random.choice(self.x))
+        array_idx = random.randint(0, len(self.x) - 1)
+        positive_sample = self.x[array_idx][idx]
+        positive_pair = self.transform(positive_sample)
+        random_array_idx = random.randint(0, len(self.x) - 1)
+        while random_array_idx == array_idx:
+            random_array_idx = random.randint(0, len(self.x) - 1)
+        negative_sample = random.choice(self.x[random_array_idx])
+        negative_pair = self.transform(negative_sample)
         return positive_pair, negative_pair
 
     def load_data(self):
