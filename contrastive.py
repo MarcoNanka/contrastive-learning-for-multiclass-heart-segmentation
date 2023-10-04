@@ -6,6 +6,13 @@ import wandb
 from model import Encoder
 from data_loading import MMWHSContrastiveDataset
 from config import parse_args
+import os
+
+
+os.environ['WANDB_CACHE_DIR'] = "$HOME/wandb_tmp"
+os.environ['WANDB_CONFIG_DIR'] = "$HOME/wandb_tmp"
+os.environ['WANDB_DIR'] = "$HOME/wandb_tmp"
+os.environ['WANDB_TEMP'] = "$HOME/wandb_tmp"
 
 
 class ContrastiveLoss(nn.Module):
