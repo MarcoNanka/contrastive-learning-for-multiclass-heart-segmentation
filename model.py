@@ -106,5 +106,5 @@ class Encoder(nn.Module):
         x4 = self.pool(x3)
         x4 = self.relu(self.encoder_conv4(x4))
         x5 = self.pool(x4)
-        x5 = self.relu(self.encoder_conv4(x5))
+        x5 = self.relu(self.encoder_conv5(x5))
         return x5
