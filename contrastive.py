@@ -56,16 +56,17 @@ class PreTrainer:
         optimizer = optim.Adam(self.encoder.parameters(), lr=self.learning_rate)
 
         for epoch in range(self.num_epochs):
+            i = 0
             for batch in contrastive_dataloader:
+                i += 1
                 # Split the batch into two augmented views and apply the model
                 view1, view2 = batch
-                print(f"FIRST {view1.shape, view2.shape}")
+                print(f"shape of positive/negative pair: {view1.shape, view2.shape}")
                 view1 = nn.functional.normalize(view1, dim=1, p=2)
                 view2 = nn.functional.normalize(view2, dim=1, p=2)
-                print(f"SECOND {view1.shape, view2.shape}")
                 output1 = self.encoder(view1)
                 output2 = self.encoder(view2)
-                print(f"THIRD {output1.shape, output2.shape}")
+                print(f"shape of encoder outputs: {output1.shape, output2.shape}")
 
                 loss = contrastive_loss(output1, output2)
 
@@ -77,7 +78,8 @@ class PreTrainer:
                     "Training Loss": loss.item()
                 })
 
-            print(f'Epoch [{epoch + 1}/{self.num_epochs}], Loss: {loss.item():.4f}')
+            print(f"number of batches: {i}")
+            print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.4f}')
 
         encoder_weights = (self.encoder.encoder_conv1.weight.data, self.encoder.encoder_conv2.weight.data,
                            self.encoder.encoder_conv3.weight.data, self.encoder.encoder_conv4.weight.data,
