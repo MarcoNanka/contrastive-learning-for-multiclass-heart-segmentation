@@ -57,7 +57,7 @@ class PreTrainer:
                 print(f"SECOND {view1.shape, view2.shape}")
                 output1 = self.encoder(view1)
                 output2 = self.encoder(view2)
-                print(f"THIRD {view1.shape, view2.shape}")
+                print(f"THIRD {output1.shape, output2.shape}")
 
                 loss = contrastive_loss(output1, output2)
 
