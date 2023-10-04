@@ -21,14 +21,14 @@ class ContrastiveLoss(nn.Module):
         self.temperature = temperature
 
     def forward(self, x1, x2):
-        print(f"FORTH {x1.shape, x2.shape}")
-        x1 = nn.functional.normalize(x1, dim=-1, p=2)
-        x2 = nn.functional.normalize(x2, dim=-1, p=2)
+        x1 = nn.functional.normalize(x1, dim=1, p=2)
+        x2 = nn.functional.normalize(x2, dim=1, p=2)
         print(f"FIFTH {x1.shape, x2.shape}")
-        similarity_matrix = torch.matmul(x1, x2.T) / self.temperature
-        batch_size = similarity_matrix.size(0)
-        labels = torch.arange(batch_size).to(similarity_matrix.device)
-        loss = nn.CrossEntropyLoss()(similarity_matrix, labels)
+        similarity_matrix = torch.matmul(x1.view(x1.size(0), -1, 1), x2.view(x2.size(0), 1, -1)) / self.temperature
+        diag_elements = torch.diagonal(similarity_matrix, dim1=-2, dim2=-1).unsqueeze(1)
+        logits = torch.cat([diag_elements, similarity_matrix.diagonal(offset=1, dim1=-2, dim2=-1)], dim=1)
+        labels = torch.zeros(logits.size(0), dtype=torch.long).to(logits.device)
+        loss = nn.CrossEntropyLoss()(logits, labels)
         return loss
 
 
