@@ -23,10 +23,18 @@ class ContrastiveLoss(nn.Module):
     def forward(self, x1, x2):
         x1 = nn.functional.normalize(x1, dim=1, p=2)
         x2 = nn.functional.normalize(x2, dim=1, p=2)
-        print(f"FIFTH {x1.shape, x2.shape}")
-        similarity_matrix = torch.matmul(x1.view(x1.size(0), -1, 1), x2.view(x2.size(0), 1, -1)) / self.temperature
+
+        similarity_matrix = torch.matmul(x1.view(x1.size(0), -1), x2.view(x2.size(0), -1).t()) / self.temperature
+
+        # Extract diagonal elements
         diag_elements = torch.diagonal(similarity_matrix, dim1=-2, dim2=-1).unsqueeze(1)
-        logits = torch.cat([diag_elements, similarity_matrix.diagonal(offset=1, dim1=-2, dim2=-1)], dim=1)
+
+        # Extract off-diagonal elements
+        off_diag_elements = similarity_matrix.clone()
+        off_diag_elements[torch.eye(off_diag_elements.size(0)).bool()] = float('-inf')
+        off_diag_elements = off_diag_elements.view(-1, 1)
+
+        logits = torch.cat([diag_elements, off_diag_elements], dim=1)
         labels = torch.zeros(logits.size(0), dtype=torch.long).to(logits.device)
         loss = nn.CrossEntropyLoss()(logits, labels)
         return loss
