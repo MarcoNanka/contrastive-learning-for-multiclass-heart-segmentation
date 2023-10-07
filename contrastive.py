@@ -59,9 +59,6 @@ class PreTrainer:
             i = 0
             for batch in contrastive_dataloader:
                 i += 1
-                # Split the batch into two augmented views and apply the model
-                # INTERESTING QUESTION: Why is view1.shape/view2.shape of patch size 2 now, when it was one patch
-                # in __getitem__ function? It seems like GETITEM is executed twice but why so?
                 view1, view2 = batch
                 print(f"shape of positive/negative pair: {view1.shape, view2.shape}")
                 view1 = nn.functional.normalize(view1, dim=1, p=2)
@@ -75,10 +72,10 @@ class PreTrainer:
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-                # wandb.log({
-                #     "Epoch": epoch+1,
-                #     "Training Loss": loss.item()
-                # })
+                wandb.log({
+                    "Epoch": epoch+1,
+                    "Training Loss": loss.item()
+                })
 
             print(f"number of batches: {i}")
             print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.4f}')
@@ -95,25 +92,22 @@ class PreTrainer:
 
 def main(args):
     # DATA LOADING
-    print("data loading for contrastive begins")
     contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.contrastive_folder_path, patch_size=args.patch_size,
                                                   patches_filter=args.patches_filter)
-    print("data loading for contrastive ends")
-    print(f"contrastive_dataset.original_image_data.shape: {contrastive_dataset.original_image_data.shape}")
 
     # SET UP WEIGHTS & BIASES
-    # wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
-    # wandb.init(
-    #     entity="marco-n",
-    #     project="local-contrastive-learning",
-    #     config={
-    #         "num_epochs": args.num_epochs,
-    #         "batch_size": args.batch_size,
-    #         "learning_rate": args.learning_rate,
-    #         "patch_size": args.patch_size,
-    #         "patches_filter": args.patches_filter
-    #     }
-    # )
+    wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
+    wandb.init(
+        entity="marco-n",
+        project="local-contrastive-learning",
+        config={
+            "num_epochs": args.num_epochs,
+            "batch_size": args.batch_size,
+            "learning_rate": args.learning_rate,
+            "patch_size": args.patch_size,
+            "patches_filter": args.patches_filter
+        }
+    )
 
     # CONTRASTIVE LEARNING
     encoder = Encoder()

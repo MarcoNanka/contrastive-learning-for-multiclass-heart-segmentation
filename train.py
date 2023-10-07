@@ -30,14 +30,14 @@ class Trainer:
         self.training_shuffle = training_shuffle
         self.patch_size = patch_size
 
-    def evaluate_validation(self, weights: torch.Tensor) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray, np.ndarray,
+    def evaluate_validation(self) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray, np.ndarray,
                                                                   np.ndarray, np.ndarray, np.ndarray, np.ndarray,
                                                                   np.ndarray, np.ndarray]:
         self.model.eval()
 
         val_dataloader = DataLoader(dataset=self.validation_dataset, batch_size=self.batch_size, shuffle=False)
 
-        val_criterion = nn.CrossEntropyLoss(weight=weights)
+        val_criterion = nn.CrossEntropyLoss()
         total_loss = 0.0
         num_classes = self.dataset.num_classes
 
@@ -50,9 +50,9 @@ class Trainer:
 
         with torch.no_grad():
             for val_batch_x, val_batch_y in val_dataloader:
-                val_batch_x = val_batch_x.to(device=self.device, dtype=torch.float)  # shape: batch_size, 1, patch_dims
-                val_batch_y = val_batch_y.to(device=self.device, dtype=torch.long)  # shape: batch_size, patch_dims
-                val_outputs = self.model(val_batch_x)  # shape: batch_size, num_labels, patch_dims
+                val_batch_x = val_batch_x.to(device=self.device, dtype=torch.float)
+                val_batch_y = val_batch_y.to(device=self.device, dtype=torch.long)
+                val_outputs = self.model(val_batch_x)
                 val_loss = val_criterion(input=val_outputs, target=val_batch_y)
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
@@ -85,31 +85,16 @@ class Trainer:
             undo_extract_patches_label_only(label_patches=combined_predicted_array,
                                             patch_size=self.patch_size,
                                             original_label_data=self.validation_dataset.original_label_data)
-        # reconstructed_val_labels = self.undo_extract_patches_label_only(self.validation_dataset.y.cpu().numpy())
-        # print(f"arrays are identical? {np.array_equal(reconstructed_val_labels, self.validation_dataset.
-        # original_label_data)}")
 
         return true_positives, average_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
             accuracy, precision, recall, dice_score, prediction_mask
 
     def train(self):
-        unique, class_counts = np.unique(self.dataset.y, return_counts=True)
-        total_samples = np.sum(class_counts)
-        class_weights = total_samples / (class_counts + 1)
-        class_weights /= np.sum(class_weights)
-        class_weights_tensor = torch.tensor(class_weights, dtype=torch.float32).to(self.device)
-        # criterion = nn.CrossEntropyLoss(weight=class_weights_tensor)
         criterion = nn.CrossEntropyLoss()
-        print(f"COUNTS: {class_counts}\n"
-              f"UNIQUE: {unique}\n"
-              f"TOTAL SAMPLES: {total_samples}\n"
-              f"CLASS WEIGHTS: {class_weights}")
         optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.learning_rate)
         self.model.to(device=self.device, dtype=torch.float)
-        # Calculate the number of training patches to use for this epoch (80% of the total)
         num_patches = len(self.dataset)
         num_patches_to_use = int(self.training_shuffle * num_patches)
-        # for wandb image plotting
         class_labels = {
             0: "background",
             1: "myocardium of the left ventricle",  # 205
@@ -123,17 +108,13 @@ class Trainer:
         og_labels_int, _, _ = DataProcessor.preprocess_label_data(self.validation_dataset.original_label_data)
 
         for epoch in range(self.num_epochs):
-            # Shuffle the dataset to ensure random patch selection
             indices = list(range(num_patches))
             random.shuffle(indices)
-            # Create a dataloader for this epoch with the selected patches
             selected_indices = indices[:num_patches_to_use]
             dataloader = DataLoader(dataset=self.dataset, batch_size=self.batch_size, shuffle=False,
                                     sampler=torch.utils.data.SubsetRandomSampler(selected_indices))
             for batch_x, batch_y in dataloader:
                 print(f"INSIDE DATALOADER LOOP --- batch_x.shape: {batch_x.shape}")
-                # --> It is batch_size, # channels, patch width, patch height, patch depth
-                # overall 69/87 patches (around 80%) inside one epoch
                 batch_x = batch_x.to(device=self.device, dtype=torch.float)
                 batch_y = batch_y.to(device=self.device, dtype=torch.long)
                 optimizer.zero_grad()
@@ -141,44 +122,44 @@ class Trainer:
                 loss = criterion(input=outputs, target=batch_y)
                 loss.backward()
                 optimizer.step()
-                # wandb.log({
-                #     "Epoch": epoch + 1,
-                #     "Training Loss": loss.item()
-                # })
+                wandb.log({
+                    "Epoch": epoch + 1,
+                    "Training Loss": loss.item()
+                })
 
             print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
                 tp, validation_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
                     accuracy, precision, recall, dice_score, prediction_mask = \
-                    self.evaluate_validation(weights=class_weights_tensor)
-                # wandb.log({
-                #     "Epoch": epoch + 1,
-                #     "Validation Loss": validation_loss,
-                #     "Validation Dice": dice_score_macro,
-                #     "slice50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 49],
-                #                            masks={
-                #                                     "predictions": {
-                #                                         "mask_data": prediction_mask[:, :, 49],
-                #                                         "class_labels": class_labels
-                #                                     },
-                #                                     "ground_truth": {
-                #                                         "mask_data": og_labels_int[:, :, 49],
-                #                                         "class_labels": class_labels
-                #                                     }
-                #                                 }),
-                #     "slice100": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 99],
-                #                             masks={
-                #                                     "predictions": {
-                #                                         "mask_data": prediction_mask[:, :, 99],
-                #                                         "class_labels": class_labels
-                #                                     },
-                #                                     "ground_truth": {
-                #                                         "mask_data": og_labels_int[:, :, 99],
-                #                                         "class_labels": class_labels
-                #                                     }
-                #                                 }),
-                # })
+                    self.evaluate_validation()
+                wandb.log({
+                    "Epoch": epoch + 1,
+                    "Validation Loss": validation_loss,
+                    "Validation Dice": dice_score_macro,
+                    "slice50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 49],
+                                           masks={
+                                                    "predictions": {
+                                                        "mask_data": prediction_mask[:, :, 49],
+                                                        "class_labels": class_labels
+                                                    },
+                                                    "ground_truth": {
+                                                        "mask_data": og_labels_int[:, :, 49],
+                                                        "class_labels": class_labels
+                                                    }
+                                                }),
+                    "slice100": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 99],
+                                            masks={
+                                                    "predictions": {
+                                                        "mask_data": prediction_mask[:, :, 99],
+                                                        "class_labels": class_labels
+                                                    },
+                                                    "ground_truth": {
+                                                        "mask_data": og_labels_int[:, :, 99],
+                                                        "class_labels": class_labels
+                                                    }
+                                                }),
+                })
                 print(f'Dice score macro: {dice_score_macro}')
                 print(f'Dice score by class: {dice_score}')
                 print(f'True positives: {tp}')
@@ -196,22 +177,22 @@ def main(args):
                                       patch_size=args.patch_size)
 
     # SET UP WEIGHTS & BIASES
-    # wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
-    # wandb.init(
-    #     entity="marco-n",
-    #     project="local-contrastive-learning",
-    #     config={
-    #         "num_epochs": args.num_epochs,
-    #         "batch_size": args.batch_size,
-    #         "learning_rate": args.learning_rate,
-    #         "patch_size": args.patch_size,
-    #         "validation_interval": args.validation_interval,
-    #         "training_shuffle": args.training_shuffle,
-    #         "patches_filter": args.patches_filter,
-    #         "mean": dataset.mean,
-    #         "std_dev": dataset.std_dev
-    #     }
-    # )
+    wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
+    wandb.init(
+        entity="marco-n",
+        project="local-contrastive-learning",
+        config={
+            "num_epochs": args.num_epochs,
+            "batch_size": args.batch_size,
+            "learning_rate": args.learning_rate,
+            "patch_size": args.patch_size,
+            "validation_interval": args.validation_interval,
+            "training_shuffle": args.training_shuffle,
+            "patches_filter": args.patches_filter,
+            "mean": dataset.mean,
+            "std_dev": dataset.std_dev
+        }
+    )
 
     # SUPERVISED LEARNING
     if os.path.isfile('pretrained_encoder.pth'):

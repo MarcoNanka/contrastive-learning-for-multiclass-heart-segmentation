@@ -92,7 +92,7 @@ class DataProcessor:
                         label_patch = np.empty((0, 0, 0))
                     unique, counts = np.unique(label_patch, return_counts=True)
                     counts_descending = -np.sort(-counts)
-                    if is_validation_dataset or is_contrastive_dataset or unique[0] != 0 or \
+                    if is_validation_dataset or unique[0] != 0 or \
                             (len(unique) > 1 and counts_descending[1] >= patches_filter):
                         image_patches.append(img_patch)
                         label_patches.append(label_patch)
@@ -213,7 +213,6 @@ class MMWHSContrastiveDataset(Dataset):
         self.transform = Compose([
             RandFlip(spatial_axis=0, prob=0.5),
             RandFlip(spatial_axis=1, prob=0.5),
-            RandZoom(min_zoom=0.8, max_zoom=1.2, prob=0.5),
             RandGaussianNoise(prob=0.5),
             RandGaussianSmooth(prob=0.5),
             ToTensor()
