@@ -1,0 +1,56 @@
+2023-10-05 16:51:16,363 INFO    MainThread:21273 [wandb_setup.py:_flush():76] Current SDK version is 0.15.8
+2023-10-05 16:51:16,363 INFO    MainThread:21273 [wandb_setup.py:_flush():76] Configure stats pid to 21273
+2023-10-05 16:51:16,363 INFO    MainThread:21273 [wandb_setup.py:_flush():76] Loading settings from /Users/marconanka/.config/wandb/settings
+2023-10-05 16:51:16,363 INFO    MainThread:21273 [wandb_setup.py:_flush():76] Loading settings from /Users/marconanka/BioMedia/code/contrastive-learning/wandb/settings
+2023-10-05 16:51:16,364 WARNING MainThread:21273 [wandb_setup.py:_flush():76] Unknown environment variable: WANDB_CACHE_DIR
+2023-10-05 16:51:16,364 WARNING MainThread:21273 [wandb_setup.py:_flush():76] Unknown environment variable: WANDB_CONFIG_DIR
+2023-10-05 16:51:16,364 WARNING MainThread:21273 [wandb_setup.py:_flush():76] Unknown environment variable: WANDB_TEMP
+2023-10-05 16:51:16,364 INFO    MainThread:21273 [wandb_setup.py:_flush():76] Loading settings from environment variables: {'root_dir': '$HOME/wandb_tmp'}
+2023-10-05 16:51:16,364 INFO    MainThread:21273 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': 'contrastive.py', 'program': '/Users/marconanka/BioMedia/code/contrastive-learning/contrastive.py'}
+2023-10-05 16:51:16,364 INFO    MainThread:21273 [wandb_setup.py:_flush():76] Applying login settings: {'api_key': '***REDACTED***'}
+2023-10-05 16:51:16,364 INFO    MainThread:21273 [wandb_setup.py:_flush():76] Applying login settings: {'api_key': '***REDACTED***'}
+2023-10-05 16:51:16,364 INFO    MainThread:21273 [wandb_init.py:_log_setup():507] Logging user logs to $HOME/wandb_tmp/wandb/run-20231005_165116-ojsidc7n/logs/debug.log
+2023-10-05 16:51:16,364 INFO    MainThread:21273 [wandb_init.py:_log_setup():508] Logging internal logs to $HOME/wandb_tmp/wandb/run-20231005_165116-ojsidc7n/logs/debug-internal.log
+2023-10-05 16:51:16,365 INFO    MainThread:21273 [wandb_init.py:init():547] calling init triggers
+2023-10-05 16:51:16,365 INFO    MainThread:21273 [wandb_init.py:init():554] wandb.init called with sweep_config: {}
+config: {'num_epochs': 2500, 'batch_size': 14, 'learning_rate': 0.002, 'patch_size': [96, 96, 96], 'patches_filter': 100}
+2023-10-05 16:51:16,365 INFO    MainThread:21273 [wandb_init.py:init():596] starting backend
+2023-10-05 16:51:16,365 INFO    MainThread:21273 [wandb_init.py:init():600] setting up manager
+2023-10-05 16:51:16,374 INFO    MainThread:21273 [backend.py:_multiprocessing_setup():106] multiprocessing start_methods=spawn,fork,forkserver, using: spawn
+2023-10-05 16:51:16,377 INFO    MainThread:21273 [wandb_init.py:init():606] backend started and connected
+2023-10-05 16:51:16,412 INFO    MainThread:21273 [wandb_init.py:init():697] updated telemetry
+2023-10-05 16:51:16,458 INFO    MainThread:21273 [wandb_init.py:init():730] communicating run to backend with 60.0 second timeout
+2023-10-05 16:52:16,616 ERROR   MainThread:21273 [wandb_init.py:init():756] encountered error: Run initialization has timed out after 60.0 sec. 
+Please refer to the documentation for additional information: https://docs.wandb.ai/guides/track/tracking-faq#initstarterror-error-communicating-with-wandb-process-
+2023-10-05 16:52:17,437 WARNING MainThread:21273 [wandb_init.py:init():1169] interrupted
+Traceback (most recent call last):
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/wandb/sdk/wandb_init.py", line 1147, in init
+    run = wi.init()
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/wandb/sdk/wandb_init.py", line 762, in init
+    raise error
+wandb.errors.CommError: Run initialization has timed out after 60.0 sec. 
+Please refer to the documentation for additional information: https://docs.wandb.ai/guides/track/tracking-faq#initstarterror-error-communicating-with-wandb-process-
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/wandb/sdk/wandb_init.py", line 1151, in init
+    wandb._sentry.exception(e)
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/wandb/analytics/sentry.py", line 43, in wrapper
+    return func(self, *args, **kwargs)
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/wandb/analytics/sentry.py", line 140, in exception
+    client.flush()
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/sentry_sdk/client.py", line 628, in flush
+    self.transport.flush(timeout=timeout, callback=callback)
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/sentry_sdk/transport.py", line 526, in flush
+    self._worker.flush(timeout, callback)
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/sentry_sdk/worker.py", line 95, in flush
+    self._wait_flush(timeout, callback)
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/sentry_sdk/worker.py", line 111, in _wait_flush
+    if not self._timed_queue_join(timeout - initial_timeout):
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/venv/lib/python3.9/site-packages/sentry_sdk/worker.py", line 56, in _timed_queue_join
+    queue.all_tasks_done.wait(timeout=delay)
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/threading.py", line 316, in wait
+    gotit = waiter.acquire(True, timeout)
+KeyboardInterrupt
+2023-10-05 16:52:19,742 WARNING MsgRouterThr:21273 [router.py:message_loop():77] message_loop has been closed
