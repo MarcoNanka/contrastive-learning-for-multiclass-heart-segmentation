@@ -60,7 +60,7 @@ class PreTrainer:
             for batch in contrastive_dataloader:
                 i += 1
                 pair, label = batch
-                print(f"pair.shape: {pair.shape}, label: {label}")
+                print(f"len(pair): {len(pair)}, shapes: {pair[0].shape, pair[1].shape}, label: {label}")
                 # view1 = nn.functional.normalize(view1, dim=1, p=2)
                 # view2 = nn.functional.normalize(view2, dim=1, p=2)
                 # output1 = self.encoder(view1)
