@@ -92,6 +92,7 @@ class DataProcessor:
                         label_patch = np.empty((0, 0, 0))
                     unique, counts = np.unique(label_patch, return_counts=True)
                     counts_descending = -np.sort(-counts)
+                    print(unique, counts)
                     if is_validation_dataset or unique[0] != 0 or \
                             (len(unique) > 1 and counts_descending[1] >= patches_filter):
                         image_patches.append(img_patch)
