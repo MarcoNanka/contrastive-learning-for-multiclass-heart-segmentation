@@ -25,16 +25,13 @@ class ContrastiveLoss(nn.Module):
         print(f"Min x1_normalized: {torch.min(x1_normalized).item()}, max x1_normalized: "
               f"{torch.max(x1_normalized).item()}")
         x2_normalized = torch.nn.functional.normalize(x2, dim=1)
-        print(f"INPUT LOSS: {x1_normalized.shape, x2_normalized.shape, labels.shape, labels}")
         similarities = nn.functional.cosine_similarity(x1_normalized, x2_normalized, dim=1) / self.temperature
-        print(f"similarities.shape: {similarities.shape}")
-
-        print("Minimum value:", torch.min(similarities).item())
-        print("Maximum value:", torch.max(similarities).item())
+        similarities = torch.clamp(similarities, min=-1, max=1)
+        print(f"similarities.shape: {similarities.shape}, min: {torch.min(similarities).item()}, "
+              f"max: {torch.max(similarities).item()}")
 
         positive_pairs = similarities[labels == 1]
         negative_pairs = similarities[labels == 0]
-        print(f"positive_pairs.shape: {positive_pairs.shape}, negative_pairs.shape: {negative_pairs.shape}")
 
         epsilon = 1e-8  # A small positive constant to avoid log(0) and log(1) issues
         positive_loss = -torch.log(positive_pairs + epsilon).mean() if len(positive_pairs) > 0 else \
@@ -80,6 +77,9 @@ class PreTrainer:
                 })
 
             print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.4f}')
+            if loss.item() < 0.4:
+                print(f"CONTRASTIVE LEARNING FINISHED, loss: {loss.item()}")
+                break
 
         encoder_weights = (self.encoder.encoder_conv1.weight.data, self.encoder.encoder_conv2.weight.data,
                            self.encoder.encoder_conv3.weight.data, self.encoder.encoder_conv4.weight.data,
