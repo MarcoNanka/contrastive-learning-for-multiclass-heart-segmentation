@@ -20,7 +20,7 @@ class ContrastiveLoss(nn.Module):
         self.temperature = temperature
 
     def forward(self, x1, x2, labels):
-        print(f"INPUT LOSS: {x1.shape, x2.shape, labels.shape}")
+        print(f"INPUT LOSS: {x1.shape, x2.shape, labels.shape, labels}")
         similarities = nn.functional.cosine_similarity(x1, x2, dim=1) / self.temperature
         print(f"similarities.shape: {similarities.shape}")
 
