@@ -8,7 +8,6 @@ from data_loading import MMWHSContrastiveDataset
 from config import parse_args
 import os
 
-
 os.environ['WANDB_CACHE_DIR'] = "$HOME/wandb_tmp"
 os.environ['WANDB_CONFIG_DIR'] = "$HOME/wandb_tmp"
 os.environ['WANDB_DIR'] = "$HOME/wandb_tmp"
@@ -21,16 +20,17 @@ class ContrastiveLoss(nn.Module):
         self.temperature = temperature
 
     def forward(self, x1, x2, labels):
-        print(f"TYPES: {type(x1), type(x2), type(labels)}")
-        # Calculate cosine similarity between x1 and x2
-        similarities = nn.functional.cosine_similarity(x1, x2, dim=-1) / self.temperature
+        similarities = nn.functional.cosine_similarity(x1, x2, dim=1) / self.temperature
 
-        # Use similarities to compute logits for positive pairs (labels=1) and negative pairs (labels=0)
-        logits = torch.cat([similarities.unsqueeze(1), (1 - similarities).unsqueeze(1)], dim=1)
+        positive_pairs = similarities[labels == 1]
+        negative_pairs = similarities[labels == 0]
 
-        # Compute contrastive loss using labels
-        loss = nn.functional.cross_entropy(logits, labels)
+        positive_loss = -torch.log(positive_pairs).mean() if len(positive_pairs) > 0 else \
+            torch.tensor(0.0, device=x1.device)
+        negative_loss = -torch.log(1 - negative_pairs).mean() if len(negative_pairs) > 0 else \
+            torch.tensor(0.0, device=x1.device)
 
+        loss = positive_loss + negative_loss
         return loss
 
 
@@ -62,7 +62,7 @@ class PreTrainer:
                 loss.backward()
                 optimizer.step()
                 wandb.log({
-                    "Epoch": epoch+1,
+                    "Epoch": epoch + 1,
                     "Training Loss": loss.item()
                 })
 
