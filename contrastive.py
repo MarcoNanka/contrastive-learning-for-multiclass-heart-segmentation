@@ -58,9 +58,11 @@ class PreTrainer:
         for epoch in range(self.num_epochs):
             for batch in contrastive_dataloader:
                 pair, label = batch
-                pair = pair.to(device=self.device, dtype=torch.float)
+                x1, x2 = pair
+                x1 = x1.to(device=self.device, dtype=torch.float)
+                x2 = x2.to(device=self.device, dtype=torch.float)
                 label = label.to(device=self.device, dtype=torch.long)
-                repr1, repr2 = self.encoder(pair[0]), self.encoder(pair[1])
+                repr1, repr2 = self.encoder(x1), self.encoder(x2)
                 print(f"shape of encoder outputs: {repr1.shape, repr2.shape}")
                 #
                 # loss = contrastive_loss(output1, output2)
