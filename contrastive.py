@@ -24,6 +24,9 @@ class ContrastiveLoss(nn.Module):
         similarities = nn.functional.cosine_similarity(x1, x2, dim=1) / self.temperature
         print(f"similarities.shape: {similarities.shape}")
 
+        print("Minimum value:", torch.min(similarities).item())
+        print("Maximum value:", torch.max(similarities).item())
+
         positive_pairs = similarities[labels == 1]
         negative_pairs = similarities[labels == 0]
         print(f"positive_pairs.shape: {positive_pairs.shape}, negative_pairs.shape: {negative_pairs.shape}")
