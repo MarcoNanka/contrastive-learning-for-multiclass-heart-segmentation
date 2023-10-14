@@ -34,6 +34,7 @@ class ContrastiveLoss(nn.Module):
             torch.tensor(0.0, device=x1.device)
 
         loss = positive_loss + negative_loss
+        print(f"positive_loss: {positive_loss}, negative_loss: {negative_loss}, loss: {loss}")
         return loss
 
 
@@ -69,7 +70,7 @@ class PreTrainer:
                     "Training Loss": loss.item()
                 })
 
-            # print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.4f}')
+            print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.4f}')
 
         encoder_weights = (self.encoder.encoder_conv1.weight.data, self.encoder.encoder_conv2.weight.data,
                            self.encoder.encoder_conv3.weight.data, self.encoder.encoder_conv4.weight.data,
