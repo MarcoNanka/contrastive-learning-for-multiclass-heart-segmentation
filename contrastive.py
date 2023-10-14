@@ -20,10 +20,13 @@ class ContrastiveLoss(nn.Module):
         self.temperature = temperature
 
     def forward(self, x1, x2, labels):
+        print(f"INPUT LOSS: {x1.shape, x2.shape, labels.shape}")
         similarities = nn.functional.cosine_similarity(x1, x2, dim=1) / self.temperature
+        print(f"similarities.shape: {similarities.shape}")
 
         positive_pairs = similarities[labels == 1]
         negative_pairs = similarities[labels == 0]
+        print(f"positive_pairs.shape: {positive_pairs.shape}, negative_pairs.shape: {negative_pairs.shape}")
 
         positive_loss = -torch.log(positive_pairs).mean() if len(positive_pairs) > 0 else \
             torch.tensor(0.0, device=x1.device)
