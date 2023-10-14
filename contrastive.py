@@ -28,9 +28,10 @@ class ContrastiveLoss(nn.Module):
         negative_pairs = similarities[labels == 0]
         print(f"positive_pairs.shape: {positive_pairs.shape}, negative_pairs.shape: {negative_pairs.shape}")
 
-        positive_loss = -torch.log(positive_pairs).mean() if len(positive_pairs) > 0 else \
+        epsilon = 1e-8  # A small positive constant to avoid log(0) and log(1) issues
+        positive_loss = -torch.log(positive_pairs + epsilon).mean() if len(positive_pairs) > 0 else \
             torch.tensor(0.0, device=x1.device)
-        negative_loss = -torch.log(1 - negative_pairs).mean() if len(negative_pairs) > 0 else \
+        negative_loss = -torch.log(1 - negative_pairs + epsilon).mean() if len(negative_pairs) > 0 else \
             torch.tensor(0.0, device=x1.device)
 
         loss = positive_loss + negative_loss
