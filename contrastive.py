@@ -15,13 +15,18 @@ os.environ['WANDB_TEMP'] = "$HOME/wandb_tmp"
 
 
 class ContrastiveLoss(nn.Module):
-    def __init__(self, temperature=0.5):
+    def __init__(self, temperature=1):
         super(ContrastiveLoss, self).__init__()
         self.temperature = temperature
 
     def forward(self, x1, x2, labels):
-        print(f"INPUT LOSS: {x1.shape, x2.shape, labels.shape, labels}")
-        similarities = nn.functional.cosine_similarity(x1, x2, dim=1) / self.temperature
+        print(f"Min x1: {torch.min(x1).item()}, max x1: {torch.max(x1).item()}, mean x1: {torch.mean(x1, dim=1)}")
+        x1_normalized = torch.nn.functional.normalize(x1, dim=1)
+        print(f"Min x1_normalized: {torch.min(x1_normalized).item()}, max x1_normalized: "
+              f"{torch.max(x1_normalized).item()}, mean x1_normalized: {torch.mean(x1_normalized, dim=1)}")
+        x2_normalized = torch.nn.functional.normalize(x2, dim=1)
+        print(f"INPUT LOSS: {x1_normalized.shape, x2_normalized.shape, labels.shape, labels}")
+        similarities = nn.functional.cosine_similarity(x1_normalized, x2_normalized, dim=1) / self.temperature
         print(f"similarities.shape: {similarities.shape}")
 
         print("Minimum value:", torch.min(similarities).item())
