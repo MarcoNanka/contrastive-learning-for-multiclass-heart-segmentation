@@ -6,7 +6,7 @@ import nibabel as nib
 from numpy import ndarray
 from torch.utils.data import Dataset
 from typing import Tuple, Optional
-from monai.transforms import Compose, RandFlip, ToTensor, RandZoom, RandGaussianNoise, RandGaussianSmooth
+from monai.transforms import Compose, RandFlip, ToTensor, RandGaussianNoise, RandGaussianSmooth
 
 
 class DataProcessor:
@@ -177,10 +177,7 @@ class MMWHSDataset(Dataset):
         """
        Get a specific sample from the dataset.
        """
-        print(f"GET ITEM SUPERVISED --- self.x[idx].shape, idx: {self.x[idx].shape, idx}")
         return self.x[idx], self.y[idx]
-        # dataset.x.shape: (#patches, #channels, width, height, depth)
-        # -> __getitem__ takes exactly one image and one label patch, each of shape (#channels, width, height, depth)
 
     def load_data(self) -> Tuple[torch.Tensor, torch.Tensor, int, np.ndarray, np.ndarray, np.ndarray, float, float]:
         """

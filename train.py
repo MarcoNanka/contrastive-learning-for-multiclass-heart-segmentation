@@ -114,7 +114,6 @@ class Trainer:
             dataloader = DataLoader(dataset=self.dataset, batch_size=self.batch_size, shuffle=False,
                                     sampler=torch.utils.data.SubsetRandomSampler(selected_indices))
             for batch_x, batch_y in dataloader:
-                print(f"INSIDE DATALOADER LOOP --- batch_x.shape: {batch_x.shape}")
                 batch_x = batch_x.to(device=self.device, dtype=torch.float)
                 batch_y = batch_y.to(device=self.device, dtype=torch.long)
                 optimizer.zero_grad()
