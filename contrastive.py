@@ -21,6 +21,7 @@ class ContrastiveLoss(nn.Module):
         self.temperature = temperature
 
     def forward(self, x1, x2, labels):
+        print(f"TYPES: {type(x1), type(x2), type(labels)}")
         # Calculate cosine similarity between x1 and x2
         similarities = nn.functional.cosine_similarity(x1, x2, dim=-1) / self.temperature
 
@@ -28,7 +29,7 @@ class ContrastiveLoss(nn.Module):
         logits = torch.cat([similarities.unsqueeze(1), (1 - similarities).unsqueeze(1)], dim=1)
 
         # Compute contrastive loss using labels
-        loss = nn.functional.cross_entropy(logits, labels.long())
+        loss = nn.functional.cross_entropy(logits, labels)
 
         return loss
 
