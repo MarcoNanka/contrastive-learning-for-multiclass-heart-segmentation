@@ -7,6 +7,7 @@ from model import Encoder
 from data_loading import MMWHSContrastiveDataset
 from config import parse_args
 import os
+import random
 
 os.environ['WANDB_CACHE_DIR'] = "$HOME/wandb_tmp"
 os.environ['WANDB_CONFIG_DIR'] = "$HOME/wandb_tmp"
@@ -45,7 +46,8 @@ class ContrastiveLoss(nn.Module):
 
 
 class PreTrainer:
-    def __init__(self, encoder, contrastive_dataset, num_epochs, batch_size, learning_rate, patch_size):
+    def __init__(self, encoder, contrastive_dataset, num_epochs, batch_size, learning_rate, patch_size,
+                 training_shuffle):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.encoder = encoder
         self.contrastive_dataset = contrastive_dataset
@@ -53,14 +55,21 @@ class PreTrainer:
         self.batch_size = batch_size
         self.learning_rate = learning_rate
         self.patch_size = patch_size
+        self.training_shuffle = training_shuffle
 
     def pre_train(self):
-        contrastive_dataloader = DataLoader(self.contrastive_dataset, batch_size=self.batch_size, shuffle=True)
         contrastive_loss = ContrastiveLoss()
         optimizer = optim.Adam(self.encoder.parameters(), lr=self.learning_rate)
         self.encoder.to(device=self.device, dtype=torch.float)
+        num_patches = len(self.contrastive_dataset)
+        num_patches_to_use = int(self.training_shuffle * num_patches)
 
         for epoch in range(self.num_epochs):
+            indices = list(range(num_patches))
+            random.shuffle(indices)
+            selected_indices = indices[:num_patches_to_use]
+            contrastive_dataloader = DataLoader(self.contrastive_dataset, batch_size=self.batch_size, shuffle=False,
+                                                sampler=torch.utils.data.SubsetRandomSampler(selected_indices))
             for batch in contrastive_dataloader:
                 pairs, labels = batch
                 x1, x2 = pairs
@@ -113,7 +122,8 @@ def main(args):
     # CONTRASTIVE LEARNING
     encoder = Encoder()
     pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset, num_epochs=args.num_epochs,
-                             batch_size=args.batch_size, learning_rate=args.learning_rate, patch_size=args.patch_size)
+                             batch_size=args.batch_size, learning_rate=args.learning_rate, patch_size=args.patch_size,
+                             training_shuffle=args.training_shuffle)
     encoder_weights, encoder_biases = pre_trainer.pre_train()
     torch.save({'encoder_weights': encoder_weights, 'encoder_biases': encoder_biases}, 'pretrained_encoder.pth')
 
