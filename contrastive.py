@@ -20,23 +20,16 @@ class ContrastiveLoss(nn.Module):
         super(ContrastiveLoss, self).__init__()
         self.temperature = temperature
 
-    def forward(self, x1, x2):
-        x1 = nn.functional.normalize(x1, dim=1, p=2)
-        x2 = nn.functional.normalize(x2, dim=1, p=2)
+    def forward(self, x1, x2, labels):
+        # Calculate cosine similarity between x1 and x2
+        similarities = nn.functional.cosine_similarity(x1, x2, dim=-1) / self.temperature
 
-        similarity_matrix = torch.matmul(x1.view(x1.size(0), -1), x2.view(x2.size(0), -1).t()) / self.temperature
+        # Use similarities to compute logits for positive pairs (labels=1) and negative pairs (labels=0)
+        logits = torch.cat([similarities.unsqueeze(1), (1 - similarities).unsqueeze(1)], dim=1)
 
-        # Extract diagonal elements
-        diag_elements = torch.diagonal(similarity_matrix, dim1=-2, dim2=-1).unsqueeze(1)
+        # Compute contrastive loss using labels
+        loss = nn.functional.cross_entropy(logits, labels.long())
 
-        # Extract off-diagonal elements excluding diagonal
-        off_diag_elements = similarity_matrix.clone()
-        off_diag_elements[torch.eye(off_diag_elements.size(0)).bool()] = float('-inf')
-        off_diag_elements = off_diag_elements.view(similarity_matrix.size(0), -1)
-
-        logits = torch.cat([diag_elements, off_diag_elements], dim=1)
-        labels = torch.zeros(logits.size(0), dtype=torch.long).to(logits.device)
-        loss = nn.CrossEntropyLoss()(logits, labels)
         return loss
 
 
@@ -58,22 +51,19 @@ class PreTrainer:
 
         for epoch in range(self.num_epochs):
             for batch in contrastive_dataloader:
-                pair, label = batch
-                x1, x2 = pair
+                pairs, labels = batch
+                x1, x2 = pairs
                 x1, x2 = x1.to(device=self.device, dtype=torch.float), x2.to(device=self.device, dtype=torch.float)
-                label = label.to(device=self.device, dtype=torch.long)
+                labels = labels.to(device=self.device, dtype=torch.long)
                 repr1, repr2 = self.encoder(x1), self.encoder(x2)
-                print(f"shape of encoder outputs: {repr1.shape, repr2.shape}")
-                #
-                # loss = contrastive_loss(output1, output2)
-                #
-                # optimizer.zero_grad()
-                # loss.backward()
-                # optimizer.step()
-                # wandb.log({
-                #     "Epoch": epoch+1,
-                #     "Training Loss": loss.item()
-                # })
+                loss = contrastive_loss(repr1, repr2, labels)
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                wandb.log({
+                    "Epoch": epoch+1,
+                    "Training Loss": loss.item()
+                })
 
             # print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.4f}')
 
