@@ -54,13 +54,13 @@ class PreTrainer:
         contrastive_dataloader = DataLoader(self.contrastive_dataset, batch_size=self.batch_size, shuffle=True)
         contrastive_loss = ContrastiveLoss()
         optimizer = optim.Adam(self.encoder.parameters(), lr=self.learning_rate)
+        self.encoder.to(device=self.device, dtype=torch.float)
 
         for epoch in range(self.num_epochs):
             for batch in contrastive_dataloader:
                 pair, label = batch
                 x1, x2 = pair
-                x1 = x1.to(device=self.device, dtype=torch.float)
-                x2 = x2.to(device=self.device, dtype=torch.float)
+                x1, x2 = x1.to(device=self.device, dtype=torch.float), x2.to(device=self.device, dtype=torch.float)
                 label = label.to(device=self.device, dtype=torch.long)
                 repr1, repr2 = self.encoder(x1), self.encoder(x2)
                 print(f"shape of encoder outputs: {repr1.shape, repr2.shape}")
