@@ -32,6 +32,7 @@ class Predictor:
         print(f"FINISHED LOAD & PREPROCESS INPUT IMAGE, img_data.shape: {img_data.shape}")
 
         # Perform prediction
+        img_data = img_data.to(device=self.device, dtype=torch.float)
         model.to(device=self.device, dtype=torch.float)
         with torch.no_grad():
             predicted_output = model(img_data)
