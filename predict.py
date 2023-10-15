@@ -39,7 +39,7 @@ class Predictor:
         with torch.no_grad():
             step_size = 10
             for i in range(0, img_data.shape[0], step_size):
-                predicted_output = model(img_data[i:i+step_size])
+                predicted_output = model(img_data[i:i + step_size])
                 _, predicted = torch.max(predicted_output, dim=1)
                 predicted_arrays_list.append(predicted.cpu().numpy())
 
@@ -50,11 +50,19 @@ class Predictor:
         print(f"FINISHED PERFORM PREDICTION")
 
         # Save the predicted mask as a NIfTI file
-        prediction_mask = prediction_mask.astype(np.int16)
+        label_values = np.array([0., 205., 420., 500., 550., 600., 620., 850.])
+        prediction_mask = np.where(prediction_mask == 0, label_values[0], prediction_mask)
+        prediction_mask = np.where(prediction_mask == 1, label_values[1], prediction_mask)
+        prediction_mask = np.where(prediction_mask == 2, label_values[2], prediction_mask)
+        prediction_mask = np.where(prediction_mask == 3, label_values[3], prediction_mask)
+        prediction_mask = np.where(prediction_mask == 4, label_values[4], prediction_mask)
+        prediction_mask = np.where(prediction_mask == 5, label_values[5], prediction_mask)
+        prediction_mask = np.where(prediction_mask == 6, label_values[6], prediction_mask)
+        prediction_mask = np.where(prediction_mask == 7, label_values[7], prediction_mask)
         output_nifti = nib.Nifti1Image(prediction_mask, affine=np.eye(4))
         nib.save(output_nifti, "prediction_masks/" + self.output_mask_name)
 
-        print(f"Predicted mask saved at: \"prediction_masks/\"{self.output_mask_name}")
+        print(f"Predicted mask saved at: prediction_masks/{self.output_mask_name}")
 
 
 def main(args):
