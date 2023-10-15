@@ -21,5 +21,7 @@ def parse_args():
     parser.add_argument("--mean", type=float, help="Mean from loaded UNET for predictor")
     parser.add_argument("--std_dev", type=float, help="Standard_deviation from loaded UNET for predictor")
     parser.add_argument("--patience", type=int, help="Threshold which determines when to early-stop training")
+    parser.add_argument("--removal_percentage", type=float, help="Determines what percentage of patches (with lowest "
+                                                                 "mean) should be removed from contrastive dataset")
     args = parser.parse_args()
     return args

@@ -200,12 +200,13 @@ class MMWHSContrastiveDataset(Dataset):
         Custom PyTorch Dataset for loading MM-WHS contrastive learning dataset.
     """
 
-    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int]):
+    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], removal_percentage: float):
         """
             Initialize the MMWHSDataset for contrastive learning.
             """
         self.folder_path = folder_path
         self.patch_size = patch_size
+        self.removal_percentage = removal_percentage
         self.transform = Compose([
             RandFlip(spatial_axis=0, prob=0.5),
             RandFlip(spatial_axis=1, prob=0.5),
@@ -245,7 +246,17 @@ class MMWHSContrastiveDataset(Dataset):
                                           is_validation_dataset=False, patch_size=self.patch_size,
                                           patches_filter=0,
                                           is_contrastive_dataset=True)
+
+        # REMOVE (seemingly) IRRELEVANT PATCHES
+        print(f"SHAPE OF UNFILTERED IMG_DATA: {img_data.shape}, MEAN: {np.mean(img_data)}")
+        mean_intensity_per_patch = np.mean(img_data, axis=(1, 2, 3, 4))
+        num_patches_to_remove = int(self.removal_percentage * len(mean_intensity_per_patch))
+        ascending_sorted_patch_indices = np.argsort(mean_intensity_per_patch)
+        img_data = img_data[ascending_sorted_patch_indices]
+        img_data = img_data[num_patches_to_remove:]
         img_data, mean, std_dev = DataProcessor.normalize_z_score_data(raw_data=img_data)
+        print(f"SHAPE OF FILTERED IMG_DATA: {img_data.shape}, MEAN: {mean}")
+
         for idx, _ in enumerate(img_data):
             torch.from_numpy(img_data[idx])
         return img_data, original_image_data, mean, std_dev
