@@ -50,6 +50,7 @@ class Predictor:
         print(f"FINISHED PERFORM PREDICTION")
 
         # Save the predicted mask as a NIfTI file
+        prediction_mask = prediction_mask.astype(np.int16)
         output_nifti = nib.Nifti1Image(prediction_mask, affine=np.eye(4))
         nib.save(output_nifti, "prediction_masks/" + self.output_mask_name)
 
