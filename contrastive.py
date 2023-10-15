@@ -110,8 +110,7 @@ class PreTrainer:
 
 def main(args):
     # DATA LOADING
-    contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.contrastive_folder_path, patch_size=args.patch_size,
-                                                  patches_filter=args.patches_filter)
+    contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.contrastive_folder_path, patch_size=args.patch_size)
 
     # SET UP WEIGHTS & BIASES
     wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
@@ -122,8 +121,7 @@ def main(args):
             "num_epochs": args.num_epochs,
             "batch_size": args.batch_size,
             "learning_rate": args.learning_rate,
-            "patch_size": args.patch_size,
-            "patches_filter": args.patches_filter
+            "patch_size": args.patch_size
         }
     )
 

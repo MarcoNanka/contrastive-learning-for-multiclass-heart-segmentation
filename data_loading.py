@@ -200,13 +200,12 @@ class MMWHSContrastiveDataset(Dataset):
         Custom PyTorch Dataset for loading MM-WHS contrastive learning dataset.
     """
 
-    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], patches_filter: int):
+    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int]):
         """
             Initialize the MMWHSDataset for contrastive learning.
             """
         self.folder_path = folder_path
         self.patch_size = patch_size
-        self.patches_filter = patches_filter
         self.transform = Compose([
             RandFlip(spatial_axis=0, prob=0.5),
             RandFlip(spatial_axis=1, prob=0.5),
@@ -244,7 +243,7 @@ class MMWHSContrastiveDataset(Dataset):
         img_data, _, original_image_data, _ = DataProcessor. \
             get_training_data_from_system(folder_path=self.folder_path,
                                           is_validation_dataset=False, patch_size=self.patch_size,
-                                          patches_filter=self.patches_filter,
+                                          patches_filter=0,
                                           is_contrastive_dataset=True)
         img_data, mean, std_dev = DataProcessor.normalize_z_score_data(raw_data=img_data)
         for idx, _ in enumerate(img_data):
