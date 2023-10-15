@@ -32,6 +32,7 @@ class Predictor:
         print(f"FINISHED LOAD & PREPROCESS INPUT IMAGE, img_data.shape: {img_data.shape}")
 
         # Perform prediction
+        print(f"UNIQUE LABEL VALUES (ground truth): {np.unique(label_data, return_counts=False)}")
         img_data = img_data.to(device=self.device, dtype=torch.float)
         label_data = label_data.to(device=self.device, dtype=torch.long)
         model.to(device=self.device, dtype=torch.float)
@@ -63,11 +64,12 @@ class Predictor:
 
         dice_score = (2 * true_positives) / (2 * true_positives + false_negatives + false_positives)
         dice_score_macro = np.mean(dice_score)
-        print(f"DICE SCORE (MACRO): {dice_score_macro}")
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
         prediction_mask = DataProcessor.undo_extract_patches_label_only(label_patches=combined_predicted_array,
                                                                         patch_size=self.patch_size,
                                                                         original_label_data=original_label_data)
+        print(f"UNIQUE LABEL VALUES (prediction mask): {np.unique(prediction_mask, return_counts=False)}")
+        print(f"DICE SCORE MACRO: {dice_score_macro}")
         print(f"FINISHED PERFORM PREDICTION")
 
         # Save the predicted mask as a NIfTI file
