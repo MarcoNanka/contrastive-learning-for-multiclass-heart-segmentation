@@ -16,5 +16,7 @@ def parse_args():
     parser.add_argument("--model_name", type=str, help="Name under which encoder/UNET will be saved")
     parser.add_argument("--encoder_file_name", type=str, help="Name of pre-trained encoder file which shall be used for"
                                                               " supervised training")
+    parser.add_argument("--image_path", type=str, help="Path to image for predictor")
+    parser.add_argument("--output_mask_name", type=str, help="Name of predicted output mask")
     args = parser.parse_args()
     return args
