@@ -18,7 +18,6 @@ class UNet(nn.Module):
         self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
 
         if encoder_weights is not None and encoder_biases is not None:
-            print(f"UNET USES PRE-TRAINED ENCODING LAYERS")
             encoder_conv1_weights, encoder_conv2_weights, encoder_conv3_weights, encoder_conv4_weights, \
                 encoder_conv5_weights = encoder_weights
             encoder_conv1_biases, encoder_conv2_biases, encoder_conv3_biases, encoder_conv4_biases, \
@@ -34,9 +33,6 @@ class UNet(nn.Module):
             self.encoder_conv4.bias = nn.Parameter(encoder_conv4_biases)
             self.encoder_conv5.weight = nn.Parameter(encoder_conv5_weights)
             self.encoder_conv5.bias = nn.Parameter(encoder_conv5_biases)
-
-        else:
-            print(f"UNET DOES NOT USE PRE-TRAINED ENCODING LAYERS")
 
         # Expanding path: Decreasing features, increasing spatial dimensions
         self.upconv1 = nn.ConvTranspose3d(in_channels=256, out_channels=128, kernel_size=2, stride=2)

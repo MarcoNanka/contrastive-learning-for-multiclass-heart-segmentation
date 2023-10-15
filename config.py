@@ -13,5 +13,6 @@ def parse_args():
     parser.add_argument("--validation_interval", type=int, help="Validation interval in epochs")
     parser.add_argument("--patches_filter", type=int, help="Number of relevant voxels")
     parser.add_argument("--training_shuffle", type=float, help="Percentage of training patches used for each epoch")
+    parser.add_argument("--model_name", type=str, help="Name under which encoder/UNET will be saved")
     args = parser.parse_args()
     return args

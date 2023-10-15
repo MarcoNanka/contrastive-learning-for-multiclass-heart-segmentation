@@ -18,7 +18,7 @@ os.environ['WANDB_TEMP'] = "$HOME/wandb_tmp"
 
 class Trainer:
     def __init__(self, model, dataset, num_epochs, batch_size, learning_rate, validation_dataset,
-                 validation_interval, training_shuffle, patch_size):
+                 validation_interval, training_shuffle, patch_size, model_name):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = model
         self.dataset = dataset
@@ -29,10 +29,11 @@ class Trainer:
         self.validation_interval = validation_interval
         self.training_shuffle = training_shuffle
         self.patch_size = patch_size
+        self.model_name = model_name
 
-    def evaluate_validation(self) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray, np.ndarray,
-                                                                  np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-                                                                  np.ndarray, np.ndarray]:
+    def evaluate_validation(self) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+                                           np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+
         self.model.eval()
 
         val_dataloader = DataLoader(dataset=self.validation_dataset, batch_size=self.batch_size, shuffle=False)
@@ -164,7 +165,7 @@ class Trainer:
                 print(f'True positives: {tp}')
                 print()
 
-        torch.save(self.model.state_dict(), 'trained_model.pth')
+        torch.save(self.model.state_dict(), "trained_unet/" + self.model_name)
 
 
 def main(args):
@@ -206,7 +207,7 @@ def main(args):
     trainer = Trainer(model=model, dataset=dataset, num_epochs=args.num_epochs, batch_size=args.batch_size,
                       learning_rate=args.learning_rate, validation_dataset=validation_dataset,
                       validation_interval=args.validation_interval, training_shuffle=args.training_shuffle,
-                      patch_size=args.patch_size)
+                      patch_size=args.patch_size, model_name=args.model_name)
     trainer.train()
 
 

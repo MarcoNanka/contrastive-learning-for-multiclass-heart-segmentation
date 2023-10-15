@@ -125,7 +125,8 @@ def main(args):
                              batch_size=args.batch_size, learning_rate=args.learning_rate, patch_size=args.patch_size,
                              training_shuffle=args.training_shuffle)
     encoder_weights, encoder_biases = pre_trainer.pre_train()
-    torch.save({'encoder_weights': encoder_weights, 'encoder_biases': encoder_biases}, 'pretrained_encoder.pth')
+    torch.save({'encoder_weights': encoder_weights, 'encoder_biases': encoder_biases},
+               "pretrained_encoder/" + args.model_name)
 
 
 if __name__ == "__main__":
