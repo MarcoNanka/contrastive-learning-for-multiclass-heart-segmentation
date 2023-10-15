@@ -41,7 +41,7 @@ class ContrastiveLoss(nn.Module):
             torch.tensor(0.0, device=x1.device)
 
         loss = positive_loss + negative_loss
-        print(f"positive_loss: {positive_loss}, negative_loss: {negative_loss}, loss: {loss}")
+        # print(f"positive_loss: {positive_loss}, negative_loss: {negative_loss}, loss: {loss}")
         return loss
 
 
