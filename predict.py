@@ -25,7 +25,8 @@ class Predictor:
         img_data, label_data, original_image_data, original_label_data = DataProcessor. \
             get_training_data_from_system(folder_path=self.image_path, is_validation_dataset=True,
                                           patch_size=self.patch_size, patches_filter=0)
-        img_data, _, _ = DataProcessor.normalize_z_score_data(raw_data=img_data)
+        img_data, _, _ = DataProcessor.normalize_z_score_data(raw_data=img_data, is_validation_dataset=True,
+                                                              mean=-127.47, std_dev=484.914)
         label_data, _, _ = DataProcessor.preprocess_label_data(raw_data=label_data)
         img_data = torch.from_numpy(img_data)
         label_data = torch.from_numpy(label_data)
