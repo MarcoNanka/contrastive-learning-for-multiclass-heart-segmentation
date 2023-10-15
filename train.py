@@ -164,6 +164,9 @@ class Trainer:
                 print(f'Dice score by class: {dice_score}')
                 print(f'True positives: {tp}')
                 print()
+                if dice_score_macro > 0.89:
+                    print(f"FINISH, dice: {dice_score_macro}")
+                    break
 
         torch.save(self.model.state_dict(), "trained_unet/" + self.model_name)
 
