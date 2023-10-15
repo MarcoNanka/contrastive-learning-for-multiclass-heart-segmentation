@@ -38,7 +38,7 @@ class Predictor:
 
         with torch.no_grad():
             step_size = 10
-            for i in range(0, img_data[0], 10):
+            for i in range(0, img_data.shape[0], step_size):
                 predicted_output = model(img_data[i:i+step_size])
                 _, predicted = torch.max(predicted_output, dim=1)
                 predicted_arrays_list.append(predicted.cpu().numpy())
