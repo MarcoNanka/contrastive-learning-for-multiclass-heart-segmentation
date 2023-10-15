@@ -80,11 +80,11 @@ class PreTrainer:
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-                wandb.log({
-                    "Epoch": epoch + 1,
-                    "Training Loss": loss.item()
-                })
 
+            wandb.log({
+                "Epoch": epoch + 1,
+                "Training Loss": loss.item()
+            })
             print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.4f}')
             if loss.item() < 0.4:
                 print(f"CONTRASTIVE LEARNING FINISHED, loss: {loss.item()}")

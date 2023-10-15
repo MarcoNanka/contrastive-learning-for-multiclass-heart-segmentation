@@ -122,11 +122,11 @@ class Trainer:
                 loss = criterion(input=outputs, target=batch_y)
                 loss.backward()
                 optimizer.step()
-                wandb.log({
-                    "Epoch": epoch + 1,
-                    "Training Loss": loss.item()
-                })
 
+            wandb.log({
+                "Epoch": epoch + 1,
+                "Training Loss": loss.item()
+            })
             print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
