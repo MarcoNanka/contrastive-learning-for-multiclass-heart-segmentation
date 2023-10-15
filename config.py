@@ -18,5 +18,8 @@ def parse_args():
                                                               " supervised training")
     parser.add_argument("--image_path", type=str, help="Path to image for predictor")
     parser.add_argument("--output_mask_name", type=str, help="Name of predicted output mask")
+    parser.add_argument("--mean", type=float, help="Mean from loaded UNET for predictor")
+    parser.add_argument("--std_dev", type=float, help="Standard_deviation from loaded UNET for predictor")
+    parser.add_argument("--patience", type=int, help="Threshold which determines when to early-stop training")
     args = parser.parse_args()
     return args

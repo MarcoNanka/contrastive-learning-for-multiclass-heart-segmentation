@@ -7,12 +7,14 @@ from config import parse_args
 
 
 class Predictor:
-    def __init__(self, model_name, image_path, patch_size, output_mask_name):
+    def __init__(self, model_name, image_path, patch_size, output_mask_name, mean, std_dev):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model_name = model_name
         self.image_path = image_path
         self.output_mask_name = output_mask_name
         self.patch_size = patch_size
+        self.mean = mean
+        self.std_dev = std_dev
 
     def predict(self):
         # Load model
@@ -26,14 +28,13 @@ class Predictor:
             get_training_data_from_system(folder_path=self.image_path, is_validation_dataset=True,
                                           patch_size=self.patch_size, patches_filter=0)
         img_data, _, _ = DataProcessor.normalize_z_score_data(raw_data=img_data, is_validation_dataset=True,
-                                                              mean=-127.47, std_dev=484.914)
+                                                              mean=self.mean, std_dev=self.std_dev)
         label_data, _, _ = DataProcessor.preprocess_label_data(raw_data=label_data)
         img_data = torch.from_numpy(img_data)
         label_data = torch.from_numpy(label_data)
-        print(f"FINISHED LOAD & PREPROCESS INPUT IMAGE, img_data.shape: {img_data.shape}")
+        print(f"FINISHED LOAD & PREPROCESS INPUT IMAGE")
 
         # Perform prediction
-        print(f"UNIQUE LABEL VALUES (ground truth): {np.unique(label_data), label_data.shape}")
         img_data = img_data.to(device=self.device, dtype=torch.float)
         label_data = label_data.to(device=self.device, dtype=torch.long)
         model.to(device=self.device, dtype=torch.float)
@@ -69,7 +70,6 @@ class Predictor:
         prediction_mask = DataProcessor.undo_extract_patches_label_only(label_patches=combined_predicted_array,
                                                                         patch_size=self.patch_size,
                                                                         original_label_data=original_label_data)
-        print(f"UNIQUE LABEL VALUES (prediction mask): {np.unique(prediction_mask), combined_predicted_array.shape}")
         print(f"DICE SCORE MACRO: {dice_score_macro}")
         print(f"FINISHED PERFORM PREDICTION")
 
@@ -91,7 +91,7 @@ class Predictor:
 
 def main(args):
     predictor = Predictor(model_name=args.model_name, image_path=args.image_path, patch_size=args.patch_size,
-                          output_mask_name=args.output_mask_name)
+                          output_mask_name=args.output_mask_name, mean=args.mean, std_dev=args.std_dev)
     predictor.predict()
 
 

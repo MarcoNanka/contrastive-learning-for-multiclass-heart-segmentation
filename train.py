@@ -18,7 +18,7 @@ os.environ['WANDB_TEMP'] = "$HOME/wandb_tmp"
 
 class Trainer:
     def __init__(self, model, dataset, num_epochs, batch_size, learning_rate, validation_dataset,
-                 validation_interval, training_shuffle, patch_size, model_name):
+                 validation_interval, training_shuffle, patch_size, model_name, patience):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = model
         self.dataset = dataset
@@ -30,6 +30,7 @@ class Trainer:
         self.training_shuffle = training_shuffle
         self.patch_size = patch_size
         self.model_name = model_name
+        self.patience = patience
 
     def evaluate_validation(self) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
                                            np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -107,6 +108,9 @@ class Trainer:
             7: "pulmonary artery"  # 850
         }
         og_labels_int, _, _ = DataProcessor.preprocess_label_data(self.validation_dataset.original_label_data)
+        no_improvement_counter = 0
+        best_dice_score = 0.0
+        best_model_state = self.model.state_dict()
 
         for epoch in range(self.num_epochs):
             indices = list(range(num_patches))
@@ -133,10 +137,20 @@ class Trainer:
                 tp, validation_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
                     accuracy, precision, recall, dice_score, prediction_mask = \
                     self.evaluate_validation()
+                if dice_score_macro > best_dice_score:
+                    best_dice_score = dice_score_macro
+                    best_model_state = self.model.state_dict()
+                    no_improvement_counter = 0  # Reset the counter since there's an improvement
+                else:
+                    no_improvement_counter += 1
+                if no_improvement_counter > self.patience:
+                    print(f'Early stopping at epoch {epoch + 1}. Best Validation Dice Score: {best_dice_score}')
+                    break
                 wandb.log({
                     "Epoch": epoch + 1,
                     "Validation Loss": validation_loss,
                     "Validation Dice": dice_score_macro,
+                    "Best Validation Dice": best_dice_score,
                     "slice50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 49],
                                            masks={
                                                     "predictions": {
@@ -164,10 +178,8 @@ class Trainer:
                 print(f'Dice score by class: {dice_score}')
                 print(f'True positives: {tp}')
                 print()
-                if dice_score_macro > 0.89:
-                    print(f"FINISH, dice: {dice_score_macro}")
-                    break
 
+        self.model.load_state_dict(best_model_state)
         torch.save(self.model.state_dict(), "trained_unet/" + self.model_name)
 
 
@@ -210,7 +222,7 @@ def main(args):
     trainer = Trainer(model=model, dataset=dataset, num_epochs=args.num_epochs, batch_size=args.batch_size,
                       learning_rate=args.learning_rate, validation_dataset=validation_dataset,
                       validation_interval=args.validation_interval, training_shuffle=args.training_shuffle,
-                      patch_size=args.patch_size, model_name=args.model_name)
+                      patch_size=args.patch_size, model_name=args.model_name, patience=args.patience)
     trainer.train()
 
 
