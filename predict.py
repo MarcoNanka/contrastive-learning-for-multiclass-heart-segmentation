@@ -34,11 +34,17 @@ class Predictor:
         # Perform prediction
         img_data = img_data.to(device=self.device, dtype=torch.float)
         model.to(device=self.device, dtype=torch.float)
-        with torch.no_grad():
-            predicted_output = model(img_data)
-            _, predicted = torch.max(predicted_output, dim=1)
+        predicted_arrays_list = []
 
-        prediction_mask = DataProcessor.undo_extract_patches_label_only(label_patches=predicted,
+        with torch.no_grad():
+            step_size = 10
+            for i in range(0, img_data[0], 10):
+                predicted_output = model(img_data[i:i+step_size])
+                _, predicted = torch.max(predicted_output, dim=1)
+                predicted_arrays_list.append(predicted.cpu().numpy())
+
+        combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
+        prediction_mask = DataProcessor.undo_extract_patches_label_only(label_patches=combined_predicted_array,
                                                                         patch_size=self.patch_size,
                                                                         original_label_data=original_label_data)
         print(f"FINISHED PERFORM PREDICTION")
