@@ -47,7 +47,7 @@ class ContrastiveLoss(nn.Module):
 
 class PreTrainer:
     def __init__(self, encoder, contrastive_dataset, num_epochs, batch_size, learning_rate, patch_size,
-                 training_shuffle):
+                 training_shuffle, patience):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.encoder = encoder
         self.contrastive_dataset = contrastive_dataset
@@ -56,6 +56,7 @@ class PreTrainer:
         self.learning_rate = learning_rate
         self.patch_size = patch_size
         self.training_shuffle = training_shuffle
+        self.patience = patience
 
     def pre_train(self):
         contrastive_loss = ContrastiveLoss()
@@ -63,6 +64,8 @@ class PreTrainer:
         self.encoder.to(device=self.device, dtype=torch.float)
         num_patches = len(self.contrastive_dataset)
         num_patches_to_use = int(self.training_shuffle * num_patches)
+        no_improvement_counter = 0
+        best_loss = 5.0
 
         for epoch in range(self.num_epochs):
             indices = list(range(num_patches))
@@ -81,23 +84,28 @@ class PreTrainer:
                 loss.backward()
                 optimizer.step()
 
+            if loss.item() < best_loss:
+                best_loss = loss.item()
+                best_encoder_weights = (self.encoder.encoder_conv1.weight.data, self.encoder.encoder_conv2.weight.data,
+                                        self.encoder.encoder_conv3.weight.data, self.encoder.encoder_conv4.weight.data,
+                                        self.encoder.encoder_conv5.weight.data)
+                best_encoder_biases = (self.encoder.encoder_conv1.bias.data, self.encoder.encoder_conv2.bias.data,
+                                       self.encoder.encoder_conv3.bias.data, self.encoder.encoder_conv4.bias.data,
+                                       self.encoder.encoder_conv5.bias.data)
+                no_improvement_counter = 0
+            else:
+                no_improvement_counter += 1
+            if no_improvement_counter > self.patience:
+                print(f'Early stopping at epoch {epoch + 1}. Best loss: {best_loss}')
+                break
             wandb.log({
                 "Epoch": epoch + 1,
-                "Training Loss": loss.item()
+                "Training Loss": loss.item(),
+                "Best Loss": best_loss
             })
             print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.4f}')
-            if loss.item() < 0.4:
-                print(f"CONTRASTIVE LEARNING FINISHED, loss: {loss.item()}")
-                break
 
-        encoder_weights = (self.encoder.encoder_conv1.weight.data, self.encoder.encoder_conv2.weight.data,
-                           self.encoder.encoder_conv3.weight.data, self.encoder.encoder_conv4.weight.data,
-                           self.encoder.encoder_conv5.weight.data)
-        encoder_biases = (self.encoder.encoder_conv1.bias.data, self.encoder.encoder_conv2.bias.data,
-                          self.encoder.encoder_conv3.bias.data, self.encoder.encoder_conv4.bias.data,
-                          self.encoder.encoder_conv5.bias.data)
-
-        return encoder_weights, encoder_biases
+        return best_encoder_weights, best_encoder_biases
 
 
 def main(args):
@@ -123,7 +131,7 @@ def main(args):
     encoder = Encoder()
     pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset, num_epochs=args.num_epochs,
                              batch_size=args.batch_size, learning_rate=args.learning_rate, patch_size=args.patch_size,
-                             training_shuffle=args.training_shuffle)
+                             training_shuffle=args.training_shuffle, patience=args.patience)
     encoder_weights, encoder_biases = pre_trainer.pre_train()
     torch.save({'encoder_weights': encoder_weights, 'encoder_biases': encoder_biases},
                "pretrained_encoder/" + args.model_name)
