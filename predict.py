@@ -33,8 +33,13 @@ class Predictor:
 
         # Perform prediction
         img_data = img_data.to(device=self.device, dtype=torch.float)
+        label_data = label_data.to(device=self.device, dtype=torch.long)
         model.to(device=self.device, dtype=torch.float)
         predicted_arrays_list = []
+        true_positives = np.zeros(8)
+        false_positives = np.zeros(8)
+        false_negatives = np.zeros(8)
+        true_negatives = np.zeros(8)
 
         with torch.no_grad():
             step_size = 10
@@ -42,7 +47,23 @@ class Predictor:
                 predicted_output = model(img_data[i:i + step_size])
                 _, predicted = torch.max(predicted_output, dim=1)
                 predicted_arrays_list.append(predicted.cpu().numpy())
+                for class_idx in range(8):
+                    true_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
+                                                                   torch.eq(label_data[i:i + step_size],
+                                                                            class_idx)).sum().item()
+                    false_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
+                                                                    torch.ne(label_data[i:i + step_size],
+                                                                             class_idx)).sum().item()
+                    false_negatives[class_idx] += torch.logical_and(torch.ne(predicted, class_idx),
+                                                                    torch.eq(label_data[i:i + step_size],
+                                                                             class_idx)).sum().item()
+                    true_negatives[class_idx] += torch.logical_and(torch.ne(predicted, class_idx),
+                                                                   torch.ne(label_data[i:i + step_size],
+                                                                            class_idx)).sum().item()
 
+        dice_score = (2 * true_positives) / (2 * true_positives + false_negatives + false_positives)
+        dice_score_macro = np.mean(dice_score)
+        print(f"DICE SCORE (MACRO): {dice_score_macro}")
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
         prediction_mask = DataProcessor.undo_extract_patches_label_only(label_patches=combined_predicted_array,
                                                                         patch_size=self.patch_size,
