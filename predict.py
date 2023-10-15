@@ -15,9 +15,11 @@ class Predictor:
         self.patch_size = patch_size
 
     def predict(self):
+        # Load model
         model = UNet()
-        model.load_state_dict(torch.load(self.model_name))
+        model.load_state_dict(torch.load("trained_unet/" + self.model_name))
         model.eval()
+        print(f"FINISHED LOAD MODEL")
 
         # Load and preprocess the input image
         img_data, label_data, original_image_data, original_label_data = DataProcessor. \
@@ -27,6 +29,7 @@ class Predictor:
         label_data, _, _ = DataProcessor.preprocess_label_data(raw_data=label_data)
         img_data = torch.from_numpy(img_data)
         label_data = torch.from_numpy(label_data)
+        print(f"FINISHED LOAD & PREPROCESS INPUT IMAGE, img_data.shape: {img_data.shape}")
 
         # Perform prediction
         model.to(device=self.device, dtype=torch.float)
@@ -37,6 +40,7 @@ class Predictor:
         prediction_mask = DataProcessor.undo_extract_patches_label_only(label_patches=predicted,
                                                                         patch_size=self.patch_size,
                                                                         original_label_data=original_label_data)
+        print(f"FINISHED PERFORM PREDICTION")
 
         # Save the predicted mask as a NIfTI file
         output_nifti = nib.Nifti1Image(prediction_mask, affine=np.eye(4))
