@@ -195,7 +195,7 @@ def main(args):
     )
 
     # SUPERVISED LEARNING
-    if os.path.isfile('pretrained_encoder.pth'):
+    if os.path.isfile("pretrained_encoder/" + args.encoder_file_name):
         pretrained_encoder = torch.load('pretrained_encoder.pth')
         encoder_weights, encoder_biases = pretrained_encoder['encoder_weights'], pretrained_encoder['encoder_biases']
         print("Pre-trained encoder is LOADED")

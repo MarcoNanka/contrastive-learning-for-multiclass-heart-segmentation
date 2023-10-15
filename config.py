@@ -14,5 +14,7 @@ def parse_args():
     parser.add_argument("--patches_filter", type=int, help="Number of relevant voxels")
     parser.add_argument("--training_shuffle", type=float, help="Percentage of training patches used for each epoch")
     parser.add_argument("--model_name", type=str, help="Name under which encoder/UNET will be saved")
+    parser.add_argument("--encoder_file_name", type=str, help="Name of pre-trained encoder file which shall be used for"
+                                                              " supervised training")
     args = parser.parse_args()
     return args
