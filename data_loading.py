@@ -208,8 +208,9 @@ class MMWHSContrastiveDataset(Dataset):
         self.patch_size = patch_size
         self.removal_percentage = removal_percentage
         self.transform = Compose([
-            RandFlip(spatial_axis=0, prob=0.5),
             RandFlip(spatial_axis=1, prob=0.5),
+            RandFlip(spatial_axis=2, prob=0.5),
+            RandFlip(spatial_axis=3, prob=0.5),
             RandGaussianNoise(prob=0.5),
             RandGaussianSmooth(prob=0.5),
             ToTensor()
@@ -223,8 +224,7 @@ class MMWHSContrastiveDataset(Dataset):
         return len(self.x)
 
     def __getitem__(self, idx):
-        print(f"SHAPE self.x[idx]: {self.x[idx].shape}")
-        positive_pair = self.transform(self.x[idx]), self.transform(self.x[idx])
+        positive_pair = self.transform(self.x[idx]), self.transform(self.x[idx])  # self.x[idx].shape = (1,96^3)
         positive_label = torch.tensor(1.0)
 
         negative_idx = torch.randint(0, len(self.x), (1,)).item()
