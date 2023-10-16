@@ -122,7 +122,9 @@ def main(args):
             "num_epochs": args.num_epochs,
             "batch_size": args.batch_size,
             "learning_rate": args.learning_rate,
-            "patch_size": args.patch_size
+            "patch_size": args.patch_size,
+            "patience": args.patience,
+            "is_contrastive": True
         }
     )
 

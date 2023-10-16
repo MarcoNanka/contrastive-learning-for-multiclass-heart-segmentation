@@ -205,7 +205,9 @@ def main(args):
             "training_shuffle": args.training_shuffle,
             "patches_filter": args.patches_filter,
             "mean": dataset.mean,
-            "std_dev": dataset.std_dev
+            "std_dev": dataset.std_dev,
+            "patience": args.patience,
+            "is_contrastive": False
         }
     )
 
