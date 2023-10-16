@@ -127,7 +127,7 @@ def main(args):
             "learning_rate": args.learning_rate,
             "patch_size": args.patch_size,
             "patience": args.patience,
-            "training type": "BASELINE",
+            "training type": "CONTRASTIVE",
             "image_type": image_type,
             "filter": args.removal_percentage
         }
