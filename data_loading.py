@@ -223,6 +223,7 @@ class MMWHSContrastiveDataset(Dataset):
         return len(self.x)
 
     def __getitem__(self, idx):
+        print(f"SHAPE self.x[idx]: {self.x[idx].shape}")
         positive_pair = self.transform(self.x[idx]), self.transform(self.x[idx])
         positive_label = torch.tensor(1.0)
 
