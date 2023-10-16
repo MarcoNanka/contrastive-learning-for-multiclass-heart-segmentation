@@ -150,7 +150,7 @@ class Trainer:
                     "Epoch": epoch + 1,
                     "Validation Loss": validation_loss,
                     "Validation Dice": dice_score_macro,
-                    "Best Validation Dice": best_dice_score,
+                    "Best (baseline: dice, contrastive: loss)": best_dice_score,
                     "slice50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 49],
                                            masks={
                                                     "predictions": {
@@ -190,6 +190,9 @@ def main(args):
     validation_dataset = MMWHSDataset(folder_path=args.val_folder_path, is_validation_dataset=True,
                                       patches_filter=args.patches_filter, mean=dataset.mean, std_dev=dataset.std_dev,
                                       patch_size=args.patch_size)
+    image_type = "CT"
+    if "mr" in args.folder_path:
+        image_type = "MRI"
 
     # SET UP WEIGHTS & BIASES
     wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
@@ -207,7 +210,8 @@ def main(args):
             "mean": dataset.mean,
             "std_dev": dataset.std_dev,
             "patience": args.patience,
-            "is_contrastive": False
+            "is_contrastive": False,
+            "image_type": image_type
         }
     )
 

@@ -101,7 +101,7 @@ class PreTrainer:
             wandb.log({
                 "Epoch": epoch + 1,
                 "Training Loss": loss.item(),
-                "Best Loss": best_loss
+                "Best (baseline: dice, contrastive: loss)": best_loss
             })
             print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.4f}')
 
@@ -112,6 +112,9 @@ def main(args):
     # DATA LOADING
     contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.contrastive_folder_path, patch_size=args.patch_size,
                                                   removal_percentage=args.removal_percentage)
+    image_type = "CT"
+    if "mr" in args.contrastive_folder_path:
+        image_type = "MRI"
 
     # SET UP WEIGHTS & BIASES
     wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
@@ -124,7 +127,8 @@ def main(args):
             "learning_rate": args.learning_rate,
             "patch_size": args.patch_size,
             "patience": args.patience,
-            "is_contrastive": True
+            "is_contrastive": True,
+            "image_type": image_type
         }
     )
 
