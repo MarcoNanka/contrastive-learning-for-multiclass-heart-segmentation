@@ -128,7 +128,8 @@ def main(args):
             "patch_size": args.patch_size,
             "patience": args.patience,
             "training type": "BASELINE",
-            "image_type": image_type
+            "image_type": image_type,
+            "filter": args.removal_percentage
         }
     )
 
