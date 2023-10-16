@@ -74,7 +74,7 @@ class Predictor:
         print(f"FINISHED PERFORM PREDICTION")
 
         # Save the predicted mask as a NIfTI file
-        label_values = np.array([0., 205., 420., 500., 550., 600., 620., 850.])
+        label_values = np.array([0., 205., 420., 500., 550., 600., 820., 850.])
         prediction_mask = np.where(prediction_mask == 0, label_values[0], prediction_mask)
         prediction_mask = np.where(prediction_mask == 1, label_values[1], prediction_mask)
         prediction_mask = np.where(prediction_mask == 2, label_values[2], prediction_mask)
