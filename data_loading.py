@@ -208,9 +208,9 @@ class MMWHSContrastiveDataset(Dataset):
         self.patch_size = patch_size
         self.removal_percentage = removal_percentage
         self.transform = Compose([
+            RandFlip(spatial_axis=0, prob=0.5),
             RandFlip(spatial_axis=1, prob=0.5),
             RandFlip(spatial_axis=2, prob=0.5),
-            RandFlip(spatial_axis=3, prob=0.5),
             RandGaussianNoise(prob=0.5),
             RandGaussianSmooth(prob=0.5),
             ToTensor()
