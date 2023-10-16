@@ -210,7 +210,7 @@ def main(args):
             "mean": dataset.mean,
             "std_dev": dataset.std_dev,
             "patience": args.patience,
-            "is_contrastive": False,
+            "training type": "CONTRASTIVE",
             "image_type": image_type
         }
     )
