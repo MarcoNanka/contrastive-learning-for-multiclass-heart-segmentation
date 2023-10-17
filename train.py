@@ -212,7 +212,8 @@ def main(args):
             "patience": args.patience,
             "training type": "BASELINE",
             "image_type": image_type,
-            "model_name": args.model_name
+            "model_name": args.model_name,
+            "folder_path": args.folder_path
         }
     )
 

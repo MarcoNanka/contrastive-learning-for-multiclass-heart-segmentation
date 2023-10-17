@@ -130,7 +130,8 @@ def main(args):
             "training type": "CONTRASTIVE",
             "image_type": image_type,
             "filter": args.removal_percentage,
-            "model_name": args.model_name
+            "model_name": args.model_name,
+            "folder_path": args.contrastive_folder_path
         }
     )
 
