@@ -78,13 +78,9 @@ class DataProcessor:
         label_data = np.pad(label_data, ((0, pad_x), (0, pad_y), (0, pad_z)), mode='constant', constant_values=0)
         if image_type == "MRI":
             image_data = np.pad(image_data, ((0, pad_x), (0, pad_y), (0, pad_z)), mode='constant', constant_values=0)
-            x = image_type == "MRI"
-            print(f"image_type == \"MRI\": {x}, MRI")
         else:
             image_data = np.pad(image_data, ((0, pad_x), (0, pad_y), (0, pad_z)), mode='constant',
                                 constant_values=-3022)
-            x = image_type == "MRI"
-            print(f"image_type == \"MRI\": {x}, CT")
 
         for x in range(0, image_data.shape[0], patch_size[0]):
             for y in range(0, image_data.shape[1], patch_size[1]):
