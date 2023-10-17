@@ -110,11 +110,11 @@ class PreTrainer:
 
 def main(args):
     # DATA LOADING
-    contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.contrastive_folder_path, patch_size=args.patch_size,
-                                                  removal_percentage=args.removal_percentage)
     image_type = "CT"
     if "mr" in args.contrastive_folder_path:
         image_type = "MRI"
+    contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.contrastive_folder_path, patch_size=args.patch_size,
+                                                  removal_percentage=args.removal_percentage, image_type=image_type)
 
     # SET UP WEIGHTS & BIASES
     wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")

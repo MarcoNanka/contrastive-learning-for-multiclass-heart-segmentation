@@ -185,14 +185,14 @@ class Trainer:
 
 def main(args):
     # LOAD DATASETS
-    dataset = MMWHSDataset(folder_path=args.folder_path, is_validation_dataset=False,
-                           patches_filter=args.patches_filter, patch_size=args.patch_size)
-    validation_dataset = MMWHSDataset(folder_path=args.val_folder_path, is_validation_dataset=True,
-                                      patches_filter=args.patches_filter, mean=dataset.mean, std_dev=dataset.std_dev,
-                                      patch_size=args.patch_size)
     image_type = "CT"
     if "mr" in args.folder_path:
         image_type = "MRI"
+    dataset = MMWHSDataset(folder_path=args.folder_path, is_validation_dataset=False,
+                           patches_filter=args.patches_filter, patch_size=args.patch_size, image_type=image_type)
+    validation_dataset = MMWHSDataset(folder_path=args.val_folder_path, is_validation_dataset=True,
+                                      patches_filter=args.patches_filter, mean=dataset.mean, std_dev=dataset.std_dev,
+                                      patch_size=args.patch_size, image_type=image_type)
 
     # SET UP WEIGHTS & BIASES
     wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")

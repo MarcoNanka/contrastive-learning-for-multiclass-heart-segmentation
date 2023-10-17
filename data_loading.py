@@ -61,8 +61,8 @@ class DataProcessor:
 
     @staticmethod
     def extract_patches(image_data: np.ndarray, label_data: np.ndarray, patch_size: Tuple[int, int, int],
-                        is_validation_dataset: bool, patches_filter: int, is_contrastive_dataset: bool) -> \
-            Tuple[np.ndarray, np.ndarray]:
+                        is_validation_dataset: bool, patches_filter: int, is_contrastive_dataset: bool,
+                        image_type: str) -> Tuple[np.ndarray, np.ndarray]:
         """
         Extract patches from the given image data.
         """
@@ -75,8 +75,12 @@ class DataProcessor:
         pad_x = 0 if mod_x == 0 else patch_size[0] - mod_x
         pad_y = 0 if mod_y == 0 else patch_size[1] - mod_y
         pad_z = 0 if mod_z == 0 else patch_size[2] - mod_z
-        image_data = np.pad(image_data, ((0, pad_x), (0, pad_y), (0, pad_z)), mode='constant')
-        label_data = np.pad(label_data, ((0, pad_x), (0, pad_y), (0, pad_z)), mode='constant')
+        label_data = np.pad(label_data, ((0, pad_x), (0, pad_y), (0, pad_z)), mode='constant', constant_values=0)
+        if image_type is "mr":
+            image_data = np.pad(image_data, ((0, pad_x), (0, pad_y), (0, pad_z)), mode='constant', constant_values=0)
+        else:
+            image_data = np.pad(image_data, ((0, pad_x), (0, pad_y), (0, pad_z)), mode='constant',
+                                constant_values=-3022)
 
         for x in range(0, image_data.shape[0], patch_size[0]):
             for y in range(0, image_data.shape[1], patch_size[1]):
@@ -101,7 +105,7 @@ class DataProcessor:
 
     @staticmethod
     def create_training_data_array(path_list: list, is_validation_dataset: bool, patch_size: Tuple[int, int, int],
-                                   patches_filter: int, is_contrastive_dataset: bool) -> \
+                                   patches_filter: int, is_contrastive_dataset: bool, image_type: str) -> \
             tuple[ndarray, ndarray, ndarray, ndarray]:
         """
         Create the training data array from the given list of paths.
@@ -120,7 +124,8 @@ class DataProcessor:
                                                                    patch_size=patch_size,
                                                                    is_validation_dataset=is_validation_dataset,
                                                                    patches_filter=patches_filter,
-                                                                   is_contrastive_dataset=is_contrastive_dataset)
+                                                                   is_contrastive_dataset=is_contrastive_dataset,
+                                                                   image_type=image_type)
             patches_images.append(image_data)
             patches_labels.append(label_data)
 
@@ -131,7 +136,7 @@ class DataProcessor:
 
     @staticmethod
     def get_training_data_from_system(folder_path: str, is_validation_dataset: bool, patch_size: Tuple[int, int, int],
-                                      patches_filter: int, is_contrastive_dataset: bool = False) -> \
+                                      patches_filter: int, image_type: str, is_contrastive_dataset: bool = False) -> \
             Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Load the training data from the file system.
@@ -142,9 +147,9 @@ class DataProcessor:
 
         return DataProcessor.create_training_data_array(path_list=image_path_names,
                                                         is_validation_dataset=is_validation_dataset,
-                                                        patch_size=patch_size,
-                                                        patches_filter=patches_filter,
-                                                        is_contrastive_dataset=is_contrastive_dataset)
+                                                        patch_size=patch_size, patches_filter=patches_filter,
+                                                        is_contrastive_dataset=is_contrastive_dataset,
+                                                        image_type=image_type)
 
 
 class MMWHSDataset(Dataset):
@@ -153,7 +158,7 @@ class MMWHSDataset(Dataset):
     """
 
     def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], is_validation_dataset: bool,
-                 patches_filter: int, mean: Optional[float] = None,
+                 patches_filter: int, image_type: str, mean: Optional[float] = None,
                  std_dev: Optional[float] = None) -> None:
         """
         Initialize the MMWHSDataset for supervised learning.
@@ -162,6 +167,7 @@ class MMWHSDataset(Dataset):
         self.patch_size = patch_size
         self.is_validation_dataset = is_validation_dataset
         self.patches_filter = patches_filter
+        self.image_type = image_type
         self.mean = mean
         self.std_dev = std_dev
         self.x, self.y, self.num_classes, self.label_values, self.original_image_data, self.original_label_data, \
@@ -186,7 +192,7 @@ class MMWHSDataset(Dataset):
         img_data, label_data, original_image_data, original_label_data = DataProcessor. \
             get_training_data_from_system(folder_path=self.folder_path,
                                           is_validation_dataset=self.is_validation_dataset, patch_size=self.patch_size,
-                                          patches_filter=self.patches_filter)
+                                          patches_filter=self.patches_filter, image_type=self.image_type)
         img_data, mean, std_dev = DataProcessor.normalize_z_score_data(raw_data=img_data, is_validation_dataset=self.
                                                                        is_validation_dataset, mean=self.mean,
                                                                        std_dev=self.std_dev)
@@ -200,13 +206,14 @@ class MMWHSContrastiveDataset(Dataset):
         Custom PyTorch Dataset for loading MM-WHS contrastive learning dataset.
     """
 
-    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], removal_percentage: float):
+    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], removal_percentage: float, image_type: str):
         """
             Initialize the MMWHSDataset for contrastive learning.
             """
         self.folder_path = folder_path
         self.patch_size = patch_size
         self.removal_percentage = removal_percentage
+        self.image_type = image_type
         self.transform = Compose([
             RandFlip(spatial_axis=0, prob=0.5),
             RandFlip(spatial_axis=1, prob=0.5),
@@ -243,10 +250,9 @@ class MMWHSContrastiveDataset(Dataset):
         Load and preprocess the dataset.
         """
         img_data, _, original_image_data, _ = DataProcessor. \
-            get_training_data_from_system(folder_path=self.folder_path,
-                                          is_validation_dataset=False, patch_size=self.patch_size,
-                                          patches_filter=0,
-                                          is_contrastive_dataset=True)
+            get_training_data_from_system(folder_path=self.folder_path, is_validation_dataset=False,
+                                          patch_size=self.patch_size, patches_filter=0, is_contrastive_dataset=True,
+                                          image_type=self.image_type)
 
         # REMOVE (seemingly) IRRELEVANT PATCHES
         print(f"SHAPE OF UNFILTERED IMG_DATA: {img_data.shape}, MEAN: {np.mean(img_data)}")
