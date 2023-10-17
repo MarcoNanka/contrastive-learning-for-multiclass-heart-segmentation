@@ -129,7 +129,8 @@ def main(args):
             "patience": args.patience,
             "training type": "CONTRASTIVE",
             "image_type": image_type,
-            "filter": args.removal_percentage
+            "filter": args.removal_percentage,
+            "model_name": args.model_name
         }
     )
 

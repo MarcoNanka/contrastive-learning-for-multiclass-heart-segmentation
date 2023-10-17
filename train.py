@@ -211,7 +211,8 @@ def main(args):
             "std_dev": dataset.std_dev,
             "patience": args.patience,
             "training type": "BASELINE",
-            "image_type": image_type
+            "image_type": image_type,
+            "model_name": args.model_name
         }
     )
 
