@@ -143,7 +143,7 @@ class Trainer:
                     no_improvement_counter = 0  # Reset the counter since there's an improvement
                 else:
                     no_improvement_counter += 1
-                if no_improvement_counter > self.patience and epoch > 50:
+                if no_improvement_counter > self.patience:
                     print(f'Early stopping at epoch {epoch + 1}. Best Validation Dice Score: {best_dice_score}')
                     break
                 wandb.log({
@@ -179,7 +179,7 @@ class Trainer:
                 print(f'True positives: {tp}')
                 print()
 
-        # self.model.load_state_dict(best_model_state)
+        self.model.load_state_dict(best_model_state)
         torch.save(self.model.state_dict(), "trained_unet/" + self.model_name)
 
 
