@@ -94,8 +94,9 @@ def main(args):
     image_type = "CT"
     if "mr" in args.image_path:
         image_type = "MRI"
+    print(f"image type: {image_type}")
     predictor = Predictor(model_name=args.model_name, image_path=args.image_path, patch_size=args.patch_size,
-                          output_mask_name=args.output_mask_name, mean=-366.8, std_dev=916.6,
+                          output_mask_name=args.output_mask_name, mean=args.mean, std_dev=args.std_dev,
                           image_type=image_type)
     predictor.predict()
 
