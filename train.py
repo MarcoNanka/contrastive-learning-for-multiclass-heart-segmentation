@@ -179,7 +179,7 @@ class Trainer:
                 print(f'True positives: {tp}')
                 print()
 
-        self.model.load_state_dict(best_model_state)
+        # self.model.load_state_dict(best_model_state)
         torch.save(self.model.state_dict(), "trained_unet/" + self.model_name)
 
 
