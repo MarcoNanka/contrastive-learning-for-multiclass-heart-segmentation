@@ -33,7 +33,6 @@ class DataProcessor:
             std_dev = float(np.std(raw_data))
 
         normalized_data = (raw_data - mean) / std_dev
-        print(f"mean, std_dev: {mean, std_dev}")
         return normalized_data, mean, std_dev
 
     @staticmethod

@@ -46,7 +46,7 @@ class Predictor:
         true_negatives = np.zeros(8)
 
         with torch.no_grad():
-            step_size = 10
+            step_size = 14
             for i in range(0, img_data.shape[0], step_size):
                 predicted_output = model(img_data[i:i + step_size])
                 _, predicted = torch.max(predicted_output, dim=1)
@@ -94,7 +94,6 @@ def main(args):
     image_type = "CT"
     if "mr" in args.image_path:
         image_type = "MRI"
-    print(f"image type: {image_type}")
     predictor = Predictor(model_name=args.model_name, image_path=args.image_path, patch_size=args.patch_size,
                           output_mask_name=args.output_mask_name, mean=args.mean, std_dev=args.std_dev,
                           image_type=image_type)
