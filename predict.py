@@ -7,7 +7,7 @@ from config import parse_args
 
 
 class Predictor:
-    def __init__(self, model_name, image_path, patch_size, output_mask_name, mean, std_dev):
+    def __init__(self, model_name, image_path, patch_size, output_mask_name, mean, std_dev, image_type):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model_name = model_name
         self.image_path = image_path
@@ -15,6 +15,7 @@ class Predictor:
         self.patch_size = patch_size
         self.mean = mean
         self.std_dev = std_dev
+        self.image_type = image_type
 
     def predict(self):
         # Load model
@@ -26,7 +27,7 @@ class Predictor:
         # Load and preprocess the input image
         img_data, label_data, original_image_data, original_label_data = DataProcessor. \
             get_training_data_from_system(folder_path=self.image_path, is_validation_dataset=True,
-                                          patch_size=self.patch_size, patches_filter=0)
+                                          patch_size=self.patch_size, patches_filter=0, image_type=self.image_type)
         img_data, _, _ = DataProcessor.normalize_z_score_data(raw_data=img_data, is_validation_dataset=True,
                                                               mean=self.mean, std_dev=self.std_dev)
         label_data, _, _ = DataProcessor.preprocess_label_data(raw_data=label_data)
@@ -90,8 +91,12 @@ class Predictor:
 
 
 def main(args):
+    image_type = "CT"
+    if "mr" in args.image_path:
+        image_type = "MRI"
     predictor = Predictor(model_name=args.model_name, image_path=args.image_path, patch_size=args.patch_size,
-                          output_mask_name=args.output_mask_name, mean=args.mean, std_dev=args.std_dev)
+                          output_mask_name=args.output_mask_name, mean=args.mean, std_dev=args.std_dev,
+                          image_type=image_type)
     predictor.predict()
 
 
