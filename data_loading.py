@@ -111,7 +111,7 @@ class DataProcessor:
             posterior_anterior = image_data.shape[0] if image_type == "MRI" else image_data.shape[1]
             remainder = posterior_anterior % patch_size[2]
 
-            for i in range(0 + np.int(remainder/2), posterior_anterior - np.int((remainder+1)/2), patch_size[2]):
+            for i in range(0 + int(remainder/2), posterior_anterior - int((remainder+1)/2), patch_size[2]):
                 if image_type == "MRI":
                     img_patch = image_data[i: i + patch_size[2], :, :]
                 else:
