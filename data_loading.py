@@ -66,40 +66,60 @@ class DataProcessor:
         """
         Extract patches from the given image data.
         """
-        image_patches = []
-        label_patches = []
-        dim_x, dim_y, dim_z = image_data.shape
-        mod_x = dim_x % patch_size[0]
-        mod_y = dim_y % patch_size[1]
-        mod_z = dim_z % patch_size[2]
-        pad_x = 0 if mod_x == 0 else patch_size[0] - mod_x
-        pad_y = 0 if mod_y == 0 else patch_size[1] - mod_y
-        pad_z = 0 if mod_z == 0 else patch_size[2] - mod_z
-        label_data = np.pad(label_data, ((0, pad_x), (0, pad_y), (0, pad_z)), mode='constant', constant_values=0)
-        if image_type == "MRI":
-            image_data = np.pad(image_data, ((0, pad_x), (0, pad_y), (0, pad_z)), mode='constant', constant_values=0)
-        else:
-            image_data = np.pad(image_data, ((0, pad_x), (0, pad_y), (0, pad_z)), mode='constant',
-                                constant_values=-3022)
+        if patch_size[0] > 0:
+            image_patches = []
+            label_patches = []
+            dim_x, dim_y, dim_z = image_data.shape
+            mod_x = dim_x % patch_size[0]
+            mod_y = dim_y % patch_size[1]
+            mod_z = dim_z % patch_size[2]
+            pad_x = 0 if mod_x == 0 else patch_size[0] - mod_x
+            pad_y = 0 if mod_y == 0 else patch_size[1] - mod_y
+            pad_z = 0 if mod_z == 0 else patch_size[2] - mod_z
+            label_data = np.pad(label_data, ((0, pad_x), (0, pad_y), (0, pad_z)), mode='constant', constant_values=0)
+            if image_type == "MRI":
+                image_data = np.pad(image_data, ((0, pad_x), (0, pad_y), (0, pad_z)), mode='constant',
+                                    constant_values=0)
+            else:
+                image_data = np.pad(image_data, ((0, pad_x), (0, pad_y), (0, pad_z)), mode='constant',
+                                    constant_values=-3022)
 
-        for x in range(0, image_data.shape[0], patch_size[0]):
-            for y in range(0, image_data.shape[1], patch_size[1]):
-                for z in range(0, image_data.shape[2], patch_size[2]):
-                    img_patch = image_data[x: x + patch_size[0], y: y + patch_size[1],
-                                           z: z + patch_size[2]]
-                    img_patch = np.expand_dims(img_patch, axis=0)
-                    if not is_contrastive_dataset:
-                        label_patch = label_data[x: x + patch_size[0], y: y + patch_size[1],
-                                                 z: z + patch_size[2]]
-                        label_patch = np.expand_dims(label_patch, axis=0)
-                    else:
-                        label_patch = np.empty((0, 0, 0))
-                    unique, counts = np.unique(label_patch, return_counts=True)
-                    counts_descending = -np.sort(-counts)
-                    if is_validation_dataset or is_contrastive_dataset or unique[0] != 0 or \
-                            (len(unique) > 1 and counts_descending[1] >= patches_filter):
-                        image_patches.append(img_patch)
-                        label_patches.append(label_patch)
+            for x in range(0, image_data.shape[0], patch_size[0]):
+                for y in range(0, image_data.shape[1], patch_size[1]):
+                    for z in range(0, image_data.shape[2], patch_size[2]):
+                        img_patch = image_data[x: x + patch_size[0], y: y + patch_size[1],
+                                               z: z + patch_size[2]]
+                        img_patch = np.expand_dims(img_patch, axis=0)
+                        if not is_contrastive_dataset:
+                            label_patch = label_data[x: x + patch_size[0], y: y + patch_size[1],
+                                                     z: z + patch_size[2]]
+                            label_patch = np.expand_dims(label_patch, axis=0)
+                        else:
+                            label_patch = np.empty((0, 0, 0))
+                        unique, counts = np.unique(label_patch, return_counts=True)
+                        counts_descending = -np.sort(-counts)
+                        if is_validation_dataset or is_contrastive_dataset or unique[0] != 0 or \
+                                (len(unique) > 1 and counts_descending[1] >= patches_filter):
+                            image_patches.append(img_patch)
+                            label_patches.append(label_patch)
+
+        else:
+            image_patches = []
+            label_patches = []
+            # CT: (right -> left, posterior -> anterior, inferior -> superior)
+            # MRI: (anterior -> posterior, inferior -> superior, left -> right)
+            posterior_anterior = image_data.shape[0] if image_type == "MRI" else image_data.shape[1]
+            remainder = posterior_anterior % patch_size[2]
+
+            for i in range(0 + np.floor(remainder/2), posterior_anterior - np.floor((remainder+1)/2), patch_size[2]):
+                if image_type == "MRI":
+                    img_patch = image_data[i: i + patch_size[2], :, :]
+                else:
+                    img_patch = image_data[:, i: i + patch_size[2], :]
+                img_patch = np.expand_dims(img_patch, axis=0)
+                label_patch = np.empty((0, 0, 0))
+                image_patches.append(img_patch)
+                label_patches.append(label_patch)
 
         return np.array(image_patches), np.array(label_patches)
 
@@ -114,7 +134,6 @@ class DataProcessor:
         patches_labels = []
         for path in path_list:
             image_data = np.array(nib.load(path).get_fdata())
-            print(f"image_data.shape: {image_data.shape}")
             original_image_data = image_data
             if not is_contrastive_dataset:
                 label_data = np.array(nib.load(path.replace('image', 'label')).get_fdata())
