@@ -114,6 +114,7 @@ class DataProcessor:
         patches_labels = []
         for path in path_list:
             image_data = np.array(nib.load(path).get_fdata())
+            print(f"image_data.shape: {image_data.shape}")
             original_image_data = image_data
             if not is_contrastive_dataset:
                 label_data = np.array(nib.load(path.replace('image', 'label')).get_fdata())
