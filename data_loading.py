@@ -284,17 +284,20 @@ class MMWHSContrastiveDataset(Dataset):
                     remove_from_end = arr.shape[4] - 120 - remove_from_start
                     img_data[idx] = arr[:, :, :, :, remove_from_start:arr.shape[4] - remove_from_end]
             else:
+                under200 = 0
+                under230 = 0
                 under250 = 0
-                over250under300 = 0
-                over300 = 0
+                under300 = 0
                 for idx, arr in enumerate(img_data):
-                    if arr.shape[4] >= 300:
-                        over300 += 1
+                    if arr.shape[4] < 200:
+                        under200 += 1
+                    elif arr.shape[4] < 230:
+                        under230 += 1
                     elif arr.shape[4] < 250:
                         under250 += 1
                     else:
-                        over250under300 += 1
-                print(f"{under250, over250under300, over300}")
+                        under300 += 1
+                print(f"{under200, under230, under250, under300}")
         for i in img_data:
             print(f"SHAPE: {i.shape}")
         img_data = np.concatenate(img_data, axis=0)
