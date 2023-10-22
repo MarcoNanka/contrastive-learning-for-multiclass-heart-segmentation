@@ -278,11 +278,9 @@ class MMWHSContrastiveDataset(Dataset):
         if self.image_type == "MRI":
             img_data = [arr for arr in img_data if (arr.shape[3] == 512 and arr.shape[4] >= 120)]
             for idx, arr in enumerate(img_data):
-                target_length = 120
-                remove_from_start = int((arr.shape[4] - target_length) / 2)
-                remove_from_end = int(arr.shape[4] - target_length - remove_from_start)
+                remove_from_start = (arr.shape[4] - 120) // 2
+                remove_from_end = arr.shape[4] - 120 - remove_from_start
                 img_data[idx] = arr[:, :, :, :, remove_from_start:arr.shape[4] - remove_from_end]
-                print(img_data[idx].shape)
         for i in img_data:
             print(f"SHAPE: {i.shape}")
         img_data = np.concatenate(img_data, axis=0)
