@@ -278,18 +278,15 @@ class MMWHSContrastiveDataset(Dataset):
         # TODO: Clear separation between local and domain-specific contrastive loss
         if self.patch_size[0] == 0:
             if self.image_type == "MRI":
-                img_data = [arr for arr in img_data if (arr.shape[3] == 512 and arr.shape[4] >= 120)]
-                for idx, arr in enumerate(img_data):
-                    remove_from_start = (arr.shape[4] - 120) // 2
-                    remove_from_end = arr.shape[4] - 120 - remove_from_start
-                    img_data[idx] = arr[:, :, :, :, remove_from_start:arr.shape[4] - remove_from_end]
+                target_val = 120
+                img_data = [arr for arr in img_data if (arr.shape[3] == 512 and arr.shape[4] >= target_val)]
             else:
-                img_data = [arr for arr in img_data if (arr.shape[4] >= 230)]
-                for idx, arr in enumerate(img_data):
-                    target_length = 230
-                    remove_from_start = (arr.shape[4] - target_length) // 2
-                    remove_from_end = arr.shape[4] - target_length - remove_from_start
-                    img_data[idx] = arr[:, :, :, :, remove_from_start:arr.shape[4] - remove_from_end]
+                target_val = 230
+                img_data = [arr for arr in img_data if (arr.shape[4] >= target_val)]
+            for idx, arr in enumerate(img_data):
+                remove_from_start = (arr.shape[4] - target_val) // 2
+                remove_from_end = arr.shape[4] - target_val - remove_from_start
+                img_data[idx] = arr[:, :, :, :, remove_from_start:arr.shape[4] - remove_from_end]
         for i in img_data:
             print(f"SHAPE: {i.shape}")
         img_data = np.concatenate(img_data, axis=0)
