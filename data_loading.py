@@ -279,7 +279,7 @@ class MMWHSContrastiveDataset(Dataset):
                                           patch_size=self.patch_size, patches_filter=0, is_contrastive_dataset=True,
                                           image_type=self.image_type)
         for i in img_data:
-            print(f"img_data[{i}].shape: {img_data[i].shape}")
+            print(f"img_data[{i}].shape: {i.shape}")
         img_data = np.concatenate(img_data, axis=0)
         print(f"contrastive! -> shape of patches array: {img_data.shape}")
 
