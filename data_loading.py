@@ -112,7 +112,7 @@ class DataProcessor:
             remainder = posterior_anterior % patch_size[2]
 
             for i in range(0 + int(remainder / 2), posterior_anterior - int((remainder + 1) / 2), patch_size[2]):
-                if image_type == "MRI" and image_data[1] == 512:
+                if image_type == "MRI" and image_data.shape[1] == 512:
                     img_patch = image_data[i: i + patch_size[2], :, :]
                 elif image_type == "CT":
                     img_patch = image_data[:, i: i + patch_size[2], :]
