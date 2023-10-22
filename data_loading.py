@@ -276,7 +276,12 @@ class MMWHSContrastiveDataset(Dataset):
                                           patch_size=self.patch_size, patches_filter=0, is_contrastive_dataset=True,
                                           image_type=self.image_type)
         if self.image_type == "MRI":
-            img_data = [arr for arr in img_data if arr.shape[3] == 512]
+            img_data = [arr for arr in img_data if (arr.shape[3] == 512 and arr.shape[4] >= 120)]
+            for arr in img_data:
+                target_length = 120
+                remove_from_start = (arr.shape[4] - target_length) / 2
+                remove_from_end = arr.shape[4] - target_length - remove_from_start
+                arr = arr[remove_from_start:arr.shape[4] - remove_from_end]
         for i in img_data:
             print(f"SHAPE: {i.shape}")
         img_data = np.concatenate(img_data, axis=0)
