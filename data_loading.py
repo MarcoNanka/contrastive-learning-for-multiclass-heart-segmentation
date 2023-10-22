@@ -142,15 +142,12 @@ class DataProcessor:
                 original_label_data = label_data
             else:
                 label_data = original_label_data = np.empty((0, 0, 0))
-            print(f"NEW IMAGE")
-            print(f"image_data.shape: {image_data.shape}")
             image_data, label_data = DataProcessor.extract_patches(image_data=image_data, label_data=label_data,
                                                                    patch_size=patch_size,
                                                                    is_validation_dataset=is_validation_dataset,
                                                                    patches_filter=patches_filter,
                                                                    is_contrastive_dataset=is_contrastive_dataset,
                                                                    image_type=image_type)
-            print(f"image_data.shape: {image_data.shape}")
             patches_images.append(image_data)
             patches_labels.append(label_data)
 
@@ -278,8 +275,10 @@ class MMWHSContrastiveDataset(Dataset):
             get_training_data_from_system(folder_path=self.folder_path, is_validation_dataset=False,
                                           patch_size=self.patch_size, patches_filter=0, is_contrastive_dataset=True,
                                           image_type=self.image_type)
-        for idx, i in enumerate(img_data):
-            print(f"SHAPE {idx}: {i.shape}")
+        if self.image_type == "MRI":
+            img_data = [arr for arr in img_data if arr.shape[3] == 512]
+        for i in img_data:
+            print(f"SHAPE: {i.shape}")
         img_data = np.concatenate(img_data, axis=0)
         print(f"contrastive! -> shape of patches array: {img_data.shape}")
 
