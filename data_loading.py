@@ -275,12 +275,16 @@ class MMWHSContrastiveDataset(Dataset):
             get_training_data_from_system(folder_path=self.folder_path, is_validation_dataset=False,
                                           patch_size=self.patch_size, patches_filter=0, is_contrastive_dataset=True,
                                           image_type=self.image_type)
-        if self.image_type == "MRI":
-            img_data = [arr for arr in img_data if (arr.shape[3] == 512 and arr.shape[4] >= 120)]
-            for idx, arr in enumerate(img_data):
-                remove_from_start = (arr.shape[4] - 120) // 2
-                remove_from_end = arr.shape[4] - 120 - remove_from_start
-                img_data[idx] = arr[:, :, :, :, remove_from_start:arr.shape[4] - remove_from_end]
+        # TODO: Clear separation between local and domain-specific contrastive loss
+        if self.patch_size[0] == 0:
+            if self.image_type == "MRI":
+                img_data = [arr for arr in img_data if (arr.shape[3] == 512 and arr.shape[4] >= 120)]
+                for idx, arr in enumerate(img_data):
+                    remove_from_start = (arr.shape[4] - 120) // 2
+                    remove_from_end = arr.shape[4] - 120 - remove_from_start
+                    img_data[idx] = arr[:, :, :, :, remove_from_start:arr.shape[4] - remove_from_end]
+            else:
+                print("CT")
         for i in img_data:
             print(f"SHAPE: {i.shape}")
         img_data = np.concatenate(img_data, axis=0)
