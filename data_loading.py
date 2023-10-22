@@ -279,8 +279,8 @@ class MMWHSContrastiveDataset(Dataset):
             img_data = [arr for arr in img_data if (arr.shape[3] == 512 and arr.shape[4] >= 120)]
             for arr in img_data:
                 target_length = 120
-                remove_from_start = (arr.shape[4] - target_length) / 2
-                remove_from_end = arr.shape[4] - target_length - remove_from_start
+                remove_from_start = int((arr.shape[4] - target_length) / 2)
+                remove_from_end = int(arr.shape[4] - target_length - remove_from_start)
                 arr = arr[:, :, :, :, remove_from_start:arr.shape[4] - remove_from_end]
                 print(arr.shape)
         for i in img_data:
