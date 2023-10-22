@@ -111,11 +111,13 @@ class DataProcessor:
             posterior_anterior = image_data.shape[0] if image_type == "MRI" else image_data.shape[1]
             remainder = posterior_anterior % patch_size[2]
 
-            for i in range(0 + int(remainder/2), posterior_anterior - int((remainder+1)/2), patch_size[2]):
-                if image_type == "MRI":
+            for i in range(0 + int(remainder / 2), posterior_anterior - int((remainder + 1) / 2), patch_size[2]):
+                if image_type == "MRI" and patch_size[1] == 512:
                     img_patch = image_data[i: i + patch_size[2], :, :]
-                else:
+                elif image_type == "CT":
                     img_patch = image_data[:, i: i + patch_size[2], :]
+                else:
+                    img_patch = np.zeros((1, 1, 1))
                 img_patch = np.expand_dims(img_patch, axis=0)
                 label_patch = np.empty((0, 0, 0))
                 image_patches.append(img_patch)
@@ -126,7 +128,7 @@ class DataProcessor:
     @staticmethod
     def create_training_data_array(path_list: list, is_validation_dataset: bool, patch_size: Tuple[int, int, int],
                                    patches_filter: int, is_contrastive_dataset: bool, image_type: str) -> \
-            tuple[ndarray, ndarray, ndarray, ndarray]:
+            tuple[list[ndarray], list[ndarray], ndarray, ndarray]:
         """
         Create the training data array from the given list of paths.
         """
@@ -152,15 +154,12 @@ class DataProcessor:
             patches_images.append(image_data)
             patches_labels.append(label_data)
 
-        patches_images = np.concatenate(patches_images, axis=0)
-        patches_labels = np.concatenate(patches_labels, axis=0)
-        print(f"is validation: {is_validation_dataset} -> shape of patches array: {patches_images.shape}")
         return patches_images, patches_labels, original_image_data, original_label_data
 
     @staticmethod
     def get_training_data_from_system(folder_path: str, is_validation_dataset: bool, patch_size: Tuple[int, int, int],
                                       patches_filter: int, image_type: str, is_contrastive_dataset: bool = False) -> \
-            Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+            Tuple[list[ndarray], list[ndarray], np.ndarray, np.ndarray]:
         """
         Load the training data from the file system.
         """
@@ -216,6 +215,9 @@ class MMWHSDataset(Dataset):
             get_training_data_from_system(folder_path=self.folder_path,
                                           is_validation_dataset=self.is_validation_dataset, patch_size=self.patch_size,
                                           patches_filter=self.patches_filter, image_type=self.image_type)
+        img_data = np.concatenate(img_data, axis=0)
+        label_data = np.concatenate(label_data, axis=0)
+        print(f"is validation: {self.is_validation_dataset} -> shape of patches array: {img_data.shape}")
         img_data, mean, std_dev = DataProcessor.normalize_z_score_data(raw_data=img_data, is_validation_dataset=self.
                                                                        is_validation_dataset, mean=self.mean,
                                                                        std_dev=self.std_dev)
@@ -276,6 +278,10 @@ class MMWHSContrastiveDataset(Dataset):
             get_training_data_from_system(folder_path=self.folder_path, is_validation_dataset=False,
                                           patch_size=self.patch_size, patches_filter=0, is_contrastive_dataset=True,
                                           image_type=self.image_type)
+        for i in img_data:
+            print(f"img_data[{i}].shape: {img_data[i].shape}")
+        img_data = np.concatenate(img_data, axis=0)
+        print(f"contrastive! -> shape of patches array: {img_data.shape}")
 
         # REMOVE (seemingly) IRRELEVANT PATCHES
         print(f"SHAPE OF UNFILTERED IMG_DATA: {img_data.shape}, MEAN: {np.mean(img_data)}")
