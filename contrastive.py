@@ -156,6 +156,8 @@ def main(args):
     if args.contrastive_type == "local" and os.path.isfile("pretrained_encoder/" + args.encoder_file_name):
         pretrained_encoder = torch.load('pretrained_encoder.pth')
         encoder_weights, encoder_biases = pretrained_encoder['encoder_weights'], pretrained_encoder['encoder_biases']
+        print(f"len(encoder_weights): {len(encoder_weights)}")
+        print(f"encoder_weights.shape: {encoder_weights.shape}")
         print("Pre-trained encoder is LOADED")
     else:
         encoder_weights, encoder_biases = None, None
