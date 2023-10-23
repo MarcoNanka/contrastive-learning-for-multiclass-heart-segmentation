@@ -111,7 +111,7 @@ class DataProcessor:
             posterior_anterior = image_data.shape[0] if image_type == "MRI" else image_data.shape[1]
             remainder = posterior_anterior % patch_size[2]
 
-            for i in range(0 + int(remainder / 2), posterior_anterior - int((remainder + 1) / 2), patch_size[2]):
+            for i in range(0 + remainder // 2, posterior_anterior - (remainder + 1) // 2, patch_size[2]):
                 if image_type == "MRI" and image_data.shape[1] == 512:
                     img_patch = image_data[i: i + patch_size[2], :, :]
                 elif image_type == "CT":
@@ -353,7 +353,6 @@ class MMWHSDomainContrastiveDataset(Dataset):
             get_training_data_from_system(folder_path=self.folder_path, is_validation_dataset=False,
                                           patch_size=self.patch_size, patches_filter=0, is_contrastive_dataset=True,
                                           image_type=self.image_type)
-        print(len(img_data))
         if self.image_type == "MRI":
             target_val = 120
             img_data = [arr for arr in img_data if (arr.shape[3] == 512 and arr.shape[4] >= target_val)]

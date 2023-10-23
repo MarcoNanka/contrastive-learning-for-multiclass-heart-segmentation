@@ -75,6 +75,7 @@ class PreTrainer:
             contrastive_dataloader = DataLoader(self.contrastive_dataset, batch_size=self.batch_size, shuffle=False,
                                                 sampler=torch.utils.data.SubsetRandomSampler(selected_indices))
             for batch in contrastive_dataloader:
+                print(f"BATCH LOOP, epoch: {epoch}")
                 pairs, labels = batch
                 x1, x2 = pairs
                 x1, x2 = x1.to(device=self.device, dtype=torch.float), x2.to(device=self.device, dtype=torch.float)
