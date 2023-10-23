@@ -225,8 +225,7 @@ def main(args):
     else:
         encoder_weights, encoder_biases = None, None
         print("Pre-trained encoder does NOT EXIST")
-    model = UNet(in_channels=dataset.x.shape[1], num_classes=dataset.num_classes, encoder_weights=encoder_weights,
-                 encoder_biases=encoder_biases)
+    model = UNet(encoder_weights=encoder_weights, encoder_biases=encoder_biases)
     trainer = Trainer(model=model, dataset=dataset, num_epochs=args.num_epochs, batch_size=args.batch_size,
                       learning_rate=args.learning_rate, validation_dataset=validation_dataset,
                       validation_interval=args.validation_interval, training_shuffle=args.training_shuffle,

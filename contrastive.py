@@ -153,14 +153,22 @@ def main(args):
     )
 
     # CONTRASTIVE LEARNING
-    encoder = LocalEncoder() if args.contrastive_type == "local" else DomainEncoder()
+    if args.contrastive_type == "local" and os.path.isfile("pretrained_encoder/" + args.encoder_file_name):
+        pretrained_encoder = torch.load('pretrained_encoder.pth')
+        encoder_weights, encoder_biases = pretrained_encoder['encoder_weights'], pretrained_encoder['encoder_biases']
+        print("Pre-trained encoder is LOADED")
+    else:
+        encoder_weights, encoder_biases = None, None
+        print("Pre-trained encoder does NOT EXIST")
+    encoder = LocalEncoder(encoder_weights=encoder_weights, encoder_biases=encoder_biases) if \
+        args.contrastive_type == "local" else DomainEncoder()
     pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset, num_epochs=args.num_epochs,
                              batch_size=args.batch_size, learning_rate=args.learning_rate, patch_size=args.patch_size,
                              training_shuffle=args.training_shuffle, patience=args.patience,
                              contrastive_type=args.contrastive_type)
     encoder_weights, encoder_biases = pre_trainer.pre_train()
-    torch.save({'encoder_weights': encoder_weights, 'encoder_biases': encoder_biases},
-               "pretrained_encoder/" + args.model_name)
+    save_path = f"pretrained_encoder/{'local' if args.contrastive_type == 'local' else 'domain'}/{args.model_name}"
+    torch.save({'encoder_weights': encoder_weights, 'encoder_biases': encoder_biases}, save_path)
 
 
 if __name__ == "__main__":

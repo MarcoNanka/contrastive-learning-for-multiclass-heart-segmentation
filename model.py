@@ -3,14 +3,14 @@ from torch import nn
 
 
 class UNet(nn.Module):
-    def __init__(self, in_channels=1, num_classes=8, encoder_weights: tuple = None, encoder_biases: tuple = None):
+    def __init__(self, encoder_weights: tuple = None, encoder_biases: tuple = None):
         """
         U-Net model for semantic segmentation.
         """
         super(UNet, self).__init__()
 
         # Contracting path: Increasing features, reducing spatial dimensions
-        self.encoder_conv1 = nn.Conv3d(in_channels=in_channels, out_channels=16, kernel_size=3, padding=1)
+        self.encoder_conv1 = nn.Conv3d(in_channels=1, out_channels=16, kernel_size=3, padding=1)
         self.encoder_conv2 = nn.Conv3d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
         self.encoder_conv3 = nn.Conv3d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
         self.encoder_conv4 = nn.Conv3d(in_channels=64, out_channels=128, kernel_size=3, padding=1)
@@ -18,21 +18,11 @@ class UNet(nn.Module):
         self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
 
         if encoder_weights is not None and encoder_biases is not None:
-            encoder_conv1_weights, encoder_conv2_weights, encoder_conv3_weights, encoder_conv4_weights, \
-                encoder_conv5_weights = encoder_weights
-            encoder_conv1_biases, encoder_conv2_biases, encoder_conv3_biases, encoder_conv4_biases, \
-                encoder_conv5_biases = encoder_biases
-
-            self.encoder_conv1.weight = nn.Parameter(encoder_conv1_weights)
-            self.encoder_conv1.bias = nn.Parameter(encoder_conv1_biases)
-            self.encoder_conv2.weight = nn.Parameter(encoder_conv2_weights)
-            self.encoder_conv2.bias = nn.Parameter(encoder_conv2_biases)
-            self.encoder_conv3.weight = nn.Parameter(encoder_conv3_weights)
-            self.encoder_conv3.bias = nn.Parameter(encoder_conv3_biases)
-            self.encoder_conv4.weight = nn.Parameter(encoder_conv4_weights)
-            self.encoder_conv4.bias = nn.Parameter(encoder_conv4_biases)
-            self.encoder_conv5.weight = nn.Parameter(encoder_conv5_weights)
-            self.encoder_conv5.bias = nn.Parameter(encoder_conv5_biases)
+            encoder_layers = [self.encoder_conv1, self.encoder_conv2, self.encoder_conv3, self.encoder_conv4,
+                              self.encoder_conv5]
+            for layer, (weights, biases) in zip(encoder_layers, zip(encoder_weights, encoder_biases)):
+                layer.weight = nn.Parameter(weights)
+                layer.bias = nn.Parameter(biases)
 
         # Expanding path: Decreasing features, increasing spatial dimensions
         self.upconv1 = nn.ConvTranspose3d(in_channels=256, out_channels=128, kernel_size=2, stride=2)
@@ -43,7 +33,7 @@ class UNet(nn.Module):
         self.decoder_conv2 = nn.Conv3d(in_channels=128, out_channels=64, kernel_size=3, padding=1)
         self.decoder_conv3 = nn.Conv3d(in_channels=64, out_channels=32, kernel_size=3, padding=1)
         self.decoder_conv4 = nn.Conv3d(in_channels=32, out_channels=16, kernel_size=3, padding=1)
-        self.decoder_conv5 = nn.Conv3d(in_channels=16, out_channels=num_classes, kernel_size=1)
+        self.decoder_conv5 = nn.Conv3d(in_channels=16, out_channels=8, kernel_size=1)
 
         self.relu = nn.ReLU()
 
@@ -87,15 +77,21 @@ class UNet(nn.Module):
 
 
 class LocalEncoder(nn.Module):
-    def __init__(self, in_channels=1):
+    def __init__(self, encoder_weights: tuple = None, encoder_biases: tuple = None):
         super(LocalEncoder, self).__init__()
-        self.encoder_conv1 = nn.Conv3d(in_channels=in_channels, out_channels=16, kernel_size=3, padding=1)
+        self.encoder_conv1 = nn.Conv3d(in_channels=1, out_channels=16, kernel_size=3, padding=1)
         self.encoder_conv2 = nn.Conv3d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
         self.encoder_conv3 = nn.Conv3d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
         self.encoder_conv4 = nn.Conv3d(in_channels=64, out_channels=128, kernel_size=3, padding=1)
         self.encoder_conv5 = nn.Conv3d(in_channels=128, out_channels=256, kernel_size=3, padding=1)
         self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
         self.relu = nn.ReLU()
+
+        if encoder_weights is not None and encoder_biases is not None:
+            encoder_layers = [self.encoder_conv1, self.encoder_conv2, self.encoder_conv3, self.encoder_conv4]
+            for idx, (weights, biases) in enumerate(zip(encoder_weights, encoder_biases)):
+                encoder_layers[idx].weight = nn.Parameter(weights)
+                encoder_layers[idx].bias = nn.Parameter(biases)
 
     def forward(self, x):
         x1 = self.relu(self.encoder_conv1(x))  # 2, 16, 96, 96, 96
@@ -111,9 +107,9 @@ class LocalEncoder(nn.Module):
 
 
 class DomainEncoder(nn.Module):
-    def __init__(self, in_channels=1):
+    def __init__(self):
         super(DomainEncoder, self).__init__()
-        self.encoder_conv1 = nn.Conv3d(in_channels=in_channels, out_channels=16, kernel_size=3, padding=1)
+        self.encoder_conv1 = nn.Conv3d(in_channels=1, out_channels=16, kernel_size=3, padding=1)
         self.encoder_conv2 = nn.Conv3d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
         self.encoder_conv3 = nn.Conv3d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
         self.encoder_conv4 = nn.Conv3d(in_channels=64, out_channels=128, kernel_size=3, padding=1)
