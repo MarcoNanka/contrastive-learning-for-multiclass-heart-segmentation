@@ -303,14 +303,14 @@ class MMWHSDomainContrastiveDataset(Dataset):
         self.folder_path = folder_path
         self.patch_size = patch_size
         self.image_type = image_type
-        # self.transform = Compose([
-        #     RandFlip(spatial_axis=0, prob=0.5),
-        #     RandFlip(spatial_axis=1, prob=0.5),
-        #     RandFlip(spatial_axis=2, prob=0.5),
-        #     RandGaussianNoise(prob=0.5),
-        #     RandGaussianSmooth(prob=0.5),
-        #     ToTensor()
-        # ])
+        self.transform = Compose([
+            RandFlip(spatial_axis=0, prob=0.5),
+            RandFlip(spatial_axis=1, prob=0.5),
+            RandFlip(spatial_axis=2, prob=0.5),
+            RandGaussianNoise(prob=0.5),
+            RandGaussianSmooth(prob=0.5),
+            ToTensor()
+        ])
         self.x, self.original_image_data = self.load_data()
 
     def __len__(self):
@@ -330,14 +330,15 @@ class MMWHSDomainContrastiveDataset(Dataset):
         random_other_image_idx = torch.randint(0, number_of_partitions, (1,)).item()
         while random_other_image_idx == partition_idx:
             random_other_image_idx = torch.randint(0, number_of_partitions, (1,)).item()
-        positive_pair = self.x[idx], self.x[idx_position + 85*random_other_image_idx]
+        positive_pair = self.transform(self.x[idx]), self.transform(self.x[idx_position + 85*random_other_image_idx])
         positive_label = torch.tensor(1.0)
 
         # NEGATIVE PAIR
         negative_idx_position = torch.randint(0, 85, (1,)).item()
         while abs(negative_idx_position - idx_position) <= 25:
             negative_idx_position = torch.randint(0, 85, (1,)).item()
-        negative_pair = self.x[idx], self.x[negative_idx_position + 85 * random_other_image_idx]
+        negative_pair = self.transform(self.x[idx]), \
+            self.transform(self.x[negative_idx_position + 85 * random_other_image_idx])
         negative_label = torch.tensor(0.0)
 
         if torch.rand(1).item() > 0.5:
