@@ -353,6 +353,7 @@ class MMWHSDomainContrastiveDataset(Dataset):
             get_training_data_from_system(folder_path=self.folder_path, is_validation_dataset=False,
                                           patch_size=self.patch_size, patches_filter=0, is_contrastive_dataset=True,
                                           image_type=self.image_type)
+        print(img_data.shape)
         if self.image_type == "MRI":
             target_val = 120
             img_data = [arr for arr in img_data if (arr.shape[3] == 512 and arr.shape[4] >= target_val)]
