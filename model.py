@@ -90,6 +90,7 @@ class LocalEncoder(nn.Module):
         if encoder_weights is not None and encoder_biases is not None:
             encoder_layers = [self.encoder_conv1, self.encoder_conv2, self.encoder_conv3, self.encoder_conv4]
             for idx, (weights, biases) in enumerate(zip(encoder_weights, encoder_biases)):
+                print(f"idx: {idx}")
                 encoder_layers[idx].weight = nn.Parameter(weights)
                 encoder_layers[idx].bias = nn.Parameter(biases)
 
