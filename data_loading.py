@@ -334,9 +334,9 @@ class MMWHSDomainContrastiveDataset(Dataset):
         positive_label = torch.tensor(1.0)
 
         # NEGATIVE PAIR
-        negative_idx_position = torch.randint(0, number_of_partitions, (1,)).item()
+        negative_idx_position = torch.randint(0, 85, (1,)).item()
         while abs(negative_idx_position - idx_position) <= 25:
-            negative_idx_position = torch.randint(0, number_of_partitions, (1,)).item()
+            negative_idx_position = torch.randint(0, 85, (1,)).item()
         negative_pair = self.x[idx], self.x[negative_idx_position + 85 * random_other_image_idx]
         negative_label = torch.tensor(0.0)
 
