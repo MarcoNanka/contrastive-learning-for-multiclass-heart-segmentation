@@ -3,8 +3,8 @@ from torch import nn
 from torch.utils.data import DataLoader
 import torch.optim as optim
 import wandb
-from model import Encoder
-from data_loading import MMWHSContrastiveDataset
+from model import LocalEncoder, DomainEncoder
+from data_loading import MMWHSLocalContrastiveDataset, MMWHSDomainContrastiveDataset
 from config import parse_args
 import os
 import random
@@ -47,7 +47,7 @@ class ContrastiveLoss(nn.Module):
 
 class PreTrainer:
     def __init__(self, encoder, contrastive_dataset, num_epochs, batch_size, learning_rate, patch_size,
-                 training_shuffle, patience):
+                 training_shuffle, patience, contrastive_type):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.encoder = encoder
         self.contrastive_dataset = contrastive_dataset
@@ -57,6 +57,7 @@ class PreTrainer:
         self.patch_size = patch_size
         self.training_shuffle = training_shuffle
         self.patience = patience
+        self.contrastive_type = contrastive_type
 
     def pre_train(self):
         contrastive_loss = ContrastiveLoss()
@@ -64,11 +65,11 @@ class PreTrainer:
         self.encoder.to(device=self.device, dtype=torch.float)
         num_patches = len(self.contrastive_dataset)
         num_patches_to_use = int(self.training_shuffle * num_patches)
+        indices = list(range(num_patches))
         no_improvement_counter = 0
         best_loss = 5.0
 
         for epoch in range(self.num_epochs):
-            indices = list(range(num_patches))
             random.shuffle(indices)
             selected_indices = indices[:num_patches_to_use]
             contrastive_dataloader = DataLoader(self.contrastive_dataset, batch_size=self.batch_size, shuffle=False,
@@ -86,12 +87,17 @@ class PreTrainer:
 
             if loss.item() < best_loss:
                 best_loss = loss.item()
-                best_encoder_weights = (self.encoder.encoder_conv1.weight.data, self.encoder.encoder_conv2.weight.data,
-                                        self.encoder.encoder_conv3.weight.data, self.encoder.encoder_conv4.weight.data,
-                                        self.encoder.encoder_conv5.weight.data)
-                best_encoder_biases = (self.encoder.encoder_conv1.bias.data, self.encoder.encoder_conv2.bias.data,
-                                       self.encoder.encoder_conv3.bias.data, self.encoder.encoder_conv4.bias.data,
-                                       self.encoder.encoder_conv5.bias.data)
+                selected_layers = (self.encoder.encoder_conv1, self.encoder.encoder_conv2,
+                                   self.encoder.encoder_conv3, self.encoder.encoder_conv4)
+
+                best_encoder_weights = tuple(layer.weight.data for layer in selected_layers) + (
+                    self.encoder.encoder_conv5.weight.data,) if self.contrastive_type == "local" else tuple(
+                    layer.weight.data for layer in selected_layers)
+
+                best_encoder_biases = tuple(layer.bias.data for layer in selected_layers) + (
+                    self.encoder.encoder_conv5.bias.data,) if self.contrastive_type == "local" else tuple(
+                    layer.bias.data for layer in selected_layers)
+
                 no_improvement_counter = 0
             else:
                 no_improvement_counter += 1
@@ -113,8 +119,17 @@ def main(args):
     image_type = "CT"
     if "mr" in args.contrastive_folder_path:
         image_type = "MRI"
-    contrastive_dataset = MMWHSContrastiveDataset(folder_path=args.contrastive_folder_path, patch_size=args.patch_size,
-                                                  removal_percentage=args.removal_percentage, image_type=image_type)
+    if args.contrastive_type == "local":
+        contrastive_dataset = MMWHSLocalContrastiveDataset(folder_path=args.contrastive_folder_path,
+                                                           patch_size=args.patch_size,
+                                                           removal_percentage=args.removal_percentage,
+                                                           image_type=image_type)
+    elif args.contrastive_type == "domain":
+        contrastive_dataset = MMWHSDomainContrastiveDataset(folder_path=args.contrastive_folder_path,
+                                                            patch_size=args.patch_size,
+                                                            image_type=image_type)
+    else:
+        raise ValueError(f"{args.contrastive_type} must be domain or local")
 
     # SET UP WEIGHTS & BIASES
     wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
@@ -128,6 +143,7 @@ def main(args):
             "patch_size": args.patch_size,
             "patience": args.patience,
             "training type": "CONTRASTIVE",
+            "contrastive type": args.contrastive_type,
             "image_type": image_type,
             "filter": args.removal_percentage,
             "model_name": args.model_name,
@@ -136,10 +152,11 @@ def main(args):
     )
 
     # CONTRASTIVE LEARNING
-    encoder = Encoder()
+    encoder = LocalEncoder() if args.contrastive_type == "local" else DomainEncoder()
     pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset, num_epochs=args.num_epochs,
                              batch_size=args.batch_size, learning_rate=args.learning_rate, patch_size=args.patch_size,
-                             training_shuffle=args.training_shuffle, patience=args.patience)
+                             training_shuffle=args.training_shuffle, patience=args.patience,
+                             contrastive_type=args.contrastive_type)
     encoder_weights, encoder_biases = pre_trainer.pre_train()
     torch.save({'encoder_weights': encoder_weights, 'encoder_biases': encoder_biases},
                "pretrained_encoder/" + args.model_name)

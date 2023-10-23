@@ -86,9 +86,9 @@ class UNet(nn.Module):
         return output
 
 
-class Encoder(nn.Module):
+class LocalEncoder(nn.Module):
     def __init__(self, in_channels=1):
-        super(Encoder, self).__init__()
+        super(LocalEncoder, self).__init__()
         self.encoder_conv1 = nn.Conv3d(in_channels=in_channels, out_channels=16, kernel_size=3, padding=1)
         self.encoder_conv2 = nn.Conv3d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
         self.encoder_conv3 = nn.Conv3d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
@@ -108,3 +108,24 @@ class Encoder(nn.Module):
         x5 = self.pool(x4)  # 2, 128, 6, 6, 6
         x5 = self.relu(self.encoder_conv5(x5))  # 2, 256, 6, 6, 6
         return x5
+
+
+class DomainEncoder(nn.Module):
+    def __init__(self, in_channels=1):
+        super(DomainEncoder, self).__init__()
+        self.encoder_conv1 = nn.Conv3d(in_channels=in_channels, out_channels=16, kernel_size=3, padding=1)
+        self.encoder_conv2 = nn.Conv3d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
+        self.encoder_conv3 = nn.Conv3d(in_channels=32, out_channels=64, kernel_size=3, padding=1)
+        self.encoder_conv4 = nn.Conv3d(in_channels=64, out_channels=128, kernel_size=3, padding=1)
+        self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x1 = self.relu(self.encoder_conv1(x))  # 2, 16, 96, 96, 96
+        x2 = self.pool(x1)  # 2, 16, 48, 48, 48
+        x2 = self.relu(self.encoder_conv2(x2))  # 2, 32, 48, 48, 48
+        x3 = self.pool(x2)  # 2, 32, 24, 24, 24
+        x3 = self.relu(self.encoder_conv3(x3))  # 2, 64, 24, 24, 24
+        x4 = self.pool(x3)  # 2, 64, 12, 12, 12
+        x4 = self.relu(self.encoder_conv4(x4))  # 2, 128, 12, 12, 12
+        return x4

@@ -23,5 +23,6 @@ def parse_args():
     parser.add_argument("--patience", type=int, help="Threshold which determines when to early-stop training")
     parser.add_argument("--removal_percentage", type=float, help="Determines what percentage of patches (with lowest "
                                                                  "mean) should be removed from contrastive dataset")
+    parser.add_argument("--contrastive_type", type=str, help="Determines if domain-specific or local")
     args = parser.parse_args()
     return args

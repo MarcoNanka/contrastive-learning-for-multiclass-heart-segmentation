@@ -223,9 +223,9 @@ class MMWHSDataset(Dataset):
             original_image_data, original_label_data, mean, std_dev
 
 
-class MMWHSContrastiveDataset(Dataset):
+class MMWHSLocalContrastiveDataset(Dataset):
     """
-        Custom PyTorch Dataset for loading MM-WHS contrastive learning dataset.
+        Custom PyTorch Dataset for loading MM-WHS local contrastive learning dataset.
     """
 
     def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], removal_percentage: float, image_type: str):
@@ -275,24 +275,8 @@ class MMWHSContrastiveDataset(Dataset):
             get_training_data_from_system(folder_path=self.folder_path, is_validation_dataset=False,
                                           patch_size=self.patch_size, patches_filter=0, is_contrastive_dataset=True,
                                           image_type=self.image_type)
-        # TODO: Clear separation between local and domain-specific contrastive loss
-        if self.patch_size[0] == 0:
-            if self.image_type == "MRI":
-                target_val = 120
-                img_data = [arr for arr in img_data if (arr.shape[3] == 512 and arr.shape[4] >= target_val)]
-            else:
-                target_val = 230
-                img_data = [arr for arr in img_data if (arr.shape[4] >= target_val)]
-            for idx, arr in enumerate(img_data):
-                remove_from_start = (arr.shape[4] - target_val) // 2
-                remove_from_end = arr.shape[4] - target_val - remove_from_start
-                img_data[idx] = arr[:, :, :, :, remove_from_start:arr.shape[4] - remove_from_end]
-        for i in img_data:
-            print(f"SHAPE: {i.shape}")
         img_data = np.concatenate(img_data, axis=0)
-        print(f"contrastive! -> shape of patches array: {img_data.shape}")
 
-        # REMOVE (seemingly) IRRELEVANT PATCHES
         print(f"SHAPE OF UNFILTERED IMG_DATA: {img_data.shape}, MEAN: {np.mean(img_data)}")
         mean_intensity_per_patch = np.mean(img_data, axis=(1, 2, 3, 4))
         num_patches_to_remove = int(self.removal_percentage * len(mean_intensity_per_patch))
@@ -305,3 +289,83 @@ class MMWHSContrastiveDataset(Dataset):
         for idx, _ in enumerate(img_data):
             torch.from_numpy(img_data[idx])
         return img_data, original_image_data, mean, std_dev
+
+
+class MMWHSDomainContrastiveDataset(Dataset):
+    """
+        Custom PyTorch Dataset for loading MM-WHS domain-specific contrastive learning dataset.
+    """
+
+    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], image_type: str):
+        """
+            Initialize the MMWHSDataset for contrastive learning.
+            """
+        self.folder_path = folder_path
+        self.patch_size = patch_size
+        self.image_type = image_type
+        # self.transform = Compose([
+        #     RandFlip(spatial_axis=0, prob=0.5),
+        #     RandFlip(spatial_axis=1, prob=0.5),
+        #     RandFlip(spatial_axis=2, prob=0.5),
+        #     RandGaussianNoise(prob=0.5),
+        #     RandGaussianSmooth(prob=0.5),
+        #     ToTensor()
+        # ])
+        self.x, self.original_image_data = self.load_data()
+
+    def __len__(self):
+        """
+        Get the number of samples in the dataset.
+        """
+        return len(self.x)
+
+    def __getitem__(self, idx):
+        number_of_partitions = self.x.shape[0] // 85
+        partition_idx = idx // 85
+        idx_position = idx
+        while idx_position >= 85:
+            idx_position -= 85
+
+        # POSITIVE PAIR
+        random_other_image_idx = torch.randint(0, number_of_partitions, (1,)).item()
+        while random_other_image_idx == partition_idx:
+            random_other_image_idx = torch.randint(0, number_of_partitions, (1,)).item()
+        positive_pair = self.x[idx], self.x[idx_position + 85*random_other_image_idx]
+        positive_label = torch.tensor(1.0)
+
+        # NEGATIVE PAIR
+        negative_idx_position = torch.randint(0, number_of_partitions, (1,)).item()
+        while abs(negative_idx_position - idx_position) <= 25:
+            negative_idx_position = torch.randint(0, number_of_partitions, (1,)).item()
+        negative_pair = self.x[idx], self.x[negative_idx_position + 85 * random_other_image_idx]
+        negative_label = torch.tensor(0.0)
+
+        if torch.rand(1).item() > 0.5:
+            return positive_pair, positive_label
+        else:
+            return negative_pair, negative_label
+
+    def load_data(self):
+        """
+        Load and preprocess the dataset.
+        """
+        img_data, _, original_image_data, _ = DataProcessor. \
+            get_training_data_from_system(folder_path=self.folder_path, is_validation_dataset=False,
+                                          patch_size=self.patch_size, patches_filter=0, is_contrastive_dataset=True,
+                                          image_type=self.image_type)
+        if self.image_type == "MRI":
+            target_val = 120
+            img_data = [arr for arr in img_data if (arr.shape[3] == 512 and arr.shape[4] >= target_val)]
+        else:
+            target_val = 230
+            img_data = [arr for arr in img_data if (arr.shape[4] >= target_val)]
+        for idx, arr in enumerate(img_data):
+            remove_from_start = (arr.shape[4] - target_val) // 2
+            remove_from_end = arr.shape[4] - target_val - remove_from_start
+            img_data[idx] = arr[:, :, :, :, remove_from_start:arr.shape[4] - remove_from_end]
+        img_data = np.concatenate(img_data, axis=0)
+        print(f"DOMAIN CONTRASTIVE, SHAPE OF DATA: {img_data.shape}")
+
+        for idx, _ in enumerate(img_data):
+            torch.from_numpy(img_data[idx])
+        return img_data, original_image_data
