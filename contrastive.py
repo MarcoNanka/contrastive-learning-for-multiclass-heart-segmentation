@@ -21,11 +21,13 @@ class ContrastiveLoss(nn.Module):
         self.temperature = temperature
 
     def forward(self, x1, x2, labels):
-        # print(f"Min x1: {torch.min(x1).item()}, max x1: {torch.max(x1).item()}")
+        print(f"Min x1: {torch.min(x1).item()}, max x1: {torch.max(x1).item()}")
+        print(x1.shape, x2.shape)
         x1_normalized = torch.nn.functional.normalize(x1, dim=1)
-        # print(f"Min x1_normalized: {torch.min(x1_normalized).item()}, max x1_normalized: "
-        #       f"{torch.max(x1_normalized).item()}")
         x2_normalized = torch.nn.functional.normalize(x2, dim=1)
+        print(f"Min x1_normalized: {torch.min(x1_normalized).item()}, max x1_normalized: "
+              f"{torch.max(x1_normalized).item()}")
+        print({x1_normalized.shape, x2_normalized.shape})
         similarities = nn.functional.cosine_similarity(x1_normalized, x2_normalized, dim=1) / self.temperature
         similarities = torch.clamp(similarities, min=-1, max=1)
         # print(f"similarities.shape: {similarities.shape}, min: {torch.min(similarities).item()}, "
