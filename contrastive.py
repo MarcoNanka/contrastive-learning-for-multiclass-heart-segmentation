@@ -46,19 +46,12 @@ class DistanceAdjustedContrastiveLoss(nn.Module):
         similarities = nn.functional.cosine_similarity(x1, x2, dim=1) / self.temperature
         similarities = torch.clamp(similarities, min=-1, max=1)
 
-        normalized_distances = distances / 84
-
-        weights = 1 - normalized_distances  # Higher distance, lower weight
-
-        # Apply weights to the similarities
-        print(f"similarities.shape: {similarities.shape}, weights.shape: {weights.shape}")
-        weighted_similarity = torch.zeros_like(similarities)
-        for idx, _ in enumerate(weights):
-            weighted_similarity[idx] = similarities[idx] * weights[idx]
-        print(f"weighted_similarity: {weighted_similarity.shape}")
-
-        # Calculate the loss as the mean squared error between weighted similarity and 1 (max similarity)
-        loss = nn.functional.mse_loss(weighted_similarity, torch.ones_like(weighted_similarity))
+        weights = 1 - (distances / ((512 // self.patch_size[2]) - 1))  # low distance, high weight
+        loss = 0
+        print(f"distances, weights: {distances, weights}")
+        for i in range(similarities.size(0)):
+            loss += nn.functional.mse_loss(similarities[i], torch.ones_like(similarities)*weights[i])
+            print(f"i, LOSS: {i, loss}")
 
         return loss
 
