@@ -34,7 +34,6 @@ class ContrastiveLoss(nn.Module):
             torch.tensor(0.0, device=x1.device)
 
         loss = positive_loss + negative_loss
-        print(loss, positive_loss, negative_loss)
         return loss
 
 
@@ -52,8 +51,9 @@ class DistanceAdjustedContrastiveLoss(nn.Module):
         losses = []
         print(f"distances, weights: {distances, weights}")
         for i in range(similarities.size(0)):
-            current_loss = nn.functional.mse_loss(similarities[i], torch.full_like(similarities, fill_value=weights[i]))
-            losses.append(current_loss.item())
+            current_loss = nn.functional.mse_loss(similarities[i],
+                                                  torch.full_like(similarities[i], fill_value=weights[i]))
+            losses.append(current_loss)
             print(f"Iteration {i}, LOSS: {current_loss.item()}")
 
         loss = sum(losses) / len(losses)
