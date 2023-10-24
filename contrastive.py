@@ -23,7 +23,7 @@ class ContrastiveLoss(nn.Module):
     def forward(self, x1, x2, labels):
         x1_normalized = torch.nn.functional.normalize(x1, dim=1)
         x2_normalized = torch.nn.functional.normalize(x2, dim=1)
-        similarities = nn.functional.cosine_similarity(x1_normalized, x2_normalized, dim=1) / self.temperature
+        similarities = nn.functional.cosine_similarity(x1_normalized, x2_normalized, dim=1) / 1
         similarities = torch.clamp(similarities, min=-1, max=1)
 
         positive_pairs = similarities[labels == 1]
