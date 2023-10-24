@@ -296,13 +296,14 @@ class MMWHSDomainContrastiveDataset(Dataset):
         Custom PyTorch Dataset for loading MM-WHS domain-specific contrastive learning dataset.
     """
 
-    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], image_type: str):
+    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], image_type: str, is_distance_adjusted: bool):
         """
             Initialize the MMWHSDataset for contrastive learning.
             """
         self.folder_path = folder_path
         self.patch_size = patch_size
         self.image_type = image_type
+        self.is_distance_adjusted = is_distance_adjusted
         self.transform = Compose([
             RandFlip(spatial_axis=0, prob=0.5),
             RandFlip(spatial_axis=1, prob=0.5),
@@ -311,7 +312,7 @@ class MMWHSDomainContrastiveDataset(Dataset):
             RandGaussianSmooth(prob=0.5),
             ToTensor()
         ])
-        self.x, self.original_image_data = self.load_data()
+        self.x, self.number_of_images, self.original_image_data = self.load_data()
 
     def __len__(self):
         """
@@ -320,16 +321,16 @@ class MMWHSDomainContrastiveDataset(Dataset):
         return len(self.x)
 
     def __getitem__(self, idx):
-        number_of_partitions = self.x.shape[0] // 85
-        partition_idx = idx // 85
+        print(f"IS DISTANCE ADJUSTED? {self.is_distance_adjusted}")
+        image_idx = idx // 85
         idx_position = idx
         while idx_position >= 85:
             idx_position -= 85
 
         # POSITIVE PAIR
-        random_other_image_idx = torch.randint(0, number_of_partitions, (1,)).item()
-        while random_other_image_idx == partition_idx:
-            random_other_image_idx = torch.randint(0, number_of_partitions, (1,)).item()
+        random_other_image_idx = torch.randint(0, self.number_of_images, (1,)).item()
+        while random_other_image_idx == image_idx:
+            random_other_image_idx = torch.randint(0, self.number_of_images, (1,)).item()
         positive_pair = self.transform(self.x[idx]), self.transform(self.x[idx_position + 85*random_other_image_idx])
         positive_label = torch.tensor(1.0)
 
@@ -369,4 +370,4 @@ class MMWHSDomainContrastiveDataset(Dataset):
 
         for idx, _ in enumerate(img_data):
             torch.from_numpy(img_data[idx])
-        return img_data, original_image_data
+        return img_data, img_data.shape[0] // 85, original_image_data

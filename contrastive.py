@@ -124,10 +124,11 @@ def main(args):
                                                            patch_size=args.patch_size,
                                                            removal_percentage=args.removal_percentage,
                                                            image_type=image_type)
-    elif args.contrastive_type == "domain":
+    elif "domain" in args.contrastive_type:
         contrastive_dataset = MMWHSDomainContrastiveDataset(folder_path=args.contrastive_folder_path,
                                                             patch_size=args.patch_size,
-                                                            image_type=image_type)
+                                                            image_type=image_type,
+                                                            is_distance_adjusted=(args.contrastive_type != "domain"))
     else:
         raise ValueError(f"{args.contrastive_type} must be domain or local")
 
