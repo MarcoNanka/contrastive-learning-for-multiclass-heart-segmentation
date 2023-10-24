@@ -64,7 +64,7 @@ class DistanceAdjustedContrastiveLoss(nn.Module):
         print(f"similarities.shape: {similarities.shape}, weights.shape: {weights.shape}")
         weighted_similarity = torch.zeros_like(similarities)
         for idx, _ in enumerate(weights):
-            weighted_similarity = similarities[idx] * weights[idx]
+            weighted_similarity[idx] = similarities[idx] * weights[idx]
         print(f"weighted_similarity: {weighted_similarity.shape}")
 
         # Calculate the loss as the mean squared error between weighted similarity and 1 (max similarity)
