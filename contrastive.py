@@ -38,15 +38,16 @@ class ContrastiveLoss(nn.Module):
 
 
 class DistanceAdjustedContrastiveLoss(nn.Module):
-    def __init__(self, temperature=1):
+    def __init__(self, temperature, num_of_partitions):
         super(DistanceAdjustedContrastiveLoss, self).__init__()
         self.temperature = temperature
+        self.num_of_partitions = num_of_partitions
 
     def forward(self, x1, x2, distances):
         similarities = nn.functional.cosine_similarity(x1, x2, dim=1) / self.temperature
         similarities = torch.clamp(similarities, min=-1, max=1)
 
-        weights = 1 - (distances / ((512 // self.patch_size[2]) - 1))  # low distance, high weight
+        weights = 1 - (distances / (self.num_of_partitions - 1))  # low distance, high weight
         loss = 0
         print(f"distances, weights: {distances, weights}")
         for i in range(similarities.size(0)):
@@ -73,8 +74,9 @@ class PreTrainer:
         self.temperature = temperature
 
     def pre_train(self):
-        contrastive_loss = DistanceAdjustedContrastiveLoss(temperature=self.temperature) if self.is_distance_adjusted \
-            else ContrastiveLoss(temperature=self.temperature)
+        contrastive_loss = ContrastiveLoss(temperature=self.temperature) if not self.is_distance_adjusted else \
+            DistanceAdjustedContrastiveLoss(temperature=self.temperature,
+                                            num_of_partitions=self.contrastive_dataset.num_of_partitions)
         optimizer = optim.Adam(self.encoder.parameters(), lr=self.learning_rate)
         self.encoder.to(device=self.device, dtype=torch.float)
         num_patches = len(self.contrastive_dataset)
