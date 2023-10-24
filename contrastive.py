@@ -61,7 +61,7 @@ class DistanceAdjustedContrastiveLoss(nn.Module):
         weights = 1 - normalized_distances  # Higher distance, lower weight
 
         # Apply weights to the similarities
-        print(f"similarities.shape: {similarities.shape}, weights: {weights}")
+        print(f"similarities.shape: {similarities.shape}, weights.shape: {weights.shape}")
         weighted_similarity = similarities * weights
         print(f"weighted_similarity: {weighted_similarity.shape}")
 
