@@ -190,7 +190,7 @@ class MMWHSDataset(Dataset):
                                           is_validation_dataset=self.is_validation_dataset, patch_size=self.patch_size,
                                           patches_filter=self.patches_filter, image_type=self.image_type)
         img_data, label_data = np.concatenate(img_data, axis=0), np.concatenate(label_data, axis=0)
-        print(f"is validation: {self.is_validation_dataset} -> shape of patches array: {img_data.shape}")
+        print(f"SUPERVISED --- is validation? {self.is_validation_dataset} -> shape of patches array: {img_data.shape}")
         img_data, mean, std_dev = DataProcessor.normalize_z_score_data(raw_data=img_data, is_validation_dataset=self.
                                                                        is_validation_dataset, mean=self.mean,
                                                                        std_dev=self.std_dev)
@@ -253,14 +253,14 @@ class MMWHSLocalContrastiveDataset(Dataset):
                                           image_type=self.image_type)
         img_data = np.concatenate(img_data, axis=0)
 
-        print(f"SHAPE OF UNFILTERED IMG_DATA: {img_data.shape}, MEAN: {np.mean(img_data)}")
+        print(f"LOCAL CONTRASTIVE --- shape of unfiltered img data: {img_data.shape}, mean: {np.mean(img_data)}")
         mean_intensity_per_patch = np.mean(img_data, axis=(1, 2, 3, 4))
         num_patches_to_remove = int(self.removal_percentage * len(mean_intensity_per_patch))
         ascending_sorted_patch_indices = np.argsort(mean_intensity_per_patch)
         img_data = img_data[ascending_sorted_patch_indices]
         img_data = img_data[num_patches_to_remove:]
         img_data, mean, std_dev = DataProcessor.normalize_z_score_data(raw_data=img_data)
-        print(f"SHAPE OF FILTERED IMG_DATA: {img_data.shape}, MEAN: {mean}")
+        print(f"LOCAL CONTRASTIVE --- shape of filtered img data: {img_data.shape}, mean: {mean}")
 
         for idx, _ in enumerate(img_data):
             torch.from_numpy(img_data[idx])
@@ -348,7 +348,7 @@ class MMWHSDomainContrastiveDataset(Dataset):
             remove_from_end = arr.shape[4] - target_val - remove_from_start
             img_data[idx] = arr[:, :, :, :, remove_from_start:arr.shape[4] - remove_from_end]
         img_data = np.concatenate(img_data, axis=0)
-        print(f"DOMAIN CONTRASTIVE, SHAPE OF DATA: {img_data.shape}")
+        print(f"DOMAIN CONTRASTIVE --- distance-adjusted? {self.is_distance_adjusted}, shape of data: {img_data.shape}")
         num_of_partitions = 512 // self.patch_size[2]
         number_of_imgs = img_data.shape[0] // num_of_partitions
 
