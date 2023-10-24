@@ -21,25 +21,16 @@ class ContrastiveLoss(nn.Module):
         self.temperature = temperature
 
     def forward(self, x1, x2, labels):
-        print(f"Min x1: {torch.min(x1).item()}, max x1: {torch.max(x1).item()}")
-        print(x1.shape, x2.shape)
-        x1_normalized = torch.nn.functional.normalize(x1, dim=1)
-        x2_normalized = torch.nn.functional.normalize(x2, dim=1)
-        print(f"Min x1_normalized: {torch.min(x1_normalized).item()}, max x1_normalized: "
-              f"{torch.max(x1_normalized).item()}")
-        print({x1_normalized.shape, x2_normalized.shape})
-        similarities = nn.functional.cosine_similarity(x1_normalized, x2_normalized, dim=1) / self.temperature
+        similarities = nn.functional.cosine_similarity(x1, x2, dim=1) / self.temperature
         similarities = torch.clamp(similarities, min=-1, max=1)
-        # print(f"similarities.shape: {similarities.shape}, min: {torch.min(similarities).item()}, "
-        #       f"max: {torch.max(similarities).item()}")
 
         positive_pairs = similarities[labels == 1]
         negative_pairs = similarities[labels == 0]
-        print(similarities.shape, labels)
-        print(positive_pairs.shape, negative_pairs.shape)
-        print(torch.mean(positive_pairs).item(), torch.mean(negative_pairs).item())
-        print(torch.max(positive_pairs).item(), torch.max(negative_pairs).item())
-        print(torch.min(positive_pairs).item(), torch.min(negative_pairs).item())
+        print(f"similarities.shape, labels: {similarities.shape, labels}")
+        print(f"positive_pairs.shape, negative_pairs.shape: {positive_pairs.shape, negative_pairs.shape}")
+        print(f"torch.mean(positive_pairs).item(), torch.mean(negative_pairs).item(): {torch.mean(positive_pairs).item(), torch.mean(negative_pairs).item()}")
+        print(f"torch.max(positive_pairs).item(), torch.max(negative_pairs).item(): {torch.max(positive_pairs).item(), torch.max(negative_pairs).item()}")
+        print(f"torch.min(positive_pairs).item(), torch.min(negative_pairs).item(): {torch.min(positive_pairs).item(), torch.min(negative_pairs).item()}")
 
         epsilon = 1e-8  # A small positive constant to avoid log(0) and log(1) issues
         positive_loss = -torch.log(positive_pairs + epsilon).mean() if len(positive_pairs) > 0 else \
@@ -48,7 +39,6 @@ class ContrastiveLoss(nn.Module):
             torch.tensor(0.0, device=x1.device)
 
         loss = positive_loss + negative_loss
-        # print(f"positive_loss: {positive_loss}, negative_loss: {negative_loss}, loss: {loss}")
         return loss
 
 
@@ -116,11 +106,8 @@ class PreTrainer:
                 pairs, labels = batch
                 x1, x2 = pairs
                 x1, x2 = x1.to(device=self.device, dtype=torch.float), x2.to(device=self.device, dtype=torch.float)
-                print(f"x1.shape, x2.shape: {x1.shape, x2.shape}")
-                print(labels)
                 labels = labels.to(device=self.device, dtype=torch.long)
                 repr1, repr2 = self.encoder(x1), self.encoder(x2)
-                print(f"repr1.shape, repr2.shape: {repr1.shape, repr2.shape}")
                 loss = contrastive_loss(repr1, repr2, labels)
                 optimizer.zero_grad()
                 loss.backward()
