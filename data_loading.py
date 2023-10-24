@@ -328,7 +328,6 @@ class MMWHSDomainContrastiveDataset(Dataset):
         rand_other_img_idx = torch.randint(0, self.number_of_imgs, (1,)).item()
         while rand_other_img_idx == img_idx:
             rand_other_img_idx = torch.randint(0, self.number_of_imgs, (1,)).item()
-        print(self.number_of_imgs, self.num_of_partitions, img_idx, idx_position, rand_other_img_idx)
 
         if self.is_distance_adjusted:
             second_img_idx_position = torch.randint(0, self.num_of_partitions, (1,)).item()
