@@ -116,8 +116,11 @@ class PreTrainer:
                 pairs, labels = batch
                 x1, x2 = pairs
                 x1, x2 = x1.to(device=self.device, dtype=torch.float), x2.to(device=self.device, dtype=torch.float)
+                print(f"x1.shape, x2.shape: {x1.shape, x2.shape}")
+                print(labels)
                 labels = labels.to(device=self.device, dtype=torch.long)
                 repr1, repr2 = self.encoder(x1), self.encoder(x2)
+                print(f"repr1.shape, repr2.shape: {repr1.shape, repr2.shape}")
                 loss = contrastive_loss(repr1, repr2, labels)
                 optimizer.zero_grad()
                 loss.backward()
