@@ -312,7 +312,7 @@ class MMWHSDomainContrastiveDataset(Dataset):
             RandGaussianSmooth(prob=0.5),
             ToTensor()
         ])
-        self.x, self.number_of_images, self.original_image_data = self.load_data()
+        self.x, self.number_of_imgs, self.original_image_data = self.load_data()
 
     def __len__(self):
         """
@@ -321,31 +321,38 @@ class MMWHSDomainContrastiveDataset(Dataset):
         return len(self.x)
 
     def __getitem__(self, idx):
-        print(f"IS DISTANCE ADJUSTED? {self.is_distance_adjusted}")
-        image_idx = idx // 85
+        img_idx = idx // 85
         idx_position = idx
         while idx_position >= 85:
             idx_position -= 85
+        rand_other_img_idx = torch.randint(0, self.number_of_imgs, (1,)).item()
+        while rand_other_img_idx == img_idx:
+            rand_other_img_idx = torch.randint(0, self.number_of_imgs, (1,)).item()
 
-        # POSITIVE PAIR
-        random_other_image_idx = torch.randint(0, self.number_of_images, (1,)).item()
-        while random_other_image_idx == image_idx:
-            random_other_image_idx = torch.randint(0, self.number_of_images, (1,)).item()
-        positive_pair = self.transform(self.x[idx]), self.transform(self.x[idx_position + 85*random_other_image_idx])
-        positive_label = torch.tensor(1.0)
+        if self.is_distance_adjusted:
+            second_img_idx_position = torch.randint(0, 85, (1,)).item()
+            pair = self.transform(self.x[idx]), self.transform(self.x[second_img_idx_position + 85*rand_other_img_idx])
+            distance = abs(second_img_idx_position - idx_position)
+            return pair, distance
 
-        # NEGATIVE PAIR
-        negative_idx_position = torch.randint(0, 85, (1,)).item()
-        while abs(negative_idx_position - idx_position) <= 25:
-            negative_idx_position = torch.randint(0, 85, (1,)).item()
-        negative_pair = self.transform(self.x[idx]), \
-            self.transform(self.x[negative_idx_position + 85 * random_other_image_idx])
-        negative_label = torch.tensor(0.0)
-
-        if torch.rand(1).item() > 0.5:
-            return positive_pair, positive_label
         else:
-            return negative_pair, negative_label
+            # POSITIVE PAIR
+            positive_pair = self.transform(self.x[idx]), \
+                self.transform(self.x[idx_position + 85*rand_other_img_idx])
+            positive_label = torch.tensor(1.0)
+
+            # NEGATIVE PAIR
+            negative_idx_position = torch.randint(0, 85, (1,)).item()
+            while abs(negative_idx_position - idx_position) <= 25:
+                negative_idx_position = torch.randint(0, 85, (1,)).item()
+            negative_pair = self.transform(self.x[idx]), self.transform(self.x[negative_idx_position +
+                                                                               85*rand_other_img_idx])
+            negative_label = torch.tensor(0.0)
+
+            if torch.rand(1).item() > 0.5:
+                return positive_pair, positive_label
+            else:
+                return negative_pair, negative_label
 
     def load_data(self):
         """
