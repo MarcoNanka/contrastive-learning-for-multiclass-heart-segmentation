@@ -45,9 +45,34 @@ class ContrastiveLoss(nn.Module):
         return loss
 
 
+class DistanceAdjustedContrastiveLoss(nn.Module):
+    def __init__(self, temperature=1):
+        super(DistanceAdjustedContrastiveLoss, self).__init__()
+        self.temperature = temperature
+
+    def forward(self, x1, x2, distances):
+        x1_normalized = torch.nn.functional.normalize(x1, dim=1)
+        x2_normalized = torch.nn.functional.normalize(x2, dim=1)
+        similarities = nn.functional.cosine_similarity(x1_normalized, x2_normalized, dim=1) / self.temperature
+        similarities = torch.clamp(similarities, min=-1, max=1)
+
+        normalized_distances = distances / 84
+
+        weights = 1 - normalized_distances  # Higher distance, lower weight
+
+        # Apply weights to the similarities
+        weighted_similarity = similarities * weights
+        print(f"similarities.shape: {similarities.shape}, weights: {weights}, res: {weighted_similarity.shape}")
+
+        # Calculate the loss as the mean squared error between weighted similarity and 1 (max similarity)
+        loss = nn.functional.mse_loss(weighted_similarity, torch.ones_like(weighted_similarity))
+
+        return loss
+
+
 class PreTrainer:
     def __init__(self, encoder, contrastive_dataset, num_epochs, batch_size, learning_rate, patch_size,
-                 training_shuffle, patience, contrastive_type):
+                 training_shuffle, patience, contrastive_type, is_distance_adjusted, temperature):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.encoder = encoder
         self.contrastive_dataset = contrastive_dataset
@@ -58,9 +83,12 @@ class PreTrainer:
         self.training_shuffle = training_shuffle
         self.patience = patience
         self.contrastive_type = contrastive_type
+        self.is_distance_adjusted = is_distance_adjusted
+        self.temperature = temperature
 
     def pre_train(self):
-        contrastive_loss = ContrastiveLoss()
+        contrastive_loss = DistanceAdjustedContrastiveLoss(temperature=self.temperature) if self.is_distance_adjusted \
+            else ContrastiveLoss(temperature=self.temperature)
         optimizer = optim.Adam(self.encoder.parameters(), lr=self.learning_rate)
         self.encoder.to(device=self.device, dtype=torch.float)
         num_patches = len(self.contrastive_dataset)
@@ -116,6 +144,7 @@ class PreTrainer:
 
 def main(args):
     # DATA LOADING
+    is_distance_adjusted = args.contrastive_type != "domain"
     image_type = "CT"
     if "mr" in args.contrastive_folder_path:
         image_type = "MRI"
@@ -128,7 +157,7 @@ def main(args):
         contrastive_dataset = MMWHSDomainContrastiveDataset(folder_path=args.contrastive_folder_path,
                                                             patch_size=args.patch_size,
                                                             image_type=image_type,
-                                                            is_distance_adjusted=(args.contrastive_type != "domain"))
+                                                            is_distance_adjusted=is_distance_adjusted)
     else:
         raise ValueError(f"{args.contrastive_type} must be domain or local")
 
@@ -165,7 +194,8 @@ def main(args):
     pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset, num_epochs=args.num_epochs,
                              batch_size=args.batch_size, learning_rate=args.learning_rate, patch_size=args.patch_size,
                              training_shuffle=args.training_shuffle, patience=args.patience,
-                             contrastive_type=args.contrastive_type)
+                             contrastive_type=args.contrastive_type, is_distance_adjusted=is_distance_adjusted,
+                             temperature=args.temperature)
     encoder_weights, encoder_biases = pre_trainer.pre_train()
     save_path = f"pretrained_encoder/{'local' if args.contrastive_type == 'local' else 'domain'}/{args.model_name}"
     torch.save({'encoder_weights': encoder_weights, 'encoder_biases': encoder_biases}, save_path)

@@ -24,5 +24,6 @@ def parse_args():
     parser.add_argument("--removal_percentage", type=float, help="Determines what percentage of patches (with lowest "
                                                                  "mean) should be removed from contrastive dataset")
     parser.add_argument("--contrastive_type", type=str, help="Determines if domain-specific or local")
+    parser.add_argument("--temperature", type=float, help="Adjusts softness of contrastive loss function")
     args = parser.parse_args()
     return args
