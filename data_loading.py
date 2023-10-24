@@ -312,7 +312,7 @@ class MMWHSDomainContrastiveDataset(Dataset):
             RandGaussianSmooth(prob=0.5),
             ToTensor()
         ])
-        self.x, self.number_of_imgs, self.original_image_data = self.load_data()
+        self.x, self.original_image_data, self.num_of_partitions, self.number_of_imgs = self.load_data()
 
     def __len__(self):
         """
@@ -321,32 +321,34 @@ class MMWHSDomainContrastiveDataset(Dataset):
         return len(self.x)
 
     def __getitem__(self, idx):
-        img_idx = idx // 85
+        img_idx = idx // self.num_of_partitions
         idx_position = idx
-        while idx_position >= 85:
-            idx_position -= 85
+        while idx_position >= self.num_of_partitions:
+            idx_position -= self.num_of_partitions
         rand_other_img_idx = torch.randint(0, self.number_of_imgs, (1,)).item()
         while rand_other_img_idx == img_idx:
             rand_other_img_idx = torch.randint(0, self.number_of_imgs, (1,)).item()
+        print(self.number_of_imgs, self.num_of_partitions, img_idx, idx_position, rand_other_img_idx)
 
         if self.is_distance_adjusted:
-            second_img_idx_position = torch.randint(0, 85, (1,)).item()
-            pair = self.transform(self.x[idx]), self.transform(self.x[second_img_idx_position + 85*rand_other_img_idx])
+            second_img_idx_position = torch.randint(0, self.num_of_partitions, (1,)).item()
+            pair = self.transform(self.x[idx]), self.transform(self.x[second_img_idx_position +
+                                                                      self.num_of_partitions * rand_other_img_idx])
             distance = abs(second_img_idx_position - idx_position)
             return pair, distance
 
         else:
             # POSITIVE PAIR
             positive_pair = self.transform(self.x[idx]), \
-                self.transform(self.x[idx_position + 85*rand_other_img_idx])
+                self.transform(self.x[idx_position + self.num_of_partitions * rand_other_img_idx])
             positive_label = torch.tensor(1.0)
 
             # NEGATIVE PAIR
-            negative_idx_position = torch.randint(0, 85, (1,)).item()
+            negative_idx_position = torch.randint(0, self.num_of_partitions, (1,)).item()
             while abs(negative_idx_position - idx_position) <= 25:
-                negative_idx_position = torch.randint(0, 85, (1,)).item()
-            negative_pair = self.transform(self.x[idx]), self.transform(self.x[negative_idx_position +
-                                                                               85*rand_other_img_idx])
+                negative_idx_position = torch.randint(0, self.num_of_partitions, (1,)).item()
+            negative_pair = self.transform(self.x[idx]), \
+                self.transform(self.x[negative_idx_position + self.num_of_partitions * rand_other_img_idx])
             negative_label = torch.tensor(0.0)
 
             if torch.rand(1).item() > 0.5:
@@ -374,7 +376,9 @@ class MMWHSDomainContrastiveDataset(Dataset):
             img_data[idx] = arr[:, :, :, :, remove_from_start:arr.shape[4] - remove_from_end]
         img_data = np.concatenate(img_data, axis=0)
         print(f"DOMAIN CONTRASTIVE, SHAPE OF DATA: {img_data.shape}")
+        num_of_partitions = 512 // self.patch_size[2]
+        number_of_imgs = img_data.shape[0] // num_of_partitions
 
         for idx, _ in enumerate(img_data):
             torch.from_numpy(img_data[idx])
-        return img_data, img_data.shape[0] // 85, original_image_data
+        return img_data, original_image_data, num_of_partitions, number_of_imgs
