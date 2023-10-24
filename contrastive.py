@@ -47,7 +47,7 @@ class DistanceAdjustedContrastiveLoss(nn.Module):
         similarities = nn.functional.cosine_similarity(x1, x2, dim=1) / self.temperature
         similarities = torch.clamp(similarities, min=-1, max=1)
 
-        weights = 1 - (distances / (self.num_of_partitions - 1))  # low distance, high weight
+        weights = torch.pow(1 - distances / (self.num_of_partitions - 1), 4)  # low distance, high weight
         losses = []
         print(f"distances, weights: {distances, weights}")
         for i in range(similarities.size(0)):
