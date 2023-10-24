@@ -51,7 +51,7 @@ class DistanceAdjustedContrastiveLoss(nn.Module):
         losses = []
         print(f"distances, weights: {distances, weights}")
         for i in range(similarities.size(0)):
-            current_loss = nn.functional.mse_loss(similarities[i], torch.ones_like(similarities) * weights[i])
+            current_loss = nn.functional.mse_loss(similarities[i], torch.full_like(similarities, fill_value=weights[i]))
             losses.append(current_loss.item())
             print(f"Iteration {i}, LOSS: {current_loss.item()}")
 
