@@ -33,10 +33,11 @@ class ContrastiveLoss(nn.Module):
 
         positive_pairs = similarities[labels == 1]
         negative_pairs = similarities[labels == 0]
-        print(torch.max(positive_pairs).item(), torch.max(negative_pairs).item())
-        print(torch.min(positive_pairs).item(), torch.min(negative_pairs).item())
+        print(similarities.shape, labels)
         print(positive_pairs.shape, negative_pairs.shape)
         print(torch.mean(positive_pairs).item(), torch.mean(negative_pairs).item())
+        print(torch.max(positive_pairs).item(), torch.max(negative_pairs).item())
+        print(torch.min(positive_pairs).item(), torch.min(negative_pairs).item())
 
         epsilon = 1e-8  # A small positive constant to avoid log(0) and log(1) issues
         positive_loss = -torch.log(positive_pairs + epsilon).mean() if len(positive_pairs) > 0 else \
