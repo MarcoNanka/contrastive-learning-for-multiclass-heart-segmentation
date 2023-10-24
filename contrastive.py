@@ -61,8 +61,9 @@ class DistanceAdjustedContrastiveLoss(nn.Module):
         weights = 1 - normalized_distances  # Higher distance, lower weight
 
         # Apply weights to the similarities
+        print(f"similarities.shape: {similarities.shape}, weights: {weights}")
         weighted_similarity = similarities * weights
-        print(f"similarities.shape: {similarities.shape}, weights: {weights}, res: {weighted_similarity.shape}")
+        print(f"weighted_similarity: {weighted_similarity.shape}")
 
         # Calculate the loss as the mean squared error between weighted similarity and 1 (max similarity)
         loss = nn.functional.mse_loss(weighted_similarity, torch.ones_like(weighted_similarity))
