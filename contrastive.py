@@ -151,7 +151,7 @@ class PreTrainer:
 
 def main(args):
     # DATA LOADING
-    is_distance_adjusted = args.contrastive_type != "domain"
+    is_distance_adjusted = args.contrastive_type not in ["domain", "local"]
     image_type = "CT"
     if "mr" in args.contrastive_folder_path:
         image_type = "MRI"
