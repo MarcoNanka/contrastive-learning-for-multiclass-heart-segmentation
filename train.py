@@ -32,13 +32,24 @@ class Trainer:
         self.patch_size = patch_size
         self.model_name = model_name
         self.patience = patience
+        self.class_labels = {
+            0: "background",
+            1: "myocardium of the left ventricle",  # 205
+            2: "left atrium blood cavity",  # 420
+            3: "left ventricle blood cavity",  # 500
+            4: "right atrium blood cavity",  # 550
+            5: "right ventricle blood cavity",  # 600
+            6: "ascending aorta",  # 820
+            7: "pulmonary artery"  # 850
+        }
+        self.og_labels_int, _, _ = DataProcessor.preprocess_label_data(self.validation_dataset.original_label_data)
 
-    def evaluate_validation(self) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-                                           np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def evaluate(self, dataset) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+                                         np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
         self.model.eval()
 
-        val_dataloader = DataLoader(dataset=self.validation_dataset, batch_size=self.batch_size, shuffle=False)
+        val_dataloader = DataLoader(dataset=dataset, batch_size=self.batch_size, shuffle=False)
 
         val_criterion = nn.CrossEntropyLoss()
         total_loss = 0.0
@@ -84,10 +95,11 @@ class Trainer:
             dice_score_macro = np.mean(dice_score)
 
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
-        prediction_mask = DataProcessor.\
-            undo_extract_patches_label_only(label_patches=combined_predicted_array,
-                                            patch_size=self.patch_size,
-                                            original_label_data=self.validation_dataset.original_label_data)
+        prediction_mask = np.zeros((500, 500, 300))
+        # prediction_mask = DataProcessor.\
+        #     undo_extract_patches_label_only(label_patches=combined_predicted_array,
+        #                                     patch_size=self.patch_size,
+        #                                     original_label_data=self.validation_dataset.original_label_data)
 
         return true_positives, average_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
             accuracy, precision, recall, dice_score, prediction_mask
@@ -98,17 +110,6 @@ class Trainer:
         self.model.to(device=self.device, dtype=torch.float)
         num_patches = len(self.dataset)
         num_patches_to_use = int(self.training_shuffle * num_patches)
-        class_labels = {
-            0: "background",
-            1: "myocardium of the left ventricle",  # 205
-            2: "left atrium blood cavity",  # 420
-            3: "left ventricle blood cavity",  # 500
-            4: "right atrium blood cavity",  # 550
-            5: "right ventricle blood cavity",  # 600
-            6: "ascending aorta",  # 820
-            7: "pulmonary artery"  # 850
-        }
-        og_labels_int, _, _ = DataProcessor.preprocess_label_data(self.validation_dataset.original_label_data)
         no_improvement_counter = 0
         best_dice_score = 0.0
         best_model_state = self.model.state_dict()
@@ -135,9 +136,8 @@ class Trainer:
             print(f'Epoch {epoch + 1}/{self.num_epochs}, Loss: {loss.item():.5f}')
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
-                tp, validation_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
-                    accuracy, precision, recall, dice_score, prediction_mask = \
-                    self.evaluate_validation()
+                tp, validation_loss, _, _, _, dice_score_macro, _, _, _, dice_score, prediction_mask = \
+                    self.evaluate(self.validation_dataset)
                 if dice_score_macro > best_dice_score:
                     best_dice_score = dice_score_macro
                     best_model_state = self.model.state_dict()
@@ -152,28 +152,28 @@ class Trainer:
                     "Validation Loss": validation_loss,
                     "Validation Dice": dice_score_macro,
                     "Best (baseline: dice, contrastive: loss)": best_dice_score,
-                    "slice50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 49],
-                                           masks={
-                                                    "predictions": {
-                                                        "mask_data": prediction_mask[:, :, 49],
-                                                        "class_labels": class_labels
-                                                    },
-                                                    "ground_truth": {
-                                                        "mask_data": og_labels_int[:, :, 49],
-                                                        "class_labels": class_labels
-                                                    }
-                                                }),
-                    "slice100": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 99],
-                                            masks={
-                                                    "predictions": {
-                                                        "mask_data": prediction_mask[:, :, 99],
-                                                        "class_labels": class_labels
-                                                    },
-                                                    "ground_truth": {
-                                                        "mask_data": og_labels_int[:, :, 99],
-                                                        "class_labels": class_labels
-                                                    }
-                                                }),
+                    # "slice50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 49],
+                    #                        masks={
+                    #                                 "predictions": {
+                    #                                     "mask_data": prediction_mask[:, :, 49],
+                    #                                     "class_labels": self.class_labels
+                    #                                 },
+                    #                                 "ground_truth": {
+                    #                                     "mask_data": self.og_labels_int[:, :, 49],
+                    #                                     "class_labels": self.class_labels
+                    #                                 }
+                    #                             }),
+                    # "slice100": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 99],
+                    #                         masks={
+                    #                                 "predictions": {
+                    #                                     "mask_data": prediction_mask[:, :, 99],
+                    #                                     "class_labels": self.class_labels
+                    #                                 },
+                    #                                 "ground_truth": {
+                    #                                     "mask_data": self.og_labels_int[:, :, 99],
+                    #                                     "class_labels": self.class_labels
+                    #                                 }
+                    #                             }),
                 })
                 print(f'Dice score macro: {dice_score_macro}')
                 print(f'Dice score by class: {dice_score}')
@@ -229,7 +229,7 @@ def main(args):
         }
     )
 
-    # SUPERVISED LEARNING
+    # DO SUPERVISED LEARNING
     if os.path.isfile("pretrained_encoder/" + args.encoder_file_name):
         pretrained_encoder = torch.load("pretrained_encoder/" + args.encoder_file_name)
         encoder_weights, encoder_biases = pretrained_encoder['encoder_weights'], pretrained_encoder['encoder_biases']
@@ -243,6 +243,38 @@ def main(args):
                       validation_interval=args.validation_interval, training_shuffle=args.training_shuffle,
                       patch_size=args.patch_size, model_name=args.model_name, patience=args.patience)
     trainer.train()
+
+    # EVALUATE MODEL
+    tp_test, _, _, _, _, dice_score_macro_test, _, _, _, dice_score_test, prediction_mask_test = \
+        trainer.evaluate(test_dataset)
+
+    print(f"True Positives Test Dataset: {tp_test}")
+    print(f"Dice Scores Test Dataset: {dice_score_test}")
+    wandb.log({
+        "Test Macro Dice": dice_score_macro_test,
+        "Test slice50": wandb.Image(data_or_path=test_dataset.original_image_data[:, :, 49],
+                                    masks={
+                                        "predictions": {
+                                            "mask_data": prediction_mask_test[:, :, 49],
+                                            "class_labels": trainer.class_labels
+                                        },
+                                        "ground_truth": {
+                                            "mask_data": trainer.og_labels_int[:, :, 49],
+                                            "class_labels": trainer.class_labels
+                                        }
+                                    }),
+        "Test slice100": wandb.Image(data_or_path=test_dataset.original_image_data[:, :, 99],
+                                     masks={
+                                         "predictions": {
+                                             "mask_data": prediction_mask_test[:, :, 99],
+                                             "class_labels": trainer.class_labels
+                                         },
+                                         "ground_truth": {
+                                             "mask_data": trainer.og_labels_int[:, :, 99],
+                                             "class_labels": trainer.class_labels
+                                         }
+                                     }),
+    })
 
 
 if __name__ == "__main__":
