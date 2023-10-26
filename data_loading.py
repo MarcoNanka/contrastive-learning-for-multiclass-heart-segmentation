@@ -115,23 +115,11 @@ class DataProcessor:
         patches_labels = []
         for path in path_list:
             image_data = np.array(nib.load(path).get_fdata())
-            original_image_data = image_data
-            original_label_data = np.array(nib.load(path.replace('image', 'label')).get_fdata()) \
-                if not is_contrastive_dataset else np.empty((0, 0, 0))
-            label_data = original_label_data.copy() if not is_contrastive_dataset else original_label_data
-            if "1010" in path:
-                print(path)
+            label_data = np.empty((0, 0, 0)) if is_contrastive_dataset else \
+                np.array(nib.load(path.replace('image', 'label')).get_fdata())
+            original_image_data, original_label_data = image_data, label_data
+            if not is_contrastive_dataset and "1010" in path:
                 label_data = np.where(label_data == 421., 420., label_data)
-            label_values = np.array([0., 205., 420., 500., 550., 600., 820., 850.])
-            values_not_in_list = ~np.isin(label_data, label_values)
-            count_values_not_in_list = np.sum(values_not_in_list)
-            count_value_1 = np.count_nonzero(label_data == 420)
-            count_value_2 = np.count_nonzero(label_data == 500)
-            print(count_value_1, count_value_2)
-            if count_values_not_in_list > 0:
-                print(f"{count_values_not_in_list} not valid class labels! LABEL: {path}")
-                values_not_in_list_values = label_data[values_not_in_list]
-                print(f"Values not in the label_values list: {values_not_in_list_values}")
 
             image_data, label_data = DataProcessor.extract_patches(image_data=image_data, label_data=label_data,
                                                                    patch_size=patch_size,
