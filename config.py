@@ -4,7 +4,6 @@ import argparse
 def parse_args():
     parser = argparse.ArgumentParser(description="Train the U-Net model for semantic segmentation")
     parser.add_argument("--folder_path", type=str, help="Path to the training data folder")
-    parser.add_argument("--val_folder_path", type=str, help="Path to the validation data folder")
     parser.add_argument("--test_folder_path", type=str, help="Path to the test data folder")
     parser.add_argument("--training_dataset_size", type=int, help="Number of images used for fine-tuning, MAX: 8")
     parser.add_argument("--contrastive_folder_path", type=str, help="Path to the contrastive data folder")
