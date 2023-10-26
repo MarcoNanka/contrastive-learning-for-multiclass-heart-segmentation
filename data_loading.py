@@ -119,6 +119,15 @@ class DataProcessor:
             original_label_data = np.array(nib.load(path.replace('image', 'label')).get_fdata()) \
                 if not is_contrastive_dataset else np.empty((0, 0, 0))
             label_data = original_label_data.copy() if not is_contrastive_dataset else original_label_data
+
+            label_values = np.array([0., 205., 420., 500., 550., 600., 820., 850.])
+            values_not_in_list = ~np.isin(label_data, label_values)
+            count_values_not_in_list = np.sum(values_not_in_list)
+            if count_values_not_in_list > 0:
+                print(f"{count_values_not_in_list} not valid class labels! LABEL: {path}")
+                values_not_in_list_values = label_data[values_not_in_list]
+                print(f"Values not in the label_values list: {values_not_in_list_values}")
+
             image_data, label_data = DataProcessor.extract_patches(image_data=image_data, label_data=label_data,
                                                                    patch_size=patch_size,
                                                                    is_validation_dataset=is_validation_dataset,

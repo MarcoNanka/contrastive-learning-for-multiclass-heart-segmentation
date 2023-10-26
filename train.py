@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 from model import UNet
 from data_loading import MMWHSDataset, DataProcessor
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Dict
 from config import parse_args
 import wandb
 import os
@@ -44,9 +44,12 @@ class Trainer:
         }
         self.og_labels_int, _, _ = DataProcessor.preprocess_label_data(self.validation_dataset.original_label_data)
 
-    def evaluate(self, dataset) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-                                         np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-
+    def evaluate(self, dataset, best_model_state=None) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray, np.ndarray,
+                                                                np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+                                                                np.ndarray, np.ndarray]:
+        if best_model_state is not None:
+            self.model.load_state_dict(best_model_state)
+            print("Best model state is loaded")
         self.model.eval()
 
         val_dataloader = DataLoader(dataset=dataset, batch_size=self.batch_size, shuffle=False)
@@ -104,7 +107,7 @@ class Trainer:
         return true_positives, average_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
             accuracy, precision, recall, dice_score, prediction_mask
 
-    def train(self):
+    def train(self) -> Dict[str, torch.Tensor]:
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(params=self.model.parameters(), lr=self.learning_rate)
         self.model.to(device=self.device, dtype=torch.float)
@@ -182,6 +185,7 @@ class Trainer:
 
         self.model.load_state_dict(best_model_state)
         torch.save(self.model.state_dict(), "trained_unet/" + self.model_name)
+        return best_model_state
 
 
 def main(args):
@@ -242,12 +246,13 @@ def main(args):
                       learning_rate=args.learning_rate, validation_dataset=validation_dataset,
                       validation_interval=args.validation_interval, training_shuffle=args.training_shuffle,
                       patch_size=args.patch_size, model_name=args.model_name, patience=args.patience)
-    trainer.train()
+    best_model_state = trainer.train()
 
     # EVALUATE MODEL
     tp_test, _, _, _, _, dice_score_macro_test, _, _, _, dice_score_test, prediction_mask_test = \
-        trainer.evaluate(test_dataset)
+        trainer.evaluate(dataset=test_dataset, best_model_state=best_model_state)
 
+    print(f"---FINAL EVALUATION ON TEST SET--- (training is finished)")
     print(f"True Positives Test Dataset: {tp_test}")
     print(f"Dice Scores Test Dataset: {dice_score_test}")
     wandb.log({
