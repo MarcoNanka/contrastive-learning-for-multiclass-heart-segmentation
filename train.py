@@ -250,7 +250,7 @@ def main(args):
     # EVALUATE MODEL
     tp_test, _, _, _, _, dice_score_macro_test, _, _, _, dice_score_test, prediction_mask_test = \
         trainer.evaluate(dataset=test_dataset, best_model_state=best_model_state)
-    og_labels_int = DataProcessor.preprocess_label_data(test_dataset.original_label_data)
+    og_labels_int, _, _ = DataProcessor.preprocess_label_data(test_dataset.original_label_data)
 
     print(f"---FINAL EVALUATION ON TEST SET--- (training is finished)")
     print(f"True Positives Test Dataset: {tp_test}")
