@@ -137,9 +137,11 @@ class DataProcessor:
         """
         Load the training data from the file system.
         """
-        image_path_names = glob.glob(os.path.join(folder_path, "*image.nii*"))
+        image_path_names = sorted(glob.glob(os.path.join(folder_path, "*image.nii*")))
         if not image_path_names:
             raise ValueError("Empty list! Check if folder path contains images.")
+        for img_path_name in image_path_names:
+            print(img_path_name)
 
         return DataProcessor.create_training_data_array(path_list=image_path_names,
                                                         is_validation_dataset=is_validation_dataset,
