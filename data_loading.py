@@ -123,6 +123,9 @@ class DataProcessor:
             label_values = np.array([0., 205., 420., 421., 500., 550., 600., 820., 850.])
             values_not_in_list = ~np.isin(label_data, label_values)
             count_values_not_in_list = np.sum(values_not_in_list)
+            count_value_1 = np.count_nonzero(label_data == 420)
+            count_value_2 = np.count_nonzero(label_data == 500)
+            print(count_value_1, count_value_2)
             if count_values_not_in_list > 0:
                 print(f"{count_values_not_in_list} not valid class labels! LABEL: {path}")
                 values_not_in_list_values = label_data[values_not_in_list]
