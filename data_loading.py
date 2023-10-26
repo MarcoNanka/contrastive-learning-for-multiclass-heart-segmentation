@@ -120,7 +120,7 @@ class DataProcessor:
                 if not is_contrastive_dataset else np.empty((0, 0, 0))
             label_data = original_label_data.copy() if not is_contrastive_dataset else original_label_data
 
-            label_values = np.array([0., 205., 420., 421., 500., 550., 600., 820., 850.])
+            label_values = np.array([0., 205., 420., 500., 550., 600., 820., 850.])
             values_not_in_list = ~np.isin(label_data, label_values)
             count_values_not_in_list = np.sum(values_not_in_list)
             count_value_1 = np.count_nonzero(label_data == 420)
