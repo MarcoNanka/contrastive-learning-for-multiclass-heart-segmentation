@@ -9,6 +9,7 @@ from config import parse_args
 import wandb
 import os
 import random
+import glob
 
 os.environ['WANDB_CACHE_DIR'] = "$HOME/wandb_tmp"
 os.environ['WANDB_CONFIG_DIR'] = "$HOME/wandb_tmp"
@@ -188,11 +189,22 @@ def main(args):
     image_type = "CT"
     if "mr" in args.folder_path:
         image_type = "MRI"
-    dataset = MMWHSDataset(folder_path=args.folder_path, is_validation_dataset=False,
+
+    image_path_names = sorted(glob.glob(os.path.join(args.folder_path, "*image.nii*")))
+    test_image_path_names = sorted(glob.glob(os.path.join(args.folder_path, "*image.nii*")))
+    validation_image_path_names = random.sample(image_path_names, 2)
+    training_image_path_names = random.sample([item for item in image_path_names if item not in
+                                               validation_image_path_names], args.training_dataset_size)
+    print(f"validation image path names: {' '.join(validation_image_path_names)}")
+    print(f"training image path names: {' '.join(training_image_path_names)}")
+    dataset = MMWHSDataset(img_path_names=training_image_path_names, is_validation_dataset=False, is_test_dataset=False,
                            patches_filter=args.patches_filter, patch_size=args.patch_size, image_type=image_type)
-    validation_dataset = MMWHSDataset(folder_path=args.val_folder_path, is_validation_dataset=True,
+    validation_dataset = MMWHSDataset(img_path_names=validation_image_path_names, is_validation_dataset=True,
                                       patches_filter=args.patches_filter, mean=dataset.mean, std_dev=dataset.std_dev,
-                                      patch_size=args.patch_size, image_type=image_type)
+                                      patch_size=args.patch_size, image_type=image_type, is_test_dataset=False)
+    test_dataset = MMWHSDataset(img_path_names=test_image_path_names, is_validation_dataset=True,
+                                patches_filter=args.patches_filter, mean=dataset.mean, std_dev=dataset.std_dev,
+                                patch_size=args.patch_size, image_type=image_type, is_test_dataset=True)
 
     # SET UP WEIGHTS & BIASES
     wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")

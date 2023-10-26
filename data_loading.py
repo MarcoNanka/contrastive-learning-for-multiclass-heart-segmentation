@@ -140,8 +140,6 @@ class DataProcessor:
         image_path_names = sorted(glob.glob(os.path.join(folder_path, "*image.nii*")))
         if not image_path_names:
             raise ValueError("Empty list! Check if folder path contains images.")
-        for img_path_name in image_path_names:
-            print(img_path_name)
 
         return DataProcessor.create_training_data_array(path_list=image_path_names,
                                                         is_validation_dataset=is_validation_dataset,
@@ -155,15 +153,16 @@ class MMWHSDataset(Dataset):
     Custom PyTorch Dataset for loading MM-WHS dataset.
     """
 
-    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], is_validation_dataset: bool,
-                 patches_filter: int, image_type: str, mean: Optional[float] = None,
+    def __init__(self, img_path_names: list, patch_size: Tuple[int, int, int], is_validation_dataset: bool,
+                 patches_filter: int, image_type: str, is_test_dataset: bool, mean: Optional[float] = None,
                  std_dev: Optional[float] = None) -> None:
         """
         Initialize the MMWHSDataset for supervised learning.
         """
-        self.folder_path = folder_path
+        self.img_path_names = img_path_names
         self.patch_size = patch_size
         self.is_validation_dataset = is_validation_dataset
+        self.is_test_dataset = is_test_dataset
         self.patches_filter = patches_filter
         self.image_type = image_type
         self.mean = mean
@@ -188,9 +187,9 @@ class MMWHSDataset(Dataset):
         Load and preprocess the dataset.
         """
         img_data, label_data, original_image_data, original_label_data = DataProcessor. \
-            get_training_data_from_system(folder_path=self.folder_path,
-                                          is_validation_dataset=self.is_validation_dataset, patch_size=self.patch_size,
-                                          patches_filter=self.patches_filter, image_type=self.image_type)
+            create_training_data_array(path_list=self.img_path_names, is_validation_dataset=self.is_validation_dataset,
+                                       patch_size=self.patch_size, patches_filter=self.patches_filter,
+                                       image_type=self.image_type, is_contrastive_dataset=False)
         img_data, label_data = np.concatenate(img_data, axis=0), np.concatenate(label_data, axis=0)
         print(f"SUPERVISED --- is validation? {self.is_validation_dataset} -> shape of patches array: {img_data.shape}")
         img_data, mean, std_dev = DataProcessor.normalize_z_score_data(raw_data=img_data, is_validation_dataset=self.
