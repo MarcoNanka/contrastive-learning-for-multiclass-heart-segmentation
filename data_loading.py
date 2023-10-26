@@ -48,6 +48,7 @@ class DataProcessor:
                     label_data[x:x_end, y:y_end, z:z_end] = label_patch[:x_end - x, :y_end - y, :z_end - z]
                     patch_index += 1
 
+        print(f"UNDO -> original_label_data.shape: {original_label_data.shape}, label_data.shape: {label_data.shape}")
         return label_data
 
     @staticmethod
@@ -113,11 +114,12 @@ class DataProcessor:
         """
         patches_images = []
         patches_labels = []
-        for path in path_list:
+        for idx, path in enumerate(path_list):
             image_data = np.array(nib.load(path).get_fdata())
             label_data = np.empty((0, 0, 0)) if is_contrastive_dataset else \
                 np.array(nib.load(path.replace('image', 'label')).get_fdata())
-            original_image_data, original_label_data = image_data, label_data
+            if idx == 0:
+                original_image_data, original_label_data = image_data, label_data
             if not is_contrastive_dataset and "1010" in path:
                 label_data = np.where(label_data == 421., 420., label_data)
 

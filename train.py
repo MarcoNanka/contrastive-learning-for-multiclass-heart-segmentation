@@ -98,11 +98,10 @@ class Trainer:
             dice_score_macro = np.mean(dice_score)
 
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
-        prediction_mask = np.zeros((500, 500, 300))
-        # prediction_mask = DataProcessor.\
-        #     undo_extract_patches_label_only(label_patches=combined_predicted_array,
-        #                                     patch_size=self.patch_size,
-        #                                     original_label_data=self.validation_dataset.original_label_data)
+        prediction_mask = DataProcessor.\
+            undo_extract_patches_label_only(label_patches=combined_predicted_array,
+                                            patch_size=self.patch_size,
+                                            original_label_data=self.validation_dataset.original_label_data)
 
         return true_positives, average_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
             accuracy, precision, recall, dice_score, prediction_mask
@@ -155,28 +154,28 @@ class Trainer:
                     "Validation Loss": validation_loss,
                     "Validation Dice": dice_score_macro,
                     "Best (baseline: dice, contrastive: loss)": best_dice_score,
-                    # "slice50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 49],
-                    #                        masks={
-                    #                                 "predictions": {
-                    #                                     "mask_data": prediction_mask[:, :, 49],
-                    #                                     "class_labels": self.class_labels
-                    #                                 },
-                    #                                 "ground_truth": {
-                    #                                     "mask_data": self.og_labels_int[:, :, 49],
-                    #                                     "class_labels": self.class_labels
-                    #                                 }
-                    #                             }),
-                    # "slice100": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 99],
-                    #                         masks={
-                    #                                 "predictions": {
-                    #                                     "mask_data": prediction_mask[:, :, 99],
-                    #                                     "class_labels": self.class_labels
-                    #                                 },
-                    #                                 "ground_truth": {
-                    #                                     "mask_data": self.og_labels_int[:, :, 99],
-                    #                                     "class_labels": self.class_labels
-                    #                                 }
-                    #                             }),
+                    "slice50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 49],
+                                           masks={
+                                                    "predictions": {
+                                                        "mask_data": prediction_mask[:, :, 49],
+                                                        "class_labels": self.class_labels
+                                                    },
+                                                    "ground_truth": {
+                                                        "mask_data": self.og_labels_int[:, :, 49],
+                                                        "class_labels": self.class_labels
+                                                    }
+                                                }),
+                    "slice100": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 99],
+                                            masks={
+                                                    "predictions": {
+                                                        "mask_data": prediction_mask[:, :, 99],
+                                                        "class_labels": self.class_labels
+                                                    },
+                                                    "ground_truth": {
+                                                        "mask_data": self.og_labels_int[:, :, 99],
+                                                        "class_labels": self.class_labels
+                                                    }
+                                                }),
                 })
                 print(f'Dice score macro: {dice_score_macro}')
                 print(f'Dice score by class: {dice_score}')
