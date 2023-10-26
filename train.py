@@ -42,7 +42,6 @@ class Trainer:
             6: "ascending aorta",  # 820
             7: "pulmonary artery"  # 850
         }
-        self.og_labels_int, _, _ = DataProcessor.preprocess_label_data(self.validation_dataset.original_label_data)
 
     def evaluate(self, dataset, best_model_state=None) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray, np.ndarray,
                                                                 np.ndarray, np.ndarray, np.ndarray, np.ndarray,
@@ -112,6 +111,7 @@ class Trainer:
         self.model.to(device=self.device, dtype=torch.float)
         num_patches = len(self.dataset)
         num_patches_to_use = int(self.training_shuffle * num_patches)
+        og_labels_int, _, _ = DataProcessor.preprocess_label_data(self.validation_dataset.original_label_data)
         no_improvement_counter = 0
         best_dice_score = 0.0
         best_model_state = self.model.state_dict()
@@ -161,7 +161,7 @@ class Trainer:
                                                         "class_labels": self.class_labels
                                                     },
                                                     "ground_truth": {
-                                                        "mask_data": self.og_labels_int[:, :, 49],
+                                                        "mask_data": og_labels_int[:, :, 49],
                                                         "class_labels": self.class_labels
                                                     }
                                                 }),
@@ -172,7 +172,7 @@ class Trainer:
                                                         "class_labels": self.class_labels
                                                     },
                                                     "ground_truth": {
-                                                        "mask_data": self.og_labels_int[:, :, 99],
+                                                        "mask_data": og_labels_int[:, :, 99],
                                                         "class_labels": self.class_labels
                                                     }
                                                 }),
@@ -250,10 +250,12 @@ def main(args):
     # EVALUATE MODEL
     tp_test, _, _, _, _, dice_score_macro_test, _, _, _, dice_score_test, prediction_mask_test = \
         trainer.evaluate(dataset=test_dataset, best_model_state=best_model_state)
+    og_labels_int = DataProcessor.preprocess_label_data(test_dataset.original_label_data)
 
     print(f"---FINAL EVALUATION ON TEST SET--- (training is finished)")
     print(f"True Positives Test Dataset: {tp_test}")
     print(f"Dice Scores Test Dataset: {dice_score_test}")
+    print(f"Macro Dice Test Dataset: {dice_score_macro_test}")
     wandb.log({
         "Test Macro Dice": dice_score_macro_test,
         "Test slice50": wandb.Image(data_or_path=test_dataset.original_image_data[:, :, 49],
@@ -263,7 +265,7 @@ def main(args):
                                             "class_labels": trainer.class_labels
                                         },
                                         "ground_truth": {
-                                            "mask_data": trainer.og_labels_int[:, :, 49],
+                                            "mask_data": og_labels_int[:, :, 49],
                                             "class_labels": trainer.class_labels
                                         }
                                     }),
@@ -274,7 +276,7 @@ def main(args):
                                              "class_labels": trainer.class_labels
                                          },
                                          "ground_truth": {
-                                             "mask_data": trainer.og_labels_int[:, :, 99],
+                                             "mask_data": og_labels_int[:, :, 99],
                                              "class_labels": trainer.class_labels
                                          }
                                      }),
