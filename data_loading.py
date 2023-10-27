@@ -118,6 +118,7 @@ class DataProcessor:
             image_data = np.array(nib.load(path).get_fdata())
             label_data = np.empty((0, 0, 0)) if is_contrastive_dataset else \
                 np.array(nib.load(path.replace('image', 'label')).get_fdata())
+            print(image_data.shape, label_data.shape)
             if idx == 0:
                 original_image_data, original_label_data = image_data, label_data
             if not is_contrastive_dataset and "1010" in path:
