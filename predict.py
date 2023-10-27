@@ -4,10 +4,13 @@ from model import UNet
 from data_loading import DataProcessor
 import numpy as np
 from config import parse_args
+from torch.utils.data import DataLoader
+from data_loading import MMWHSDataset
 
 
 class Predictor:
-    def __init__(self, model_name, image_path, patch_size, output_mask_name, mean, std_dev, image_type):
+    def __init__(self, model_name, image_path, patch_size, output_mask_name, mean, std_dev, image_type, batch_size,
+                 folder_path):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model_name = model_name
         self.image_path = image_path
@@ -16,6 +19,8 @@ class Predictor:
         self.mean = mean
         self.std_dev = std_dev
         self.image_type = image_type
+        self.batch_size = batch_size
+        self.folder_path = folder_path
 
     def predict(self):
         # Load model
@@ -25,20 +30,11 @@ class Predictor:
         print(f"FINISHED LOAD MODEL")
 
         # Load and preprocess the input image
-        img_data, label_data, original_image_data, original_label_data = DataProcessor. \
-            get_training_data_from_system(folder_path=self.image_path, is_validation_dataset=True,
-                                          patch_size=self.patch_size, patches_filter=0, image_type=self.image_type)
-        img_data, label_data = np.concatenate(img_data, axis=0), np.concatenate(label_data, axis=0)
-        img_data, _, _ = DataProcessor.normalize_z_score_data(raw_data=img_data, is_validation_dataset=True,
-                                                              mean=self.mean, std_dev=self.std_dev)
-        label_data, _, _ = DataProcessor.preprocess_label_data(raw_data=label_data)
-        img_data = torch.from_numpy(img_data)
-        label_data = torch.from_numpy(label_data)
+        dataset = MMWHSDataset(patch_size=self.patch_size, is_test_dataset=False, image_type=self.image_type,
+                               is_validation_dataset=True, img_path_names=self.folder_path, patches_filter=0)
         print(f"FINISHED LOAD & PREPROCESS INPUT IMAGE")
 
         # Perform prediction
-        img_data = img_data.to(device=self.device, dtype=torch.float)
-        label_data = label_data.to(device=self.device, dtype=torch.long)
         model.to(device=self.device, dtype=torch.float)
         predicted_arrays_list = []
         true_positives = np.zeros(8)
@@ -47,32 +43,30 @@ class Predictor:
         true_negatives = np.zeros(8)
 
         # TODO: is dice in this file same when also training with padded batches?
+        predict_dataloader = DataLoader(dataset=dataset, batch_size=self.batch_size, shuffle=False)
         with torch.no_grad():
-            step_size = 14
-            for i in range(0, img_data.shape[0], step_size):
-                predicted_output = model(img_data[i:i + step_size])
+            for predict_batch_x, predict_batch_y in predict_dataloader:
+                predict_batch_x = predict_batch_x.to(device=self.device, dtype=torch.float)
+                predict_batch_y = predict_batch_y.to(device=self.device, dtype=torch.long)
+                predicted_output = model(predict_batch_x)
                 _, predicted = torch.max(predicted_output, dim=1)
                 predicted_arrays_list.append(predicted.cpu().numpy())
                 for class_idx in range(8):
                     true_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
-                                                                   torch.eq(label_data[i:i + step_size],
-                                                                            class_idx)).sum().item()
+                                                                   torch.eq(predict_batch_y, class_idx)).sum().item()
                     false_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
-                                                                    torch.ne(label_data[i:i + step_size],
-                                                                             class_idx)).sum().item()
+                                                                    torch.ne(predict_batch_y, class_idx)).sum().item()
                     false_negatives[class_idx] += torch.logical_and(torch.ne(predicted, class_idx),
-                                                                    torch.eq(label_data[i:i + step_size],
-                                                                             class_idx)).sum().item()
+                                                                    torch.eq(predict_batch_y, class_idx)).sum().item()
                     true_negatives[class_idx] += torch.logical_and(torch.ne(predicted, class_idx),
-                                                                   torch.ne(label_data[i:i + step_size],
-                                                                            class_idx)).sum().item()
+                                                                   torch.ne(predict_batch_y, class_idx)).sum().item()
 
         dice_score = (2 * true_positives) / (2 * true_positives + false_negatives + false_positives)
         dice_score_macro = np.mean(dice_score)
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
         prediction_mask = DataProcessor.undo_extract_patches_label_only(label_patches=combined_predicted_array,
                                                                         patch_size=self.patch_size,
-                                                                        original_label_data=original_label_data)
+                                                                        original_label_data=dataset.original_label_data)
         print(f"DICE SCORE MACRO: {dice_score_macro}")
         print(f"FINISHED PERFORM PREDICTION")
 
@@ -98,7 +92,7 @@ def main(args):
         image_type = "MRI"
     predictor = Predictor(model_name=args.model_name, image_path=args.image_path, patch_size=args.patch_size,
                           output_mask_name=args.output_mask_name, mean=args.mean, std_dev=args.std_dev,
-                          image_type=image_type)
+                          image_type=image_type, batch_size=args.batch_size, folder_path=args.folder_path)
     predictor.predict()
 
 
