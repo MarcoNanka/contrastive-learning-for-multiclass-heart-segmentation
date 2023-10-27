@@ -46,7 +46,6 @@ class Predictor:
         false_negatives = np.zeros(8)
         true_negatives = np.zeros(8)
 
-        # TODO: is dice in this file same when also training with padded batches?
         predict_dataloader = DataLoader(dataset=dataset, batch_size=self.batch_size, shuffle=False)
         with torch.no_grad():
             for predict_batch_x, predict_batch_y in predict_dataloader:

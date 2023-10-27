@@ -97,10 +97,6 @@ class DataProcessor:
             scale_factors = (new_shape[0] / image_data.shape[0], new_shape[1] / image_data.shape[1], new_shape[2] /
                              image_data.shape[2])
             zoomed_image_data = zoom(image_data, scale_factors, mode='nearest')
-            print(f"SHAPES BEFORE/AFTER ZOOM{image_data.shape, zoomed_image_data.shape}")
-            output_nifti = nib.Nifti1Image(zoomed_image_data, affine=np.eye(4))
-            nib.save(output_nifti, "TEST_ZOOM")
-            print(f"ZOOM SAVED")
             posterior_anterior_axis = new_shape[0] if image_type == "MRI" else new_shape[1]
 
             for i in range(0, posterior_anterior_axis, patch_size[2]):
