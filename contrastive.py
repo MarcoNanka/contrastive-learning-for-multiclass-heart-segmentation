@@ -135,15 +135,15 @@ def main(args):
     # DATA LOADING
     is_distance_adjusted = args.contrastive_type not in ["domain", "local"]
     image_type = "CT"
-    if "mr" in args.contrastive_folder_path:
+    if "mr" in args.folder_path:
         image_type = "MRI"
     if args.contrastive_type == "local":
-        contrastive_dataset = MMWHSLocalContrastiveDataset(folder_path=args.contrastive_folder_path,
+        contrastive_dataset = MMWHSLocalContrastiveDataset(folder_path=args.folder_path,
                                                            patch_size=args.patch_size,
                                                            removal_percentage=args.removal_percentage,
                                                            image_type=image_type)
     elif "domain" in args.contrastive_type:
-        contrastive_dataset = MMWHSDomainContrastiveDataset(folder_path=args.contrastive_folder_path,
+        contrastive_dataset = MMWHSDomainContrastiveDataset(folder_path=args.folder_path,
                                                             patch_size=args.patch_size,
                                                             image_type=image_type,
                                                             is_distance_adjusted=is_distance_adjusted)
@@ -166,7 +166,7 @@ def main(args):
             "image_type": image_type,
             "filter": args.removal_percentage,
             "model_name": args.model_name,
-            "folder_path": args.contrastive_folder_path
+            "folder_path": args.folder_path
         }
     )
 
