@@ -351,6 +351,7 @@ class MMWHSDomainContrastiveDataset(Dataset):
         # TODO: change
         num_of_partitions = 512 // self.patch_size[2] if self.image_type == "CT" else 256 // self.patch_size[2]
         number_of_imgs = img_data.shape[0] // num_of_partitions
+        print(num_of_partitions, number_of_imgs)
 
         for idx, _ in enumerate(img_data):
             torch.from_numpy(img_data[idx])
