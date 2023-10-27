@@ -95,7 +95,7 @@ def main(args):
         image_type = "MRI"
     predictor = Predictor(model_name=args.model_name, image_path=args.image_path, patch_size=args.patch_size,
                           output_mask_name=args.output_mask_name, mean=args.mean, std_dev=args.std_dev,
-                          image_type=image_type, batch_size=args.batch_size, folder_path=args.folder_path)
+                          image_type=image_type, batch_size=args.batch_size, folder_path=args.image_path)
     predictor.predict()
 
 
