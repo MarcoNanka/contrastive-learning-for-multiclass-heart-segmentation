@@ -6,6 +6,8 @@ import numpy as np
 from config import parse_args
 from torch.utils.data import DataLoader
 from data_loading import MMWHSDataset
+import glob
+import os
 
 
 class Predictor:
@@ -30,8 +32,9 @@ class Predictor:
         print(f"FINISHED LOAD MODEL")
 
         # Load and preprocess the input image
+        image_path_names = sorted(glob.glob(os.path.join(self.folder_path, "*image.nii*")))
         dataset = MMWHSDataset(patch_size=self.patch_size, is_test_dataset=False, image_type=self.image_type,
-                               is_validation_dataset=True, img_path_names=self.folder_path, patches_filter=0)
+                               is_validation_dataset=True, img_path_names=image_path_names, patches_filter=0)
         print(f"FINISHED LOAD & PREPROCESS INPUT IMAGE")
 
         # Perform prediction
