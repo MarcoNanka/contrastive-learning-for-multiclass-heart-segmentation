@@ -34,7 +34,8 @@ class Predictor:
         # Load and preprocess the input image
         image_path_names = sorted(glob.glob(os.path.join(self.folder_path, "*image.nii*")))
         dataset = MMWHSDataset(patch_size=self.patch_size, is_test_dataset=False, image_type=self.image_type,
-                               is_validation_dataset=True, img_path_names=image_path_names, patches_filter=0)
+                               is_validation_dataset=True, img_path_names=image_path_names, patches_filter=0,
+                               mean=self.mean, std_dev=self.std_dev)
         print(f"FINISHED LOAD & PREPROCESS INPUT IMAGE")
 
         # Perform prediction
