@@ -98,6 +98,9 @@ class DataProcessor:
                              image_data.shape[2])
             zoomed_image_data = zoom(image_data, scale_factors, mode='nearest')
             print(f"SHAPES BEFORE/AFTER ZOOM{image_data.shape, zoomed_image_data.shape}")
+            output_nifti = nib.Nifti1Image(zoomed_image_data, affine=np.eye(4))
+            nib.save(output_nifti, "TEST_ZOOM")
+            print(f"ZOOM SAVED")
             posterior_anterior_axis = new_shape[0] if image_type == "MRI" else new_shape[1]
 
             for i in range(0, posterior_anterior_axis, patch_size[2]):
@@ -121,7 +124,6 @@ class DataProcessor:
             image_data = np.array(nib.load(path).get_fdata())
             label_data = np.empty((0, 0, 0)) if is_contrastive_dataset else \
                 np.array(nib.load(path.replace('image', 'label')).get_fdata())
-            print(image_data.shape, label_data.shape)
             if idx == 0:
                 original_image_data, original_label_data = image_data, label_data
             if not is_contrastive_dataset and "1010" in path:
