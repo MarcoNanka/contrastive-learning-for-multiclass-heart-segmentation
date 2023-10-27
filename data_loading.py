@@ -7,6 +7,7 @@ from numpy import ndarray
 from torch.utils.data import Dataset
 from typing import Tuple, Optional
 from monai.transforms import Compose, RandFlip, ToTensor, RandGaussianNoise, RandGaussianSmooth
+from scipy.ndimage import zoom
 
 
 class DataProcessor:
@@ -92,16 +93,18 @@ class DataProcessor:
         else:
             image_patches = []
             label_patches = []
-            posterior_anterior_axis = image_data.shape[0] if image_type == "MRI" else image_data.shape[1]
-            remainder = posterior_anterior_axis % patch_size[2]
+            new_shape = (512, 512, 176) if image_type == "CT" else (256, 256, 112)
+            scale_factors = (new_shape[0] / image_data.shape[0], new_shape[1] / image_data.shape[1], new_shape[2] /
+                             image_data.shape[2])
+            zoomed_image_data = zoom(image_data, scale_factors, mode='nearest')
+            print(f"SHAPES BEFORE/AFTER ZOOM{image_data.shape, zoomed_image_data.shape}")
+            posterior_anterior_axis = new_shape[0] if image_type == "MRI" else new_shape[1]
 
-            for i in range(remainder // 2, posterior_anterior_axis - (remainder + 1) // 2, patch_size[2]):
-                img_patch = (image_data[i:i + patch_size[2], :, :] if image_type == "MRI" and image_data.shape[1] == 512
-                             else image_data[:, i:i + patch_size[2], :])
+            for i in range(0, posterior_anterior_axis, patch_size[2]):
+                img_patch = (zoomed_image_data[i:i + patch_size[2], :, :] if image_type == "MRI"
+                             else zoomed_image_data[:, i:i + patch_size[2], :])
                 img_patch = np.expand_dims(img_patch, axis=0)
-                label_patch = np.empty((0, 0, 0))
                 image_patches.append(img_patch)
-                label_patches.append(label_patch)
 
         return np.array(image_patches), np.array(label_patches)
 
@@ -343,19 +346,10 @@ class MMWHSDomainContrastiveDataset(Dataset):
             get_training_data_from_system(folder_path=self.folder_path, is_validation_dataset=False,
                                           patch_size=self.patch_size, patches_filter=0, is_contrastive_dataset=True,
                                           image_type=self.image_type)
-        if self.image_type == "MRI":
-            target_val = 120
-            img_data = [arr for arr in img_data if (arr.shape[3] == 512 and arr.shape[4] >= target_val)]
-        else:
-            target_val = 230
-            img_data = [arr for arr in img_data if (arr.shape[4] >= target_val)]
-        for idx, arr in enumerate(img_data):
-            remove_from_start = (arr.shape[4] - target_val) // 2
-            remove_from_end = arr.shape[4] - target_val - remove_from_start
-            img_data[idx] = arr[:, :, :, :, remove_from_start:arr.shape[4] - remove_from_end]
         img_data = np.concatenate(img_data, axis=0)
         print(f"DOMAIN CONTRASTIVE --- distance-adjusted? {self.is_distance_adjusted}, shape of data: {img_data.shape}")
-        num_of_partitions = 512 // self.patch_size[2]
+        # TODO: change
+        num_of_partitions = 512 // self.patch_size[2] if self.image_type == "CT" else 256 // self.patch_size[2]
         number_of_imgs = img_data.shape[0] // num_of_partitions
 
         for idx, _ in enumerate(img_data):

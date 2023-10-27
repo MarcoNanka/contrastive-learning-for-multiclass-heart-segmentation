@@ -28,6 +28,7 @@ class Predictor:
         img_data, label_data, original_image_data, original_label_data = DataProcessor. \
             get_training_data_from_system(folder_path=self.image_path, is_validation_dataset=True,
                                           patch_size=self.patch_size, patches_filter=0, image_type=self.image_type)
+        img_data, label_data = np.concatenate(img_data, axis=0), np.concatenate(label_data, axis=0)
         img_data, _, _ = DataProcessor.normalize_z_score_data(raw_data=img_data, is_validation_dataset=True,
                                                               mean=self.mean, std_dev=self.std_dev)
         label_data, _, _ = DataProcessor.preprocess_label_data(raw_data=label_data)
@@ -45,6 +46,7 @@ class Predictor:
         false_negatives = np.zeros(8)
         true_negatives = np.zeros(8)
 
+        # TODO: is dice in this file same when also training with padded batches?
         with torch.no_grad():
             step_size = 14
             for i in range(0, img_data.shape[0], step_size):
