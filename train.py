@@ -228,7 +228,8 @@ def main(args):
             "training type": "BASELINE",
             "image_type": image_type,
             "model_name": args.model_name,
-            "folder_path": args.folder_path
+            "folder_path": args.folder_path,
+            "training_dataset_size": args.training_dataset_size
         }
     )
 
