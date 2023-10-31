@@ -48,7 +48,6 @@ class Trainer:
                                                                 np.ndarray, np.ndarray]:
         if best_model_state is not None:
             self.model.load_state_dict(best_model_state)
-            print("Best model state is loaded")
         self.model.eval()
 
         val_dataloader = DataLoader(dataset=dataset, batch_size=self.batch_size, shuffle=False)
@@ -198,8 +197,6 @@ def main(args):
     validation_image_path_names = random.sample(image_path_names, 2)
     training_image_path_names = random.sample([item for item in image_path_names if item not in
                                                validation_image_path_names], args.training_dataset_size)
-    print(f"validation image path names: {' '.join(validation_image_path_names)}")
-    print(f"training image path names: {' '.join(training_image_path_names)}")
     dataset = MMWHSDataset(img_path_names=training_image_path_names, is_validation_dataset=False, is_test_dataset=False,
                            patches_filter=args.patches_filter, patch_size=args.patch_size, image_type=image_type)
     validation_dataset = MMWHSDataset(img_path_names=validation_image_path_names, is_validation_dataset=True,
