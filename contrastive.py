@@ -154,7 +154,7 @@ def main(args):
     wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
     wandb.init(
         entity="marco-n",
-        project="local-contrastive-learning",
+        project="contrastive-learning-for-multiclass-heart-segmentation",
         config={
             "num_epochs": args.num_epochs,
             "batch_size": args.batch_size,
