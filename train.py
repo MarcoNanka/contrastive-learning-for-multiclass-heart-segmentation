@@ -98,8 +98,7 @@ class Trainer:
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
         prediction_mask = DataProcessor.\
             undo_extract_patches_label_only(label_patches=combined_predicted_array,
-                                            patch_size=self.patch_size,
-                                            original_label_data=self.validation_dataset.original_label_data)
+                                            patch_size=self.patch_size, original_label_data=dataset.original_label_data)
 
         return true_positives, average_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
             accuracy, precision, recall, dice_score, prediction_mask
