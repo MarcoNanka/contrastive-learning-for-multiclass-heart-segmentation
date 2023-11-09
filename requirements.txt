@@ -4,3 +4,4 @@ nibabel~=5.1.0
 wandb~=0.15.8
 monai~=1.2.0
 scipy~=1.11.3
+matplotlib~=3.7.1
