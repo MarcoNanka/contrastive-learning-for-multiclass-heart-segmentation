@@ -2,7 +2,7 @@ import os
 from monai.transforms import Compose, RandFlip, RandGaussianNoise, RandGaussianSmooth, ToTensor
 from torchvision import transforms
 from torchvision.transforms import GaussianBlur, RandomVerticalFlip, RandomHorizontalFlip, RandomPerspective, \
-    RandomGrayscale
+    RandomGrayscale, ColorJitter, RandomAffine, RandomErasing
 from PIL import Image
 import numpy as np
 import torch
@@ -13,25 +13,23 @@ def apply_transform(input_file, output_dir, input_path):
     print(input_file.shape)
 
     transform = transforms.Compose([
-        RandomHorizontalFlip(),
-        RandomVerticalFlip(),
-        RandomPerspective(),
-        GaussianBlur(kernel_size=3),
-        RandomGrayscale()
+        RandomHorizontalFlip(p=1),
+        RandomVerticalFlip(p=1),
+        ColorJitter(),
+        RandomErasing()
     ])
 
-    transformed_image = transform(transform(transform(input_file)))
+    transformed_image = transform(input_file)
     print(transformed_image.shape)
 
     transformed_image_np = transformed_image.numpy()
     print(transformed_image_np.shape)
 
     output_image = Image.fromarray(transformed_image_np, 'RGB')
-
     rand_int = random.randint(0, 99)
-
     output_file = os.path.join(output_dir, os.path.basename(input_path))
-    output_file_with_rand = f"{output_file}_{rand_int}"
+    file_name, file_extension = os.path.splitext(output_file)
+    output_file_with_rand = f"{file_name}_{rand_int}{file_extension}"
     output_image.save(output_file_with_rand)
 
 
