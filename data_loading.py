@@ -92,7 +92,7 @@ class DataProcessor:
         else:
             image_patches = []
             label_patches = []
-            new_shape = (512, 512, 176) if image_type == "CT" else (256, 256, 112)
+            new_shape = (256, 256, 112) if image_type == "MRI" else (512, 512, 176)
             scale_factors = (new_shape[0] / image_data.shape[0], new_shape[1] / image_data.shape[1], new_shape[2] /
                              image_data.shape[2])
             zoomed_image_data = zoom(image_data, scale_factors, mode='nearest')
@@ -345,7 +345,6 @@ class MMWHSDomainContrastiveDataset(Dataset):
                                           image_type=self.image_type)
         img_data = np.concatenate(img_data, axis=0)
         print(f"DOMAIN CONTRASTIVE --- distance-adjusted? {self.is_distance_adjusted}, shape of data: {img_data.shape}")
-        # TODO: change
         num_of_partitions = 512 // self.patch_size[2] if self.image_type == "CT" else 256 // self.patch_size[2]
         number_of_imgs = img_data.shape[0] // num_of_partitions
 
