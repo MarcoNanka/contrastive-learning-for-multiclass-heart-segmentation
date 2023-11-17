@@ -192,7 +192,6 @@ def main(args):
         image_type = "MRI"
 
     image_path_names = sorted(glob.glob(os.path.join(args.folder_path, "*image.nii*")))
-    test_image_path_names = sorted(glob.glob(os.path.join(args.folder_path, "*image.nii*")))
     validation_image_path_names = random.sample(image_path_names, 2)
     training_image_path_names = random.sample([item for item in image_path_names if item not in
                                                validation_image_path_names], args.training_dataset_size)
@@ -201,9 +200,6 @@ def main(args):
     validation_dataset = MMWHSDataset(img_path_names=validation_image_path_names, is_validation_dataset=True,
                                       patches_filter=args.patches_filter, mean=dataset.mean, std_dev=dataset.std_dev,
                                       patch_size=args.patch_size, image_type=image_type, is_test_dataset=False)
-    test_dataset = MMWHSDataset(img_path_names=test_image_path_names, is_validation_dataset=True,
-                                patches_filter=args.patches_filter, mean=dataset.mean, std_dev=dataset.std_dev,
-                                patch_size=args.patch_size, image_type=image_type, is_test_dataset=True)
 
     # SET UP WEIGHTS & BIASES
     wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
@@ -245,6 +241,10 @@ def main(args):
     best_model_state = trainer.train()
 
     # EVALUATE MODEL
+    test_image_path_names = sorted(glob.glob(os.path.join(args.folder_path, "*image.nii*")))
+    test_dataset = MMWHSDataset(img_path_names=test_image_path_names, is_validation_dataset=True,
+                                patches_filter=args.patches_filter, mean=dataset.mean, std_dev=dataset.std_dev,
+                                patch_size=args.patch_size, image_type=image_type, is_test_dataset=True)
     tp_test, _, _, _, _, dice_score_macro_test, _, _, _, dice_score_test, prediction_mask_test = \
         trainer.evaluate(dataset=test_dataset, best_model_state=best_model_state)
     og_labels_int, _, _ = DataProcessor.preprocess_label_data(test_dataset.original_label_data)
