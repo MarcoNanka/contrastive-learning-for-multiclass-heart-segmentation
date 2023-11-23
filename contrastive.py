@@ -8,6 +8,7 @@ from data_loading import MMWHSLocalContrastiveDataset, MMWHSDomainContrastiveDat
 from config import parse_args
 import os
 import random
+import glob
 
 os.environ['WANDB_CACHE_DIR'] = "$HOME/wandb_tmp"
 os.environ['WANDB_CONFIG_DIR'] = "$HOME/wandb_tmp"
@@ -132,23 +133,11 @@ class PreTrainer:
 
 
 def main(args):
-    # DATA LOADING
+    # SET REMAINING HYPERPARAMETERS
     is_distance_adjusted = args.contrastive_type not in ["domain", "local"]
     image_type = "CT"
     if "mr" in args.folder_path:
         image_type = "MRI"
-    if args.contrastive_type == "local":
-        contrastive_dataset = MMWHSLocalContrastiveDataset(folder_path=args.folder_path,
-                                                           patch_size=args.patch_size,
-                                                           removal_percentage=args.removal_percentage,
-                                                           image_type=image_type)
-    elif "domain" in args.contrastive_type:
-        contrastive_dataset = MMWHSDomainContrastiveDataset(folder_path=args.folder_path,
-                                                            patch_size=args.patch_size,
-                                                            image_type=image_type,
-                                                            is_distance_adjusted=is_distance_adjusted)
-    else:
-        raise ValueError(f"{args.contrastive_type} must be domain or local")
 
     # SET UP WEIGHTS & BIASES
     wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
@@ -170,24 +159,89 @@ def main(args):
         }
     )
 
-    # CONTRASTIVE LEARNING
-    if args.contrastive_type == "local" and os.path.isfile("pretrained_encoder/domain/" + args.encoder_file_name):
-        pretrained_encoder = torch.load("pretrained_encoder/domain/" + args.encoder_file_name)
-        encoder_weights, encoder_biases = pretrained_encoder['encoder_weights'], pretrained_encoder['encoder_biases']
-        print("Pre-trained encoder is LOADED")
+    # LOCAL STRATEGY
+    if args.contrastive_type == "local":
+        contrastive_dataset = MMWHSLocalContrastiveDataset(folder_path=args.folder_path,
+                                                           patch_size=args.patch_size,
+                                                           removal_percentage=args.removal_percentage,
+                                                           image_type=image_type)
+        if os.path.isfile("pretrained_encoder/domain/" + args.encoder_file_name):
+            pretrained_encoder = torch.load("pretrained_encoder/domain/" + args.encoder_file_name)
+            encoder_weights, encoder_biases = pretrained_encoder['encoder_weights'], pretrained_encoder[
+                'encoder_biases']
+            print("Pre-trained encoder is LOADED")
+        else:
+            encoder_weights, encoder_biases = None, None
+            print("Pre-trained encoder does NOT EXIST")
+        encoder = LocalEncoder(encoder_weights=encoder_weights, encoder_biases=encoder_biases)
+        pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset, num_epochs=args.num_epochs,
+                                 batch_size=args.batch_size, learning_rate=args.learning_rate,
+                                 patch_size=args.patch_size,
+                                 training_shuffle=args.training_shuffle, patience=args.patience,
+                                 contrastive_type=args.contrastive_type, is_distance_adjusted=is_distance_adjusted,
+                                 temperature=args.temperature)
+        encoder_weights, encoder_biases = pre_trainer.pre_train()
+        save_path = f"pretrained_encoder/local/{args.model_name}"
+        torch.save({'encoder_weights': encoder_weights, 'encoder_biases': encoder_biases}, save_path)
+
+    # DOMAIN STRATEGIES
+    elif "domain" in args.contrastive_type:
+        img_path_names = sorted(glob.glob(os.path.join(args.folder_path, "*image.nii*")))
+        if image_type == "CT":
+            contrastive_dataset = MMWHSDomainContrastiveDataset(img_path_names=img_path_names,
+                                                                patch_size=args.patch_size,
+                                                                image_type=image_type,
+                                                                is_distance_adjusted=is_distance_adjusted)
+            encoder = DomainEncoder()
+            pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset,
+                                     num_epochs=args.num_epochs,
+                                     batch_size=args.batch_size, learning_rate=args.learning_rate,
+                                     patch_size=args.patch_size,
+                                     training_shuffle=args.training_shuffle, patience=args.patience,
+                                     contrastive_type=args.contrastive_type, is_distance_adjusted=is_distance_adjusted,
+                                     temperature=args.temperature)
+            encoder_weights, encoder_biases = pre_trainer.pre_train()
+            save_path = f"pretrained_encoder/domain/{args.model_name}"
+            torch.save({'encoder_weights': encoder_weights, 'encoder_biases': encoder_biases}, save_path)
+        else:
+            substrings_mri = ["1001", "1002", "1009"]
+            names_mri1 = [path for path in img_path_names if any(substring in path for substring in substrings_mri)]
+            names_mri2 = [path for path in img_path_names if all(substring not in path for substring in substrings_mri)]
+            print(f"MRI SETS: {names_mri1, names_mri2}")
+
+            # FIRST SET OF SIMILAR MRI IMAGES
+            print(f"CONTRASTIVE-DA PRE-TRAINING WITH FIRST MRI SET: {names_mri1}")
+            contrastive_dataset = MMWHSDomainContrastiveDataset(img_path_names=names_mri1, patch_size=args.patch_size,
+                                                                image_type=image_type,
+                                                                is_distance_adjusted=is_distance_adjusted)
+            encoder = DomainEncoder()
+            pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset,
+                                     num_epochs=args.num_epochs, batch_size=args.batch_size,
+                                     learning_rate=args.learning_rate, patch_size=args.patch_size,
+                                     training_shuffle=args.training_shuffle, patience=args.patience,
+                                     contrastive_type=args.contrastive_type, is_distance_adjusted=is_distance_adjusted,
+                                     temperature=args.temperature)
+            encoder_weights, encoder_biases = pre_trainer.pre_train()
+
+            # SECOND SET OF SIMILAR MRI IMAGES
+            print(f"CONTRASTIVE-DA PRE-TRAINING WITH FIRST MRI SET: {names_mri2}")
+            contrastive_dataset = MMWHSDomainContrastiveDataset(img_path_names=names_mri2, patch_size=args.patch_size,
+                                                                image_type=image_type,
+                                                                is_distance_adjusted=is_distance_adjusted)
+            encoder = DomainEncoder(encoder_weights=encoder_weights, encoder_biases=encoder_biases)
+            pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset,
+                                     num_epochs=args.num_epochs,
+                                     batch_size=args.batch_size, learning_rate=args.learning_rate,
+                                     patch_size=args.patch_size,
+                                     training_shuffle=args.training_shuffle, patience=args.patience,
+                                     contrastive_type=args.contrastive_type, is_distance_adjusted=is_distance_adjusted,
+                                     temperature=args.temperature)
+            encoder_weights, encoder_biases = pre_trainer.pre_train()
+            save_path = f"pretrained_encoder/domain/{args.model_name}"
+            torch.save({'encoder_weights': encoder_weights, 'encoder_biases': encoder_biases}, save_path)
+
     else:
-        encoder_weights, encoder_biases = None, None
-        print("Pre-trained encoder does NOT EXIST")
-    encoder = LocalEncoder(encoder_weights=encoder_weights, encoder_biases=encoder_biases) if \
-        args.contrastive_type == "local" else DomainEncoder()
-    pre_trainer = PreTrainer(encoder=encoder, contrastive_dataset=contrastive_dataset, num_epochs=args.num_epochs,
-                             batch_size=args.batch_size, learning_rate=args.learning_rate, patch_size=args.patch_size,
-                             training_shuffle=args.training_shuffle, patience=args.patience,
-                             contrastive_type=args.contrastive_type, is_distance_adjusted=is_distance_adjusted,
-                             temperature=args.temperature)
-    encoder_weights, encoder_biases = pre_trainer.pre_train()
-    save_path = f"pretrained_encoder/{'local' if args.contrastive_type == 'local' else 'domain'}/{args.model_name}"
-    torch.save({'encoder_weights': encoder_weights, 'encoder_biases': encoder_biases}, save_path)
+        raise ValueError(f"{args.contrastive_type} must be domain or local")
 
 
 if __name__ == "__main__":

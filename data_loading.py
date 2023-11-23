@@ -278,11 +278,11 @@ class MMWHSDomainContrastiveDataset(Dataset):
         Custom PyTorch Dataset for loading MM-WHS domain-specific contrastive learning dataset.
     """
 
-    def __init__(self, folder_path: str, patch_size: Tuple[int, int, int], image_type: str, is_distance_adjusted: bool):
+    def __init__(self, img_path_names: list, patch_size: Tuple[int, int, int], image_type: str, is_distance_adjusted: bool):
         """
             Initialize the MMWHSDataset for contrastive learning.
             """
-        self.folder_path = folder_path
+        self.img_path_names = img_path_names
         self.patch_size = patch_size
         self.image_type = image_type
         self.is_distance_adjusted = is_distance_adjusted
@@ -340,9 +340,9 @@ class MMWHSDomainContrastiveDataset(Dataset):
         Load and preprocess the dataset.
         """
         img_data, _, original_image_data, _ = DataProcessor. \
-            get_training_data_from_system(folder_path=self.folder_path, is_validation_dataset=False,
-                                          patch_size=self.patch_size, patches_filter=0, is_contrastive_dataset=True,
-                                          image_type=self.image_type)
+            create_training_data_array(path_list=self.img_path_names, is_validation_dataset=False,
+                                       patch_size=self.patch_size, patches_filter=0, is_contrastive_dataset=True,
+                                       image_type=self.image_type)
         img_data = np.concatenate(img_data, axis=0)
         print(f"DOMAIN CONTRASTIVE --- distance-adjusted? {self.is_distance_adjusted}, shape of data: {img_data.shape}")
         num_of_partitions = 512 // self.patch_size[2] if self.image_type == "CT" else 256 // self.patch_size[2]

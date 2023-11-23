@@ -107,7 +107,7 @@ class LocalEncoder(nn.Module):
 
 
 class DomainEncoder(nn.Module):
-    def __init__(self):
+    def __init__(self, encoder_weights: tuple = None, encoder_biases: tuple = None):
         super(DomainEncoder, self).__init__()
         self.encoder_conv1 = nn.Conv3d(in_channels=1, out_channels=16, kernel_size=3, padding=1)
         self.encoder_conv2 = nn.Conv3d(in_channels=16, out_channels=32, kernel_size=3, padding=1)
@@ -115,6 +115,12 @@ class DomainEncoder(nn.Module):
         self.encoder_conv4 = nn.Conv3d(in_channels=64, out_channels=128, kernel_size=3, padding=1)
         self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
         self.relu = nn.ReLU()
+
+        if encoder_weights is not None and encoder_biases is not None:
+            encoder_layers = [self.encoder_conv1, self.encoder_conv2, self.encoder_conv3, self.encoder_conv4]
+            for idx, (weights, biases) in enumerate(zip(encoder_weights, encoder_biases)):
+                encoder_layers[idx].weight = nn.Parameter(weights)
+                encoder_layers[idx].bias = nn.Parameter(biases)
 
     def forward(self, x):
         x1 = self.relu(self.encoder_conv1(x))  # 2, 16, 96, 96, 96
