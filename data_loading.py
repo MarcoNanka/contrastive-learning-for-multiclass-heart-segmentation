@@ -278,7 +278,8 @@ class MMWHSDomainContrastiveDataset(Dataset):
         Custom PyTorch Dataset for loading MM-WHS domain-specific contrastive learning dataset.
     """
 
-    def __init__(self, img_path_names: list, patch_size: Tuple[int, int, int], image_type: str, is_distance_adjusted: bool):
+    def __init__(self, img_path_names: list, patch_size: Tuple[int, int, int], image_type: str,
+                 is_distance_adjusted: bool):
         """
             Initialize the MMWHSDataset for contrastive learning.
             """
@@ -324,8 +325,10 @@ class MMWHSDomainContrastiveDataset(Dataset):
             positive_label = torch.tensor(1.0)
 
             negative_idx_position = torch.randint(0, self.num_of_partitions, (1,)).item()
+            print("FIND SLICE")
             while abs(negative_idx_position - idx_position) <= 25:
                 negative_idx_position = torch.randint(0, self.num_of_partitions, (1,)).item()
+            print("FOUND SLICE")
             negative_pair = self.transform(self.x[idx]), \
                 self.transform(self.x[negative_idx_position + self.num_of_partitions * rand_other_img_idx])
             negative_label = torch.tensor(0.0)
@@ -347,6 +350,8 @@ class MMWHSDomainContrastiveDataset(Dataset):
         print(f"DOMAIN CONTRASTIVE --- distance-adjusted? {self.is_distance_adjusted}, shape of data: {img_data.shape}")
         num_of_partitions = 512 // self.patch_size[2] if self.image_type == "CT" else 256 // self.patch_size[2]
         number_of_imgs = img_data.shape[0] // num_of_partitions
+        print(f"num_of_partitions: {num_of_partitions}")
+        print(f"number_of_imgs: {number_of_imgs}")
 
         for idx, _ in enumerate(img_data):
             torch.from_numpy(img_data[idx])
