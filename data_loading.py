@@ -346,6 +346,7 @@ class MMWHSDomainContrastiveDataset(Dataset):
                                        patch_size=self.patch_size, patches_filter=0, is_contrastive_dataset=True,
                                        image_type=self.image_type)
         img_data = np.concatenate(img_data, axis=0)
+        img_data, _, _ = DataProcessor.normalize_z_score_data(raw_data=img_data)
         print(f"DOMAIN CONTRASTIVE --- distance-adjusted? {self.is_distance_adjusted}, shape of data: {img_data.shape}")
         num_of_partitions = 512 // self.patch_size[2] if self.image_type == "CT" else 256 // self.patch_size[2]
         number_of_imgs = img_data.shape[0] // num_of_partitions
