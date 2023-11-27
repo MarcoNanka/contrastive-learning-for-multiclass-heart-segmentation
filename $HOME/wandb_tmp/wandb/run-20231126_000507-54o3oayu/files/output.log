@@ -1,0 +1,14 @@
+LOADS DATA
+path list: []
+Traceback (most recent call last):
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/contrastive.py", line 249, in <module>
+    main(args)
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/contrastive.py", line 191, in main
+    contrastive_dataset = MMWHSDomainContrastiveDataset(img_path_names=img_path_names,
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/data_loading.py", line 299, in __init__
+    self.x, self.original_image_data, self.num_of_partitions, self.number_of_imgs = self.load_data()
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/data_loading.py", line 346, in load_data
+    img_data, _, original_image_data, _ = DataProcessor. \
+  File "/Users/marconanka/BioMedia/code/contrastive-learning/data_loading.py", line 137, in create_training_data_array
+    return patches_images, patches_labels, original_image_data, original_label_data
+UnboundLocalError: local variable 'original_image_data' referenced before assignment

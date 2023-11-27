@@ -1,0 +1,68 @@
+{
+    "_version": "v0",
+    "source_type": "repo",
+    "source": {
+        "git": {
+            "remote": "https://github.com/MarcoNanka/thesis.git",
+            "commit": "358777153ba5ac227f723a39e11757a812b82bc7"
+        },
+        "entrypoint": [
+            "python",
+            "contrastive.py"
+        ],
+        "notebook": false
+    },
+    "input_types": {
+        "wb_type": "typedDict",
+        "params": {
+            "type_map": {
+                "num_epochs": {
+                    "wb_type": "number"
+                },
+                "batch_size": {
+                    "wb_type": "number"
+                },
+                "learning_rate": {
+                    "wb_type": "number"
+                },
+                "patch_size": {
+                    "wb_type": "list",
+                    "params": {
+                        "element_type": {
+                            "wb_type": "number"
+                        },
+                        "length": 3
+                    }
+                },
+                "patience": {
+                    "wb_type": "number"
+                },
+                "training type": {
+                    "wb_type": "string"
+                },
+                "contrastive type": {
+                    "wb_type": "string"
+                },
+                "image_type": {
+                    "wb_type": "string"
+                },
+                "filter": {
+                    "wb_type": "none"
+                },
+                "model_name": {
+                    "wb_type": "string"
+                },
+                "folder_path": {
+                    "wb_type": "string"
+                }
+            }
+        }
+    },
+    "output_types": {
+        "wb_type": "typedDict",
+        "params": {
+            "type_map": {}
+        }
+    },
+    "runtime": "3.9.2"
+}

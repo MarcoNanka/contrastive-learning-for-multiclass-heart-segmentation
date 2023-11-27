@@ -1,0 +1,65 @@
+wandb_version: 1
+
+num_epochs:
+  desc: null
+  value: 500
+batch_size:
+  desc: null
+  value: 14
+learning_rate:
+  desc: null
+  value: 0.002
+patch_size:
+  desc: null
+  value:
+  - 0
+  - 0
+  - 8
+patience:
+  desc: null
+  value: 100
+training type:
+  desc: null
+  value: CONTRASTIVE
+contrastive type:
+  desc: null
+  value: domainda
+image_type:
+  desc: null
+  value: CT
+filter:
+  desc: null
+  value: null
+model_name:
+  desc: null
+  value: domain_da_adj0_norm_ct
+folder_path:
+  desc: null
+  value: ../data/entire_dataset_split_ts_tr/ct_pre/
+_wandb:
+  desc: null
+  value:
+    python_version: 3.9.2
+    cli_version: 0.15.8
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1700953507.031695
+    t:
+      1:
+      - 1
+      - 41
+      - 48
+      - 55
+      2:
+      - 1
+      - 41
+      - 48
+      - 55
+      3:
+      - 16
+      - 23
+      4: 3.9.2
+      5: 0.15.8
+      8:
+      - 5

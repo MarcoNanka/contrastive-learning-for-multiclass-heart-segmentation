@@ -221,7 +221,8 @@ def main(args):
             "image_type": image_type,
             "model_name": args.model_name,
             "folder_path": args.folder_path,
-            "training_dataset_size": args.training_dataset_size
+            "training_dataset_size": args.training_dataset_size,
+            "encoder_file_name": args.encoder_file_name
         }
     )
 
