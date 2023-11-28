@@ -155,7 +155,8 @@ def main(args):
             "image_type": image_type,
             "filter": args.removal_percentage,
             "model_name": args.model_name,
-            "folder_path": args.folder_path
+            "folder_path": args.folder_path,
+            "encoder_file_name": args.encoder_file_name
         }
     )
 
