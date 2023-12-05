@@ -65,8 +65,10 @@ class DataProcessor:
                     patch_index += 1
 
         print(f"PREDICTION MASKS CHECK --- Image data is same: {np.array_equal(image_data, original_image_data)}")
-        print(f"mean image data: {float(np.mean(image_data))} vs. mean original image data: "
-              f"{float(np.mean(original_image_data))}, SHAPES: {image_data.shape} vs {original_image_data.shape}")
+        print("NaN in image_data:", np.isnan(image_data).any())
+        print("NaN in original_image_data:", np.isnan(original_image_data).any())
+        print(f"mean image data: {float(np.mean(image_data))}, shape: {image_data.shape}")
+        print(f"mean image data: {float(np.mean(original_image_data))}, shape: {original_image_data.shape}")
         if val_batch_y_patches is not None:
             print(f"PREDICTION MASKS CHECK --- Batch image data is same: "
                   f"{np.array_equal(val_y_image_data, original_image_data)}")
