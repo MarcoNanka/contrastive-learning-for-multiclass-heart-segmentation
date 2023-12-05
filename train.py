@@ -45,7 +45,7 @@ class Trainer:
 
     def evaluate(self, dataset, batch_size, best_model_state=None) \
             -> Tuple[np.ndarray, float, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-                     np.ndarray,np.ndarray, np.ndarray]:
+                     np.ndarray, np.ndarray, np.ndarray]:
         if best_model_state is not None:
             self.model.load_state_dict(best_model_state)
         self.model.eval()
@@ -99,7 +99,7 @@ class Trainer:
 
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
         combined_val_batch_y_array = np.concatenate(val_batch_y_list_debugging, axis=0)
-        prediction_mask, _ = DataProcessor.\
+        prediction_mask, _ = DataProcessor. \
             undo_extract_patches_label_only(label_patches=combined_predicted_array, image_patches=dataset.x,
                                             patch_size=self.patch_size,
                                             original_image_data=dataset.original_image_data,
@@ -160,26 +160,26 @@ class Trainer:
                     "Best (baseline: dice, contrastive: loss)": best_dice_score,
                     "slice50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 49],
                                            masks={
-                                                    "predictions": {
-                                                        "mask_data": prediction_mask[:, :, 49],
-                                                        "class_labels": self.class_labels
-                                                    },
-                                                    "ground_truth": {
-                                                        "mask_data": og_labels_int[:, :, 49],
-                                                        "class_labels": self.class_labels
-                                                    }
-                                                }),
+                                               "predictions": {
+                                                   "mask_data": prediction_mask[:, :, 49],
+                                                   "class_labels": self.class_labels
+                                               },
+                                               "ground_truth": {
+                                                   "mask_data": og_labels_int[:, :, 49],
+                                                   "class_labels": self.class_labels
+                                               }
+                                           }),
                     "slice100": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 99],
                                             masks={
-                                                    "predictions": {
-                                                        "mask_data": prediction_mask[:, :, 99],
-                                                        "class_labels": self.class_labels
-                                                    },
-                                                    "ground_truth": {
-                                                        "mask_data": og_labels_int[:, :, 99],
-                                                        "class_labels": self.class_labels
-                                                    }
-                                                }),
+                                                "predictions": {
+                                                    "mask_data": prediction_mask[:, :, 99],
+                                                    "class_labels": self.class_labels
+                                                },
+                                                "ground_truth": {
+                                                    "mask_data": og_labels_int[:, :, 99],
+                                                    "class_labels": self.class_labels
+                                                }
+                                            }),
                 })
                 print(f'Dice score macro: {dice_score_macro}')
                 print(f'Dice score by class: {dice_score}')
@@ -201,11 +201,11 @@ def main(args):
     validation_image_path_names = random.sample(image_path_names, 2)
     training_image_path_names = random.sample([item for item in image_path_names if item not in
                                                validation_image_path_names], args.training_dataset_size)
-    dataset = MMWHSDataset(img_path_names=training_image_path_names, is_validation_dataset=False, is_test_dataset=False,
+    dataset = MMWHSDataset(img_path_names=training_image_path_names, is_validation_dataset=False,
                            patches_filter=args.patches_filter, patch_size=args.patch_size, image_type=image_type)
     validation_dataset = MMWHSDataset(img_path_names=validation_image_path_names, is_validation_dataset=True,
                                       patches_filter=args.patches_filter, mean=dataset.mean, std_dev=dataset.std_dev,
-                                      patch_size=args.patch_size, image_type=image_type, is_test_dataset=False)
+                                      patch_size=args.patch_size, image_type=image_type)
 
     # SET UP WEIGHTS & BIASES
     wandb.login(key="ef43996df858440ef6e65e9f7562a84ad0c407ea")
@@ -251,7 +251,7 @@ def main(args):
     test_image_path_names = sorted(glob.glob(os.path.join(args.folder_path, "*image.nii*")))
     test_dataset = MMWHSDataset(img_path_names=test_image_path_names, is_validation_dataset=True,
                                 patches_filter=args.patches_filter, mean=dataset.mean, std_dev=dataset.std_dev,
-                                patch_size=args.patch_size, image_type=image_type, is_test_dataset=True)
+                                patch_size=args.patch_size, image_type=image_type)
     tp_test, _, _, _, _, dice_score_macro_test, _, _, _, dice_score_test, prediction_mask_test = \
         trainer.evaluate(dataset=test_dataset, best_model_state=best_model_state, batch_size=1)
     og_labels_int, _, _ = DataProcessor.preprocess_label_data(test_dataset.original_label_data)
