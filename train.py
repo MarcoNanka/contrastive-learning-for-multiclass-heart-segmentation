@@ -43,14 +43,14 @@ class Trainer:
             7: "pulmonary artery"  # 850
         }
 
-    def evaluate(self, dataset, best_model_state=None) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray, np.ndarray,
-                                                                np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-                                                                np.ndarray, np.ndarray]:
+    def evaluate(self, dataset, batch_size, best_model_state=None) \
+            -> Tuple[np.ndarray, float, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+                     np.ndarray,np.ndarray, np.ndarray]:
         if best_model_state is not None:
             self.model.load_state_dict(best_model_state)
         self.model.eval()
 
-        val_dataloader = DataLoader(dataset=dataset, batch_size=self.batch_size, shuffle=False)
+        val_dataloader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False)
 
         val_criterion = nn.CrossEntropyLoss()
         total_loss = 0.0
@@ -137,7 +137,7 @@ class Trainer:
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
                 tp, validation_loss, _, _, _, dice_score_macro, _, _, _, dice_score, prediction_mask = \
-                    self.evaluate(self.validation_dataset)
+                    self.evaluate(dataset=self.validation_dataset, batch_size=self.batch_size)
                 if dice_score_macro > best_dice_score:
                     best_dice_score = dice_score_macro
                     best_model_state = self.model.state_dict()
@@ -247,7 +247,7 @@ def main(args):
                                 patches_filter=args.patches_filter, mean=dataset.mean, std_dev=dataset.std_dev,
                                 patch_size=args.patch_size, image_type=image_type, is_test_dataset=True)
     tp_test, _, _, _, _, dice_score_macro_test, _, _, _, dice_score_test, prediction_mask_test = \
-        trainer.evaluate(dataset=test_dataset, best_model_state=best_model_state)
+        trainer.evaluate(dataset=test_dataset, best_model_state=best_model_state, batch_size=1)
     og_labels_int, _, _ = DataProcessor.preprocess_label_data(test_dataset.original_label_data)
 
     print(f"---FINAL EVALUATION ON TEST SET--- (training is finished)")
