@@ -41,8 +41,8 @@ class DataProcessor:
         original_shape = original_label_data.shape
         label_data = np.zeros(original_shape, dtype=label_patches.dtype)
         image_data = np.zeros(original_shape, dtype=label_patches.dtype)
-        original_image_data = DataProcessor.normalize_z_score_data(is_validation_dataset=True, mean=dataset.mean,
-                                                                   std_dev=dataset.std_dev, raw_data=dataset.x)
+        original_image_data, _, _ = DataProcessor.normalize_z_score_data(is_validation_dataset=True, mean=dataset.mean,
+                                                                         std_dev=dataset.std_dev, raw_data=dataset.x)
         val_y_image_data = np.zeros(original_shape, dtype=label_patches.dtype)
         label_patches, image_patches = label_patches.squeeze(), image_patches.squeeze()
         if val_batch_y_patches is not None:
@@ -65,6 +65,8 @@ class DataProcessor:
                     patch_index += 1
 
         print(f"PREDICTION MASKS CHECK --- Image data is same: {np.array_equal(image_data, original_image_data)}")
+        print(f"mean image data: {float(np.mean(image_data))} vs. mean original image data: "
+              f"{float(np.mean(original_image_data))}, SHAPES: {image_data.shape} vs {original_image_data.shape}")
         if val_batch_y_patches is not None:
             print(f"PREDICTION MASKS CHECK --- Batch image data is same: "
                   f"{np.array_equal(val_y_image_data, original_image_data)}")
