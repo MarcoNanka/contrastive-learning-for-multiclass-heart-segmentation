@@ -43,7 +43,7 @@ class DataProcessor:
         image_data = np.zeros(original_shape, dtype=label_patches.dtype)
         original_image_data, _, _ = DataProcessor.normalize_z_score_data(is_validation_dataset=True, mean=dataset.mean,
                                                                          std_dev=dataset.std_dev,
-                                                                         raw_data=dataset.original_image_data.numpy())
+                                                                         raw_data=dataset.original_image_data)
         val_y_image_data = np.zeros(original_shape, dtype=label_patches.dtype)
         label_patches, image_patches = label_patches.squeeze(), image_patches.squeeze()
         if val_batch_y_patches is not None:
