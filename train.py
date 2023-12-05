@@ -242,7 +242,7 @@ def main(args):
     best_model_state = trainer.train()
 
     # EVALUATE MODEL
-    test_image_path_names = sorted(glob.glob(os.path.join(args.folder_path, "*image.nii*")))
+    test_image_path_names = sorted(glob.glob(os.path.join(args.test_folder_path, "*image.nii*")))
     test_dataset = MMWHSDataset(img_path_names=test_image_path_names, is_validation_dataset=True,
                                 patches_filter=args.patches_filter, mean=dataset.mean, std_dev=dataset.std_dev,
                                 patch_size=args.patch_size, image_type=image_type)
@@ -254,31 +254,36 @@ def main(args):
     print(f"True Positives Test Dataset: {tp_test}")
     print(f"Dice Scores Test Dataset: {dice_score_test}")
     print(f"Macro Dice Test Dataset: {dice_score_macro_test}")
-    wandb.log({
-        "Test Macro Dice": dice_score_macro_test,
-        "Test slice50": wandb.Image(data_or_path=test_dataset.original_image_data[:, :, 49],
-                                    masks={
-                                        "predictions": {
-                                            "mask_data": prediction_mask_test[:, :, 49],
-                                            "class_labels": trainer.class_labels
-                                        },
-                                        "ground_truth": {
-                                            "mask_data": og_labels_int[:, :, 49],
-                                            "class_labels": trainer.class_labels
-                                        }
-                                    }),
-        "Test slice100": wandb.Image(data_or_path=test_dataset.original_image_data[:, :, 99],
-                                     masks={
-                                         "predictions": {
-                                             "mask_data": prediction_mask_test[:, :, 99],
-                                             "class_labels": trainer.class_labels
-                                         },
-                                         "ground_truth": {
-                                             "mask_data": og_labels_int[:, :, 99],
-                                             "class_labels": trainer.class_labels
-                                         }
-                                     }),
-    })
+    if image_type == "MRI":
+        wandb.log({
+            "Test Macro Dice": dice_score_macro_test,
+            "Test slice135": wandb.Image(data_or_path=test_dataset.original_image_data[135, :, :],
+                                         masks={
+                                            "predictions": {
+                                                "mask_data": prediction_mask_test[135, :, :],
+                                                "class_labels": trainer.class_labels
+                                            },
+                                            "ground_truth": {
+                                                "mask_data": og_labels_int[135, :, :],
+                                                "class_labels": trainer.class_labels
+                                            }
+                                        }),
+        })
+    else:
+        wandb.log({
+            "Test Macro Dice": dice_score_macro_test,
+            "Test slice135": wandb.Image(data_or_path=test_dataset.original_image_data[:, 285, :],
+                                         masks={
+                                             "predictions": {
+                                                 "mask_data": prediction_mask_test[:, 285, :],
+                                                 "class_labels": trainer.class_labels
+                                             },
+                                             "ground_truth": {
+                                                 "mask_data": og_labels_int[:, 285, :],
+                                                 "class_labels": trainer.class_labels
+                                             }
+                                         }),
+        })
 
 
 if __name__ == "__main__":
