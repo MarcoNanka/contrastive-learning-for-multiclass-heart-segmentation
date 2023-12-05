@@ -32,7 +32,7 @@ class DataProcessor:
     @staticmethod
     def undo_extract_patches_label_only(image_patches: np.ndarray, label_patches: np.ndarray,
                                         patch_size: Tuple[int, int, int],
-                                        original_image_data: np.ndarray,
+                                        dataset,
                                         original_label_data: np.ndarray,
                                         val_batch_y_patches: np.ndarray = None) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -41,6 +41,8 @@ class DataProcessor:
         original_shape = original_label_data.shape
         label_data = np.zeros(original_shape, dtype=label_patches.dtype)
         image_data = np.zeros(original_shape, dtype=label_patches.dtype)
+        original_image_data = DataProcessor.normalize_z_score_data(is_validation_dataset=True, mean=dataset.mean,
+                                                                   std_dev=dataset.std_dev, raw_data=dataset.x)
         val_y_image_data = np.zeros(original_shape, dtype=label_patches.dtype)
         label_patches, image_patches = label_patches.squeeze(), image_patches.squeeze()
         if val_batch_y_patches is not None:

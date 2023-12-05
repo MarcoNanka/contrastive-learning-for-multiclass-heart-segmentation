@@ -68,7 +68,7 @@ class Predictor:
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
         prediction_mask = DataProcessor.undo_extract_patches_label_only(label_patches=combined_predicted_array,
                                                                         patch_size=self.patch_size,
-                                                                        original_image_data=dataset.original_image_data,
+                                                                        dataset=dataset,
                                                                         image_patches=dataset.x,
                                                                         original_label_data=dataset.original_label_data)
         print(f"DICE SCORE MACRO: {dice_score_macro}")

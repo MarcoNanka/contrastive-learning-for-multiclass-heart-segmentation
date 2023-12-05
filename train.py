@@ -102,7 +102,7 @@ class Trainer:
         prediction_mask, _ = DataProcessor. \
             undo_extract_patches_label_only(label_patches=combined_predicted_array, image_patches=dataset.x,
                                             patch_size=self.patch_size,
-                                            original_image_data=dataset.original_image_data,
+                                            dataset=dataset,
                                             original_label_data=dataset.original_label_data,
                                             val_batch_y_patches=combined_val_batch_y_array)
 
