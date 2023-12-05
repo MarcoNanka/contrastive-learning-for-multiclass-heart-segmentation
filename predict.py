@@ -11,11 +11,10 @@ import os
 
 
 class Predictor:
-    def __init__(self, model_name, image_path, patch_size, output_mask_name, mean, std_dev, image_type, batch_size,
+    def __init__(self, model_name, patch_size, output_mask_name, mean, std_dev, image_type, batch_size,
                  folder_path):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model_name = model_name
-        self.image_path = image_path
         self.output_mask_name = output_mask_name
         self.patch_size = patch_size
         self.mean = mean
@@ -93,7 +92,7 @@ def main(args):
     image_type = "CT"
     if "mr" in args.image_path:
         image_type = "MRI"
-    predictor = Predictor(model_name=args.model_name, image_path=args.image_path, patch_size=args.patch_size,
+    predictor = Predictor(model_name=args.model_name, patch_size=args.patch_size,
                           output_mask_name=args.output_mask_name, mean=args.mean, std_dev=args.std_dev,
                           image_type=image_type, batch_size=args.batch_size, folder_path=args.image_path)
     predictor.predict()
