@@ -73,7 +73,7 @@ class Trainer:
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
                 predicted_arrays_list.append(predicted.cpu().numpy())
-                val_batch_y_list_debugging.append(val_batch_y)
+                val_batch_y_list_debugging.append(val_batch_y.cpu().numpy())
 
                 for class_idx in range(num_classes):
                     true_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
