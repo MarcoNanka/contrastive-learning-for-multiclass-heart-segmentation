@@ -67,7 +67,8 @@ class DataProcessor:
 
         print(f"PREDICTION MASKS CHECK --- Image data is same: {np.array_equal(image_data, original_image_data)}")
         print(f"mean image data: {float(np.mean(image_data))}, shape: {image_data.shape}")
-        print(f"mean image data: {float(np.mean(original_image_data))}, shape: {original_image_data.shape}")
+        print(f"mean original image data: {float(np.mean(original_image_data))}, shape: {original_image_data.shape}")
+        print(f"mean original val data: {float(np.mean(val_y_image_data))}, shape: {val_y_image_data.shape}")
         if val_batch_y_patches is not None:
             print(f"PREDICTION MASKS CHECK --- Batch image data is same: "
                   f"{np.array_equal(val_y_image_data, original_image_data)}")
