@@ -62,7 +62,6 @@ class Trainer:
         true_negatives = np.zeros(num_classes)
 
         predicted_arrays_list = []
-        val_batch_y_list_debugging = []
 
         with torch.no_grad():
             for val_batch_x, val_batch_y in val_dataloader:
@@ -73,7 +72,6 @@ class Trainer:
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
                 predicted_arrays_list.append(predicted.cpu().numpy())
-                val_batch_y_list_debugging.append(val_batch_y.cpu().numpy())
 
                 for class_idx in range(num_classes):
                     true_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
@@ -98,13 +96,9 @@ class Trainer:
             dice_score_macro = np.mean(dice_score)
 
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
-        combined_val_batch_y_array = np.concatenate(val_batch_y_list_debugging, axis=0)
-        prediction_mask, _ = DataProcessor. \
-            undo_extract_patches_label_only(label_patches=combined_predicted_array, image_patches=dataset.x,
-                                            patch_size=self.patch_size,
-                                            dataset=dataset,
-                                            original_label_data=dataset.original_label_data,
-                                            val_batch_y_patches=combined_val_batch_y_array)
+        prediction_mask = DataProcessor.\
+            undo_extract_patches_label_only(label_patches=combined_predicted_array,
+                                            patch_size=self.patch_size, original_label_data=dataset.original_label_data)
 
         return true_positives, average_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
             accuracy, precision, recall, dice_score, prediction_mask
@@ -143,11 +137,11 @@ class Trainer:
 
             if (epoch + 1) % self.validation_interval == 0 and self.validation_dataset is not None:
                 tp, validation_loss, _, _, _, dice_score_macro, _, _, _, dice_score, prediction_mask = \
-                    self.evaluate(dataset=self.validation_dataset, batch_size=self.batch_size)
+                    self.evaluate(self.validation_dataset, batch_size=self.batch_size)
                 if dice_score_macro > best_dice_score:
                     best_dice_score = dice_score_macro
                     best_model_state = self.model.state_dict()
-                    no_improvement_counter = 0  # Reset the counter since there's an improvement
+                    no_improvement_counter = 0
                 else:
                     no_improvement_counter += 1
                 if no_improvement_counter > self.patience:
@@ -160,26 +154,26 @@ class Trainer:
                     "Best (baseline: dice, contrastive: loss)": best_dice_score,
                     "slice50": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 49],
                                            masks={
-                                               "predictions": {
-                                                   "mask_data": prediction_mask[:, :, 49],
-                                                   "class_labels": self.class_labels
-                                               },
-                                               "ground_truth": {
-                                                   "mask_data": og_labels_int[:, :, 49],
-                                                   "class_labels": self.class_labels
-                                               }
-                                           }),
+                                                    "predictions": {
+                                                        "mask_data": prediction_mask[:, :, 49],
+                                                        "class_labels": self.class_labels
+                                                    },
+                                                    "ground_truth": {
+                                                        "mask_data": og_labels_int[:, :, 49],
+                                                        "class_labels": self.class_labels
+                                                    }
+                                                }),
                     "slice100": wandb.Image(data_or_path=self.validation_dataset.original_image_data[:, :, 99],
                                             masks={
-                                                "predictions": {
-                                                    "mask_data": prediction_mask[:, :, 99],
-                                                    "class_labels": self.class_labels
-                                                },
-                                                "ground_truth": {
-                                                    "mask_data": og_labels_int[:, :, 99],
-                                                    "class_labels": self.class_labels
-                                                }
-                                            }),
+                                                    "predictions": {
+                                                        "mask_data": prediction_mask[:, :, 99],
+                                                        "class_labels": self.class_labels
+                                                    },
+                                                    "ground_truth": {
+                                                        "mask_data": og_labels_int[:, :, 99],
+                                                        "class_labels": self.class_labels
+                                                    }
+                                                }),
                 })
                 print(f'Dice score macro: {dice_score_macro}')
                 print(f'Dice score by class: {dice_score}')
