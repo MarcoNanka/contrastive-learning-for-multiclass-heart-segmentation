@@ -62,6 +62,7 @@ class Trainer:
         true_negatives = np.zeros(num_classes)
 
         predicted_arrays_list = []
+        val_batch_y_list_debugging = []
 
         with torch.no_grad():
             for val_batch_x, val_batch_y in val_dataloader:
@@ -72,6 +73,7 @@ class Trainer:
                 total_loss += val_loss.item()
                 _, predicted = torch.max(val_outputs, dim=1)
                 predicted_arrays_list.append(predicted.cpu().numpy())
+                val_batch_y_list_debugging.append(val_batch_y)
 
                 for class_idx in range(num_classes):
                     true_positives[class_idx] += torch.logical_and(torch.eq(predicted, class_idx),
@@ -96,9 +98,13 @@ class Trainer:
             dice_score_macro = np.mean(dice_score)
 
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
-        prediction_mask = DataProcessor.\
-            undo_extract_patches_label_only(label_patches=combined_predicted_array,
-                                            patch_size=self.patch_size, original_label_data=dataset.original_label_data)
+        combined_val_batch_y_array = np.concatenate(val_batch_y_list_debugging, axis=0)
+        prediction_mask, _ = DataProcessor.\
+            undo_extract_patches_label_only(label_patches=combined_predicted_array, image_patches=dataset.x,
+                                            patch_size=self.patch_size,
+                                            original_image_data=dataset.original_image_data,
+                                            original_label_data=dataset.original_label_data,
+                                            val_batch_y_patches=combined_val_batch_y_array)
 
         return true_positives, average_loss, accuracy_macro, precision_macro, recall_macro, dice_score_macro, \
             accuracy, precision, recall, dice_score, prediction_mask

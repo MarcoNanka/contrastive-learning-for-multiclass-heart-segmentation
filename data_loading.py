@@ -30,26 +30,44 @@ class DataProcessor:
         return normalized_data, mean, std_dev
 
     @staticmethod
-    def undo_extract_patches_label_only(label_patches: np.ndarray, patch_size: Tuple[int, int, int],
-                                        original_label_data: np.ndarray) -> np.ndarray:
+    def undo_extract_patches_label_only(image_patches: np.ndarray, label_patches: np.ndarray,
+                                        patch_size: Tuple[int, int, int],
+                                        original_image_data: np.ndarray,
+                                        original_label_data: np.ndarray,
+                                        val_batch_y_patches: np.ndarray = None) -> Tuple[np.ndarray, np.ndarray]:
         """
         Reconstruct the original label data from extracted label patches of the validation dataset.
         """
         original_shape = original_label_data.shape
         label_data = np.zeros(original_shape, dtype=label_patches.dtype)
+        image_data = np.zeros(original_shape, dtype=label_patches.dtype)
+        val_y_image_data = np.zeros(original_shape, dtype=label_patches.dtype)
+        label_patches, image_patches = label_patches.squeeze(), image_patches.squeeze()
+        if val_batch_y_patches is not None:
+            val_batch_y_patches = val_batch_y_patches.squeeze()
         patch_index = 0
 
         for x in range(0, original_shape[0], patch_size[0]):
             for y in range(0, original_shape[1], patch_size[1]):
                 for z in range(0, original_shape[2], patch_size[2]):
                     label_patch = label_patches[patch_index]
+                    image_patch = image_patches[patch_index]
                     x_end = min(x + patch_size[0], original_shape[0])
                     y_end = min(y + patch_size[1], original_shape[1])
                     z_end = min(z + patch_size[2], original_shape[2])
                     label_data[x:x_end, y:y_end, z:z_end] = label_patch[:x_end - x, :y_end - y, :z_end - z]
+                    image_data[x:x_end, y:y_end, z:z_end] = image_patch[:x_end - x, :y_end - y, :z_end - z]
+                    if val_batch_y_patches is not None:
+                        val_y_patch = val_batch_y_patches[patch_index]
+                        val_y_image_data[x:x_end, y:y_end, z:z_end] = val_y_patch[:x_end - x, :y_end - y, :z_end - z]
                     patch_index += 1
 
-        return label_data
+        print(f"PREDICTION MASKS CHECK --- Image data is same: {np.array_equal(image_data, original_image_data)}")
+        if val_batch_y_patches is not None:
+            print(f"PREDICTION MASKS CHECK --- Batch image data is same: "
+                  f"{np.array_equal(val_y_image_data, original_image_data)}")
+
+        return label_data, image_data
 
     @staticmethod
     def extract_patches(image_data: np.ndarray, label_data: np.ndarray, patch_size: Tuple[int, int, int],
@@ -159,7 +177,7 @@ class MMWHSDataset(Dataset):
     """
 
     def __init__(self, img_path_names: list, patch_size: Tuple[int, int, int], is_validation_dataset: bool,
-                 patches_filter: int, image_type: str, is_test_dataset: bool, mean: Optional[float] = None,
+                 patches_filter: int, image_type: str, mean: Optional[float] = None,
                  std_dev: Optional[float] = None) -> None:
         """
         Initialize the MMWHSDataset for supervised learning.
@@ -167,7 +185,6 @@ class MMWHSDataset(Dataset):
         self.img_path_names = img_path_names
         self.patch_size = patch_size
         self.is_validation_dataset = is_validation_dataset
-        self.is_test_dataset = is_test_dataset
         self.patches_filter = patches_filter
         self.image_type = image_type
         self.mean = mean

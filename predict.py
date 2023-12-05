@@ -32,7 +32,7 @@ class Predictor:
 
         # Load and preprocess the input image
         image_path_names = sorted(glob.glob(os.path.join(self.folder_path, "*image.nii*")))
-        dataset = MMWHSDataset(patch_size=self.patch_size, is_test_dataset=False, image_type=self.image_type,
+        dataset = MMWHSDataset(patch_size=self.patch_size, image_type=self.image_type,
                                is_validation_dataset=True, img_path_names=image_path_names, patches_filter=0,
                                mean=self.mean, std_dev=self.std_dev)
         print(f"FINISHED LOAD & PREPROCESS INPUT IMAGE")
@@ -68,6 +68,8 @@ class Predictor:
         combined_predicted_array = np.concatenate(predicted_arrays_list, axis=0)
         prediction_mask = DataProcessor.undo_extract_patches_label_only(label_patches=combined_predicted_array,
                                                                         patch_size=self.patch_size,
+                                                                        original_image_data=dataset.original_image_data,
+                                                                        image_patches=dataset.x,
                                                                         original_label_data=dataset.original_label_data)
         print(f"DICE SCORE MACRO: {dice_score_macro}")
         print(f"FINISHED PERFORM PREDICTION")
