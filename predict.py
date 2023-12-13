@@ -90,11 +90,11 @@ class Predictor:
 
 def main(args):
     image_type = "CT"
-    if "mr" in args.folder_path:
+    if "mr" in args.test_folder_path:
         image_type = "MRI"
     predictor = Predictor(model_name=args.model_name, patch_size=args.patch_size,
                           output_mask_name=args.output_mask_name, mean=args.mean, std_dev=args.std_dev,
-                          image_type=image_type, batch_size=args.batch_size, folder_path=args.folder_path)
+                          image_type=image_type, batch_size=args.batch_size, folder_path=args.test_folder_path)
     predictor.predict()
 
 
