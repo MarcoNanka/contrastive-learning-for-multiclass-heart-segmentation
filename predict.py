@@ -25,7 +25,7 @@ class Predictor:
 
     def predict(self):
         # Load model
-        model = UNet()
+        model = UNet(dim=0)
         model.load_state_dict(torch.load("trained_unet/" + self.model_name))
         model.eval()
         print(f"FINISHED LOAD MODEL")
