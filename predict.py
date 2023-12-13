@@ -12,7 +12,7 @@ import os
 
 class Predictor:
     def __init__(self, model_name, patch_size, output_mask_name, mean, std_dev, image_type, batch_size,
-                 folder_path):
+                 test_folder_path):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model_name = model_name
         self.output_mask_name = output_mask_name
@@ -21,7 +21,7 @@ class Predictor:
         self.std_dev = std_dev
         self.image_type = image_type
         self.batch_size = batch_size
-        self.folder_path = folder_path
+        self.test_folder_path = test_folder_path
 
     def predict(self):
         # Load model
@@ -31,7 +31,7 @@ class Predictor:
         print(f"FINISHED LOAD MODEL")
 
         # Load and preprocess the input image
-        image_path_names = sorted(glob.glob(os.path.join(self.folder_path, "*image.nii*")))
+        image_path_names = sorted(glob.glob(os.path.join(self.test_folder_path, "*image.nii*")))
         dataset = MMWHSDataset(patch_size=self.patch_size, image_type=self.image_type,
                                is_validation_dataset=True, img_path_names=image_path_names, patches_filter=0,
                                mean=self.mean, std_dev=self.std_dev)
@@ -94,7 +94,7 @@ def main(args):
         image_type = "MRI"
     predictor = Predictor(model_name=args.model_name, patch_size=args.patch_size,
                           output_mask_name=args.output_mask_name, mean=args.mean, std_dev=args.std_dev,
-                          image_type=image_type, batch_size=args.batch_size, folder_path=args.test_folder_path)
+                          image_type=image_type, batch_size=args.batch_size, test_folder_path=args.test_folder_path)
     predictor.predict()
 
 
