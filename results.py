@@ -25,4 +25,5 @@ global_threshold_mean = np.sum(results[1, :])/6
 random_mean = np.sum(results[0, :])/6
 not_random_mean = np.sum(results[1:, :])/24
 
-print(ct_1_mean, ct_2_mean, ct_8_mean)
+print(combined_mean, global_threshold_mean, global_domain_mean, random_mean, local_mean)
+print(combined_mean/global_domain_mean, combined_mean/local_mean)
